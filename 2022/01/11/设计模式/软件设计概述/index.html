@@ -1,0 +1,653 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>软件设计概述 | 二十</title><meta name="keywords" content="软件架构"><meta name="author" content="二十"><meta name="copyright" content="二十"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="软件设计">
+<meta property="og:type" content="article">
+<meta property="og:title" content="软件设计概述">
+<meta property="og:url" content="https://yinhuidong.github.io/2022/01/11/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E8%BD%AF%E4%BB%B6%E8%AE%BE%E8%AE%A1%E6%A6%82%E8%BF%B0/index.html">
+<meta property="og:site_name" content="二十">
+<meta property="og:description" content="软件设计">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yinhuidong.github.io/images/cover/dp.png">
+<meta property="article:published_time" content="2022-01-11T12:02:25.638Z">
+<meta property="article:modified_time" content="2022-01-11T12:12:42.852Z">
+<meta property="article:author" content="二十">
+<meta property="article:tag" content="软件架构">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://yinhuidong.github.io/images/cover/dp.png"><link rel="shortcut icon" href="/img/favicon.jpg"><link rel="canonical" href="https://yinhuidong.github.io/2022/01/11/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E8%BD%AF%E4%BB%B6%E8%AE%BE%E8%AE%A1%E6%A6%82%E8%BF%B0/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":800},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js',
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css'
+    },
+    fancybox: {
+      js: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isanchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '软件设计概述',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2022-01-11 20:12:42'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const fontSizeVal = saveToLocal.get('global-font-size')
+    if (fontSizeVal !== undefined) {
+      document.documentElement.style.setProperty('--global-font-size', fontSizeVal + 'px')
+    }
+    
+    const detectApple = () => {
+      if (GLOBAL_CONFIG_SITE.isHome && /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/custom.css"><meta name="referrer" content="no-referrer" /><meta name="generator" content="Hexo 5.4.0"></head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/head.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data"><div class="data-item is-center"><div class="data-item-link"><a href="/archives/"><div class="headline">文章</div><div class="length-num">89</div></a></div></div><div class="data-item is-center"><div class="data-item-link"><a href="/tags/"><div class="headline">标签</div><div class="length-num">9</div></a></div></div><div class="data-item is-center"><div class="data-item-link"><a href="/categories/"><div class="headline">分类</div><div class="length-num">9</div></a></div></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/%E5%85%B3%E4%BA%8E%E6%88%91/"><i class="fa-fw fas fa-user"></i><span> 关于我</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/images/cover/dp.png')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">二十</a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/%E5%85%B3%E4%BA%8E%E6%88%91/"><i class="fa-fw fas fa-user"></i><span> 关于我</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">软件设计概述</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-01-11T12:02:25.638Z" title="发表于 2022-01-11 20:02:25">2022-01-11</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2022-01-11T12:12:42.852Z" title="更新于 2022-01-11 20:12:42">2022-01-11</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E8%BD%AF%E4%BB%B6%E6%9E%B6%E6%9E%84/">软件架构</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">6.1k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>18分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="软件设计概述"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="一，软件设计概述"><a href="#一，软件设计概述" class="headerlink" title="一，软件设计概述"></a>一，软件设计概述</h1><h2 id="1-软件设计的概念"><a href="#1-软件设计的概念" class="headerlink" title="1.软件设计的概念"></a>1.软件设计的概念</h2><p>软件设计模式（或者说是设计模式），是一套被反复使用，多数人知晓的，经过系统整理的代码设计经验的总结。</p>
+<p>它描述了在软件设计过程中的一些不断重复发生的问题，以及该问题的解决方案。</p>
+<p>它是解决特定问题的一系列套路，是代码设计经验的总结，具有一定的普遍性，可以反复使用。</p>
+<p>其目的是为了提高代码的可重用性、代码的可读性和代码的可靠性。</p>
+<h2 id="2-学习设计模式的意义"><a href="#2-学习设计模式的意义" class="headerlink" title="2.学习设计模式的意义"></a>2.学习设计模式的意义</h2><p>设计模式的本质是面向对象设计原则的实际运用，是对类的封装性、继承性和多态性以及类的关联关系和组合关系的充分理解。</p>
+<ul>
+<li>可以提高程序员的思维能力、编程能力和设计能力。</li>
+<li>使程序设计更加标准化、代码编制更加工程化，使软件开发效率大大提高，从而缩短软件的开发周期。</li>
+<li>使设计的代码可重用性高、可读性强、可靠性高、灵活性好、可维护性强。</li>
+</ul>
+<p><strong>软件设计模式只是一个引导。在具体的软件幵发中，必须根据设计的应用系统的特点和要求来恰当选择。对于简单的程序开发，苛能写一个简单的算法要比引入某种设计模式更加容易。但对大项目的开发或者框架设计，用设计模式来组织代码显然更好。</strong></p>
+<h2 id="3-软件设计模式的基本要素"><a href="#3-软件设计模式的基本要素" class="headerlink" title="3.软件设计模式的基本要素"></a>3.软件设计模式的基本要素</h2><ul>
+<li>名称：可以根据模式的问题、特点、解决方案、功能和效果来命名。</li>
+<li>问题：描述了该模式的应用环境，即何时使用该模式。它解释了设计问题和问题存在的前因后果，以及必须满足的一系列先决条件。</li>
+<li>方案：包括设计的组成成分、它们之间的相互关系及各自的职责和协作方式。因为模式就像一个模板，可应用于多种不同场合，所以解决方案并不描述一个特定而具体的设计或实现，而是提供设计问题的抽象描述和怎样用一个具有一般意义的元素组合（类或对象的 组合）来解决这个问题。</li>
+<li>效果：模式的优缺点。主要是对时间和空间的衡量，以及该模式对系统的灵活性、扩充性、可移植性的影响，也考虑其实现问题。</li>
+</ul>
+<h1 id="二，设计模式的分类与功能"><a href="#二，设计模式的分类与功能" class="headerlink" title="二，设计模式的分类与功能"></a>二，设计模式的分类与功能</h1><h2 id="1-根据目的来分"><a href="#1-根据目的来分" class="headerlink" title="1.根据目的来分"></a>1.根据目的来分</h2><p><code>根据模式是用来完成什么工作来划分，这种方式可分为创建型模式、结构型模式和行为型模式 3 种。</code></p>
+<ul>
+<li>创建型模式：用于描述“怎样创建对象”，它的主要特点是“将对象的创建与使用分离”。GoF 中提供了<code>单例、原型、工厂方法、抽象工厂、建造者</code>等 5 种创建型模式。</li>
+<li>结构型模式：用于描述如何将类或对象按某种布局组成更大的结构，GoF 中提供了<code>代理、适配器、桥接、装饰、外观、享元、组合</code>等 7 种结构型模式。</li>
+<li>行为型模式：用于描述类或对象之间怎样相互协作共同完成单个对象都无法单独完成的任务，以及怎样分配职责。GoF 中提供了<code>模板方法、策略、命令、职责链、状态、观察者、中介者、迭代器、访问者、备忘录、解释器</code>等 11 种行为型模式。</li>
+</ul>
+<h2 id="2-根据作用范围来分"><a href="#2-根据作用范围来分" class="headerlink" title="2.根据作用范围来分"></a>2.根据作用范围来分</h2><p>根据模式是主要用于类上还是主要用于对象上来分，这种方式可分为类模式和对象模式两种。</p>
+<ul>
+<li>类模式：用于处理类与子类之间的关系，这些关系通过继承来建立，是静态的，在编译时刻便确定下来了。GoF中的工厂方法、（类）适配器、模板方法、解释器属于该模式。</li>
+<li>对象模式：用于处理对象之间的关系，这些关系可以通过组合或聚合来实现，在运行时刻是可以变化的，更具动态性。GoF 中除了以上 4 种，其他的都是对象模式。<table>
+<thead>
+<tr>
+<th>范围/目的</th>
+<th>创建型模式</th>
+<th>结构型模式</th>
+<th>行为型模式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>类模式</td>
+<td>工厂方法</td>
+<td>(类）适配器</td>
+<td>模板方法、解释器</td>
+</tr>
+<tr>
+<td>对象模式</td>
+<td>单例</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>原型</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>抽象工厂</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>建造者</td>
+<td>代理</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>(对象）适配器</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>桥接</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>装饰</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>外观</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>享元</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>组合</td>
+<td>策略</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>命令</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>职责链</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>状态</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>观察者</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>中介者</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>迭代器</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>访问者</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>备忘录</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody></table>
+</li>
+</ul>
+<h2 id="3-设计模式的功能"><a href="#3-设计模式的功能" class="headerlink" title="3.设计模式的功能"></a>3.设计模式的功能</h2><ol>
+<li>单例（Singleton）模式：某个类只能生成一个实例，该类提供了一个全局访问点供外部获取该实例，其拓展是有限多例模式。</li>
+<li>原型（Prototype）模式：将一个对象作为原型，通过对其进行复制而克隆出多个和原型类似的新实例。</li>
+<li>工厂方法（Factory Method）模式：定义一个用于创建产品的接口，由子类决定生产什么产品。</li>
+<li>抽象工厂（AbstractFactory）模式：提供一个创建产品族的接口，其每个子类可以生产一系列相关的产品。</li>
+<li>建造者（Builder）模式：将一个复杂对象分解成多个相对简单的部分，然后根据不同需要分别创建它们，最后构建成该复杂对象。</li>
+<li>代理（Proxy）模式：为某对象提供一种代理以控制对该对象的访问。即客户端通过代理间接地访问该对象，从而限制、增强或修改该对象的一些特性。</li>
+<li>适配器（Adapter）模式：将一个类的接口转换成客户希望的另外一个接口，使得原本由于接口不兼容而不能一起工作的那些类能一起工作。</li>
+<li>桥接（Bridge）模式：将抽象与实现分离，使它们可以独立变化。它是用组合关系代替继承关系来实现，从而降低了抽象和实现这两个可变维度的耦合度。</li>
+<li>装饰（Decorator）模式：动态的给对象增加一些职责，即增加其额外的功能。</li>
+<li>外观（Facade）模式：为多个复杂的子系统提供一个一致的接口，使这些子系统更加容易被访问。</li>
+<li>享元（Flyweight）模式：运用共享技术来有效地支持大量细粒度对象的复用。</li>
+<li>组合（Composite）模式：将对象组合成树状层次结构，使用户对单个对象和组合对象具有一致的访问性。</li>
+<li>模板方法（TemplateMethod）模式：定义一个操作中的算法骨架，而将算法的一些步骤延迟到子类中，使得子类可以不改变该算法结构的情况下重定义该算法的某些特定步骤。</li>
+<li>策略（Strategy）模式：定义了一系列算法，并将每个算法封装起来，使它们可以相互替换，且算法的改变不会影响使用算法的客户。</li>
+<li>命令（Command）模式：将一个请求封装为一个对象，使发出请求的责任和执行请求的责任分割开。</li>
+<li>职责链（Chain of Responsibility）模式：把请求从链中的一个对象传到下一个对象，直到请求被响应为止。通过这种方式去除对象之间的耦合。</li>
+<li>状态（State）模式：允许一个对象在其内部状态发生改变时改变其行为能力。</li>
+<li>观察者（Observer）模式：多个对象间存在一对多关系，当一个对象发生改变时，把这种改变通知给其他多个对象，从而影响其他对象的行为。</li>
+<li>中介者（Mediator）模式：定义一个中介对象来简化原有对象之间的交互关系，降低系统中对象间的耦合度，使原有对象之间不必相互了解。</li>
+<li>迭代器（Iterator）模式：提供一种方法来顺序访问聚合对象中的一系列数据，而不暴露聚合对象的内部表示。</li>
+<li>访问者（Visitor）模式：在不改变集合元素的前提下，为一个集合中的每个元素提供多种访问方式，即每个元素有多个访问者对象访问。</li>
+<li>备忘录（Memento）模式：在不破坏封装性的前提下，获取并保存一个对象的内部状态，以便以后恢复它。</li>
+<li>解释器（Interpreter）模式：提供如何定义语言的文法，以及对语言句子的解释方法，即解释器。</li>
+</ol>
+<h1 id="三，UML统一建模语言"><a href="#三，UML统一建模语言" class="headerlink" title="三，UML统一建模语言"></a>三，UML统一建模语言</h1><p>UML（Unified Modeling Language，统一建模语言）是用来设计软件蓝图的可视化建模语言，是一种为面向对象系统的产品进行说明、可视化和编制文档的标准语言，独立于任何一种具体的程序设计语言。</p>
+<p><code>它的特点是简单、统一、图形化、能表达软件设计中的动态与静态信息。</code></p>
+<h2 id="1-应用场景"><a href="#1-应用场景" class="headerlink" title="1.应用场景"></a>1.应用场景</h2><p>UML 能为软件开发的所有阶段提供模型化和可视化支持。而且融入了软件工程领域的新思想、新方法和新技术，使软件设计人员沟通更简明，进一步缩短了设计时间，减少开发成本。</p>
+<p>UML  具有很宽的应用领域。其中最常用的是建立软件系统的模型，但它同样可以用于描述非软件领域的系统，如机械系统、企业机构或业务过程，以及处理复杂数据的信息系统、具有实时要求的工业系统或工业过程等。总之，UML 可以对任何具有静态结构和动态行为的系统进行建模，而且使用于从需求规格描述直至系统完成后的测试和维护等系统开发的各个阶段。</p>
+<p>UML 模型大多以图表的方式表现出来，一份典型的建模图表通常包含几个块或框、连接线和作为模型附加信息的文本。这些虽简单却非常重要，在 UML 规则中相互联系和扩展。</p>
+<h2 id="2-基本构件"><a href="#2-基本构件" class="headerlink" title="2.基本构件"></a>2.基本构件</h2><p>UML 建模的核心是模型，模型是现实的简化、真实系统的抽象。UML  提供了系统的设计蓝图。当给软件系统建模时，需要采用通用的符号语言，这种描述模型所使用的语言被称为建模语言。在 UML  中，所有的描述由事物、关系和图这些构件组成。下图完整地描述了所有构件的关系。</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1621768064445-81efb21f-8b0f-4df2-b046-0b5c88af817c.png#height=389&id=u3703fafc&margin=%5Bobject%20Object%5D&name=1.png&originHeight=389&originWidth=615&originalType=binary&ratio=1&size=10994&status=done&style=none&width=615" alt="1.png"></p>
+<p>下面对具体构件进行说明。</p>
+<h2 id="3-事物"><a href="#3-事物" class="headerlink" title="3.事物"></a>3.事物</h2><p>事物是抽象化的最终结果，分为结构事物、行为事物、分组事物和注释事物。</p>
+<h3 id="1）结构事物"><a href="#1）结构事物" class="headerlink" title="1）结构事物"></a>1）结构事物</h3><p>结构事物是模型中的静态部分，用以呈现概念或实体的表现元素。</p>
+<table>
+<thead>
+<tr>
+<th>事物</th>
+<th>解释</th>
+<th>图例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>类（Class）</td>
+<td>具有相同属性、方法、关系和语义的对象集合</td>
+<td><img src="http://c.biancheng.net/uploads/allimg/200901/5-200Z1100S62Y.jpg#id=Wl7R3&originHeight=67&originWidth=80&originalType=binary&ratio=1&status=done&style=none"></td>
+</tr>
+<tr>
+<td>接口（Interface）</td>
+<td>指一个类或构件的一个服务的操作集合，它仅仅定义了一组操作的规范，并没有给出这组操作的具体实现</td>
+<td><img src="http://c.biancheng.net/uploads/allimg/200901/5-200Z1101120163.jpg#id=VbxGw&originHeight=53&originWidth=80&originalType=binary&ratio=1&status=done&style=none"></td>
+</tr>
+<tr>
+<td>用例（User Case）</td>
+<td>指对一组动作序列的描述，系统执行这些动作将产生一个对特定的参与者（Actor）有价值且可观察的结果</td>
+<td><img src="http://c.biancheng.net/uploads/allimg/200901/5-200Z1101355293.jpg#id=WA1SB&originHeight=65&originWidth=80&originalType=binary&ratio=1&status=done&style=none"></td>
+</tr>
+<tr>
+<td>协作（Collaboration）</td>
+<td>定义元素之间的相互作用</td>
+<td><img src="http://c.biancheng.net/uploads/allimg/200901/5-200Z1101541915.jpg#id=HP5VQ&originHeight=21&originWidth=80&originalType=binary&ratio=1&status=done&style=none"></td>
+</tr>
+<tr>
+<td>组件（Component）</td>
+<td>描述物理系统的一部分</td>
+<td><img src="http://c.biancheng.net/uploads/allimg/200901/5-200Z1102250437.jpg#id=olU93&originHeight=57&originWidth=80&originalType=binary&ratio=1&status=done&style=none"></td>
+</tr>
+<tr>
+<td>活动类（Active Class）</td>
+<td>指对象有一个或多个进程或线程。活动类和类很相象，只是它的对象代表的元素的行为和其他元素是同时存在的</td>
+<td><img src="http://c.biancheng.net/uploads/allimg/200901/5-200Z1104602M2.jpg#id=IVgZC&originHeight=56&originWidth=80&originalType=binary&ratio=1&status=done&style=none"></td>
+</tr>
+<tr>
+<td>节点（Node）</td>
+<td>定义为运行时存在的物理元素</td>
+<td><img src="http://c.biancheng.net/uploads/allimg/200901/5-200Z11046434W.jpg#id=gF1mh&originHeight=74&originWidth=80&originalType=binary&ratio=1&status=done&style=none"></td>
+</tr>
+</tbody></table>
+<h3 id="2）行为事物"><a href="#2）行为事物" class="headerlink" title="2）行为事物"></a>2）行为事物</h3><p>行为事物指 UML 模型中的动态部分。</p>
+<table>
+<thead>
+<tr>
+<th>事物</th>
+<th>解释</th>
+<th>用例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>交互（Interaction）</td>
+<td>包括一组元素之间的消息交换</td>
+<td><img src="http://c.biancheng.net/uploads/allimg/200901/5-200Z1105G5541.jpg#id=gYFSm&originHeight=20&originWidth=80&originalType=binary&ratio=1&status=done&style=none"></td>
+</tr>
+<tr>
+<td>状态机（State Machine）</td>
+<td>由一系列对象的状态组成</td>
+<td><img src="http://c.biancheng.net/uploads/allimg/200901/5-200Z1105K5108.jpg#id=a17vi&originHeight=57&originWidth=80&originalType=binary&ratio=1&status=done&style=none"></td>
+</tr>
+</tbody></table>
+<h3 id="3）分组事物"><a href="#3）分组事物" class="headerlink" title="3）分组事物"></a>3）分组事物</h3><p>目前只有一种分组事物，即包。包纯碎是概念上的，只存在于开发阶段，结构事物、行为事物甚至分组事物都有可能放在一个包中。</p>
+<table>
+<thead>
+<tr>
+<th>事物</th>
+<th>解释</th>
+<th>用例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>包（Package）</td>
+<td>UML中唯一的组织机制</td>
+<td><img src="http://c.biancheng.net/uploads/allimg/200901/5-200Z1105Z4P0.jpg#id=agt1q&originHeight=58&originWidth=80&originalType=binary&ratio=1&status=done&style=none"></td>
+</tr>
+</tbody></table>
+<h3 id="4）注释事物"><a href="#4）注释事物" class="headerlink" title="4）注释事物"></a>4）注释事物</h3><p>注释事物是解释 UML 模型元素的部分。</p>
+<table>
+<thead>
+<tr>
+<th>事物</th>
+<th>解释</th>
+<th>用例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>注释（Note）</td>
+<td>用于解析说明 UML 元素</td>
+<td><img src="http://c.biancheng.net/uploads/allimg/200901/5-200Z1110006149.jpg#id=G6SRv&originHeight=63&originWidth=80&originalType=binary&ratio=1&status=done&style=none"></td>
+</tr>
+</tbody></table>
+<h2 id="4-图"><a href="#4-图" class="headerlink" title="4.图"></a>4.图</h2><p>UML2.0 一共有 13 种图（UML1.5 定义了 9 种，UML2.0 增加了 4 种），分别是类图、对象图、构件图、部署图、活动图、状态图、用例图、时序图、协作图 9 种，以及包图、组合结构图、时间图、交互概览图 4 种。</p>
+<table>
+<thead>
+<tr>
+<th>图名称</th>
+<th>解释</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>类图（Class Diagrams）</td>
+<td>用于定义系统中的类</td>
+</tr>
+<tr>
+<td>对象图（Object Diagrams）</td>
+<td>类图的一个实例，描述了系统在具体时间点上所包含的对象及各个对象之间的关系</td>
+</tr>
+<tr>
+<td>构件图（Component Diagrams）</td>
+<td>一种特殊的 UML 图，描述系统的静态实现视图</td>
+</tr>
+<tr>
+<td>部署图（Deployment Diagrams）</td>
+<td>定义系统中软硬件的物理体系结构</td>
+</tr>
+<tr>
+<td>活动图（Activity Diagrams）</td>
+<td>用来描述满足用例要求所要进行的活动及活动间的约束关系</td>
+</tr>
+<tr>
+<td>状态图（State Chart Diagrams）</td>
+<td>用来描述类的对象的所有可能的状态和时间发生时，状态的转移条件</td>
+</tr>
+<tr>
+<td>用例图（Usecase Diagrams）</td>
+<td>用来描述用户的需求，从用户的角度描述系统的功能，并指出各功能的执行者，强调谁在使用系统、系统为执行者完成哪些功能</td>
+</tr>
+<tr>
+<td>时序图（Sequence Diagrams）</td>
+<td>描述对象之间的交互顺序，着重体现对象间消息传递的时间顺序，强调对象之间消息的发送顺序，同时显示对象之间的交互过程</td>
+</tr>
+<tr>
+<td>协作图（Collaboration Diagrams）</td>
+<td>描述对象之间的合作关系，更侧重向用户对象说明哪些对象有消息的传递</td>
+</tr>
+<tr>
+<td>包图（Package Diagrams）</td>
+<td>对构成系统的模型元素进行分组整理的图</td>
+</tr>
+<tr>
+<td>组合结构图（Composite Structure Diagrams）</td>
+<td>表示类或者构建内部结构的图</td>
+</tr>
+<tr>
+<td>时间图（Timing Diagrams）</td>
+<td>用来显示随时间变化，一个或多个元素的值或状态的更改，也显示时间控制事件之间的交互及管理它们的时间和期限约束</td>
+</tr>
+<tr>
+<td>交互概览图（Interaction Overview Diagrams）</td>
+<td>用活动图来表示多个交互之间的控制关系的图</td>
+</tr>
+</tbody></table>
+<h1 id="四，UML类图及类图之间的关系"><a href="#四，UML类图及类图之间的关系" class="headerlink" title="四，UML类图及类图之间的关系"></a>四，UML类图及类图之间的关系</h1><p>类图是一种模型类型，确切地说，是一种静态模型类型。类图表示类、接口和它们之间的协作关系，用于系统设计阶段。</p>
+<h2 id="1-类，接口，类图"><a href="#1-类，接口，类图" class="headerlink" title="1.类，接口，类图"></a>1.类，接口，类图</h2><h3 id="1）类"><a href="#1）类" class="headerlink" title="1）类"></a>1）类</h3><p>类（Class）是指具有相同属性、方法和关系的对象的抽象，它封装了数据和行为，是面向对象程序设计（OOP）的基础，具有封装性、继承性和多态性等三大特性。在 UML 中，类使用包含类名、属性和操作且带有分隔线的矩形来表示。</p>
+<p>(1) 类名（Name）是一个字符串，例如，Student。</p>
+<p>(2) 属性（Attribute）是指类的特性，即类的成员变量。UML 按以下格式表示：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[可见性]属性名:类型[=默认值]</span><br></pre></td></tr></table></figure>
+
+
+<p>例如：-name:String</p>
+<p>注意：“可见性”表示该属性对类外的元素是否可见，包括公有（Public）、私有（Private）、受保护（Protected）和朋友（Friendly）4 种，在类图中分别用符号+、-、#、~表示。</p>
+<p>(3) 操作（Operations）是类的任意一个实例对象都可以使用的行为，是类的成员方法。UML 按以下格式表示：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[可见性]名称(参数列表)[:返回类型]</span><br></pre></td></tr></table></figure>
+
+
+<p>例如：+display():void。</p>
+<p>如下所示是学生类的 UML 表示。</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1621768090573-786bf124-9fed-4b07-bf0c-901057080155.png#height=416&id=u912c692d&margin=%5Bobject%20Object%5D&name=2.png&originHeight=416&originWidth=631&originalType=binary&ratio=1&size=23214&status=done&style=none&width=631" alt="2.png"></p>
+<p>类图中，需注意以下几点：</p>
+<ul>
+<li>抽象类或抽象方法用斜体表示</li>
+<li>如果是接口，则在类名上方加 &lt;&gt;</li>
+<li>字段和方法返回值的数据类型非必需</li>
+<li>静态类或静态方法加下划线</li>
+</ul>
+<h3 id="2）接口"><a href="#2）接口" class="headerlink" title="2）接口"></a>2）接口</h3><p>接口（Interface）是一种特殊的类，它具有类的结构但不可被实例化，只可以被子类实现。它包含抽象操作，但不包含属性。它描述了类或组件对外可见的动作。在 UML 中，接口使用一个带有名称的小圆圈来进行表示。</p>
+<p>如下所示是图形类接口的 UML 表示。</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1621768107546-a434947e-b7e3-4444-a32a-d8ba143fb73e.png#height=310&id=ud979e78e&margin=%5Bobject%20Object%5D&name=3.png&originHeight=310&originWidth=457&originalType=binary&ratio=1&size=12780&status=done&style=none&width=457" alt="3.png"></p>
+<h3 id="3-类图"><a href="#3-类图" class="headerlink" title="3)类图"></a>3)类图</h3><p>类图（ClassDiagram）是用来显示系统中的类、接口、协作以及它们之间的静态结构和关系的一种静态模型。它主要用于描述软件系统的结构化设计，帮助人们简化对软件系统的理解，它是系统分析与设计阶段的重要产物，也是系统编码与测试的重要模型依据。</p>
+<p>类图中的类可以通过某种编程语言直接实现。类图在软件系统开发的整个生命周期都是有效的，它是面向对象系统的建模中最常见的图。如下所示是“计算长方形和圆形的周长与面积”的类图，图形接口有计算面积和周长的抽象方法，长方形和圆形实现这两个方法供访问类调用。</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1621768121600-6a98132e-8728-4e40-8465-58e64ed1a0ba.png#height=623&id=u43cbe9f2&margin=%5Bobject%20Object%5D&name=4.png&originHeight=623&originWidth=936&originalType=binary&ratio=1&size=41762&status=done&style=none&width=936" alt="4.png"></p>
+<p><code>计算长方形与圆形的周长与面积</code></p>
+<h2 id="2-类之间的关系"><a href="#2-类之间的关系" class="headerlink" title="2.类之间的关系"></a>2.类之间的关系</h2><p>UML 将事物之间的联系归纳为 6 种，并用对应的图形类表示。下面根据类与类之间的耦合度从弱到强排列。UML 中的类图有以下几种关系：依赖关系、关联关系、聚合关系、组合关系、泛化关系和实现关系。其中泛化和实现的耦合度相等，它们是最强的。</p>
+<h3 id="1）依赖关系"><a href="#1）依赖关系" class="headerlink" title="1）依赖关系"></a>1）依赖关系</h3><p>依赖（Dependency）关系是一种使用关系，它是对象之间耦合度最弱的一种关联方式，是临时性的关联。在代码中，某个类的方法通过局部变量、方法的参数或者对静态方法的调用来访问另一个类（被依赖类）中的某些方法来完成一些职责。</p>
+<p>在 UML 类图中，依赖关系使用带箭头的虚线来表示，箭头从使用类指向被依赖的类。如下是人与手机的关系图，人通过手机的语音传送方法打电话。</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1621768136147-df91ba4d-3b65-4b07-9af7-81dc8446a588.png#height=683&id=uc1398f83&margin=%5Bobject%20Object%5D&name=5.png&originHeight=683&originWidth=1074&originalType=binary&ratio=1&size=34707&status=done&style=none&width=1074" alt="5.png"></p>
+<p><code>依赖关系的实例</code></p>
+<h3 id="2）关联关系"><a href="#2）关联关系" class="headerlink" title="2）关联关系"></a>2）关联关系</h3><p>关联（Association）关系是对象之间的一种引用关系，用于表示一类对象与另一类对象之间的联系，如老师和学生、师傅和徒弟、丈夫和妻子等。关联关系是类与类之间最常用的一种关系，分为一般关联关系、聚合关系和组合关系。我们先介绍一般关联。</p>
+<p>关联可以是双向的，也可以是单向的。在 UML 类图中，双向的关联可以用带两个箭头或者没有箭头的实线来表示，单向的关联用带一个箭头的实线来表示，箭头从使用类指向被关联的类。也可以在关联线的两端标注角色名，代表两种不同的角色。</p>
+<p>在代码中通常将一个类的对象作为另一个类的成员变量来实现关联关系。如下是老师和学生的关系图，每个老师可以教多个学生，每个学生也可向多个老师学，他们是双向关联。</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1621768147079-9547c49f-6767-4394-bb2a-a0a40cd5ac13.png#height=307&id=u09415226&margin=%5Bobject%20Object%5D&name=6.png&originHeight=307&originWidth=932&originalType=binary&ratio=1&size=22591&status=done&style=none&width=932" alt="6.png"></p>
+<h3 id="3）聚合关系"><a href="#3）聚合关系" class="headerlink" title="3）聚合关系"></a>3）聚合关系</h3><p>聚合（Aggregation）关系是关联关系的一种，是强关联关系，是整体和部分之间的关系，是 has-a 的关系。</p>
+<p>聚合关系也是通过成员对象来实现的，其中成员对象是整体对象的一部分，但是成员对象可以脱离整体对象而独立存在。例如，学校与老师的关系，学校包含老师，但如果学校停办了，老师依然存在。</p>
+<p>在 UML 类图中，聚合关系可以用带空心菱形的实线来表示，菱形指向整体。如下是大学和教师的关系图。</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1621768157827-fe480564-9650-4070-8e83-b6b07e916c3c.png#height=282&id=u25a7b526&margin=%5Bobject%20Object%5D&name=7.png&originHeight=282&originWidth=865&originalType=binary&ratio=1&size=15598&status=done&style=none&width=865" alt="7.png"></p>
+<h3 id="4）组合关系"><a href="#4）组合关系" class="headerlink" title="4）组合关系"></a>4）组合关系</h3><p>组合（Composition）关系也是关联关系的一种，也表示类之间的整体与部分的关系，但它是一种更强烈的聚合关系，是 cxmtains-a 关系。</p>
+<p>在组合关系中，整体对象可以控制部分对象的生命周期，一旦整体对象不存在，部分对象也将不存在，部分对象不能脱离整体对象而存在。例如，头和嘴的关系，没有了头，嘴也就不存在了。</p>
+<p>在 UML 类图中，组合关系用带实心菱形的实线来表示，菱形指向整体。如下是头和嘴的关系图。</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1621768168546-cdd08093-562d-481a-9bf8-20d73ce44619.png#height=314&id=u2e08a170&margin=%5Bobject%20Object%5D&name=8.png&originHeight=314&originWidth=974&originalType=binary&ratio=1&size=14021&status=done&style=none&width=974" alt="8.png"></p>
+<h3 id="5）泛化关系"><a href="#5）泛化关系" class="headerlink" title="5）泛化关系"></a>5）泛化关系</h3><p>泛化（Generalization）关系是对象之间耦合度最大的一种关系，表示一般与特殊的关系，是父类与子类之间的关系，是一种继承关系，是 is-a 的关系。</p>
+<p>在 UML 类图中，泛化关系用带空心三角箭头的实线来表示，箭头从子类指向父类。在代码实现时，使用面向对象的继承机制来实现泛化关系。例如，Student 类和 Teacher 类都是 Person 类的子类，其类图如下所示。</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1621768178432-f1d3f843-39e6-48ba-8b0e-059ca18c26e0.png#height=568&id=uc1444405&margin=%5Bobject%20Object%5D&name=9.png&originHeight=568&originWidth=917&originalType=binary&ratio=1&size=31456&status=done&style=none&width=917" alt="9.png"></p>
+<h3 id="6）实现关系"><a href="#6）实现关系" class="headerlink" title="6）实现关系"></a>6）实现关系</h3><p>实现（Realization）关系是接口与实现类之间的关系。在这种关系中，类实现了接口，类中的操作实现了接口中所声明的所有的抽象操作。</p>
+<p>在 UML 类图中，实现关系使用带空心三角箭头的虚线来表示，箭头从实现类指向接口。例如，汽车和船实现了交通工具，其类图如下所示。</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1621768189391-71a19119-f3ff-4928-aecf-48eab383902b.png#height=482&id=u12ef2e70&margin=%5Bobject%20Object%5D&name=10.png&originHeight=482&originWidth=728&originalType=binary&ratio=1&size=23693&status=done&style=none&width=728" alt="10.png"></p>
+<h2 id="3-类关系记忆技巧"><a href="#3-类关系记忆技巧" class="headerlink" title="3.类关系记忆技巧"></a>3.类关系记忆技巧</h2><table>
+<thead>
+<tr>
+<th>分类</th>
+<th>箭头特征</th>
+<th>记忆技巧</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>箭头方向</td>
+<td>从子类指向父类</td>
+<td>定义子类需要通过 extends 关键字指定父类</td>
+</tr>
+<tr>
+<td>子类一定是知道父类定义的，但父类并不知道子类的定义</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>只有知道对方信息时才能指向对方</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>箭头的方向是从子类指向父类</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>继承/实现</td>
+<td>用线条连接两个类； 空心三角箭头表示继承或实现</td>
+<td>实现表示继承，是is-a的关系，表示扩展，不虚，很结实</td>
+</tr>
+<tr>
+<td>虚线表示实现，虚线代表“虚”无实体</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>关联/依赖</td>
+<td>用线条连接两个类； 普通箭头表示关联或依赖</td>
+<td>虚线表示依赖关系：临时用一下，若即若离，虚无缥缈，若有若无</td>
+</tr>
+<tr>
+<td>表示一种使用关系，一个类需要借助另一个类来实现功能</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>一般一个类将另一个类作为参数使用，或作为返回值</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>实线表示关联关系：关系稳定，实打实的关系</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>表示一个类对象和另一个类对象有关联</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>通常一个类中有另一个类对象作为属性</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>组合/聚合</td>
+<td>用菱形表示：像一个盛东西的器皿（如盘子）</td>
+<td>聚合：空心菱形，代表空器皿里可以放很多相同的东西，聚集在一起（箭头方向所指的类）</td>
+</tr>
+<tr>
+<td>整体和局部的关系，两者有独立的生命周期，是 has-a 的关系</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>弱关系，消极的词：弱-空</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>组合：实心菱形，代表器皿里已经有实体结构的存在，生死与共</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>整体与局部的关系，和聚合关系对比，关系更加强烈，两者具有相同的生命周期，contains-a 的关系</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>强关系，积极的词；强-满</td>
+<td></td>
+<td></td>
+</tr>
+</tbody></table>
+<p> |</p>
+<p><strong>UML 的标准类关系图中，没有实心箭头。有些 Java 编程的 IDE 自带类生成工具可能出现实心箭头，主要目的是降低理解难度。</strong></p>
+<p><code>下图是对动物衍生关系描述的类图。</code></p>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/jpeg/12610368/1621768201857-9b3627ea-c356-450b-a912-53a464119c64.jpeg#height=884&id=ucf9ef1d3&margin=%5Bobject%20Object%5D&name=11.jpg&originHeight=884&originWidth=1000&originalType=binary&ratio=1&size=95864&status=done&style=none&width=1000" alt="11.jpg"></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">二十</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://yinhuidong.github.io/2022/01/11/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E8%BD%AF%E4%BB%B6%E8%AE%BE%E8%AE%A1%E6%A6%82%E8%BF%B0/">https://yinhuidong.github.io/2022/01/11/设计模式/软件设计概述/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://yinhuidong.github.io" target="_blank">二十</a> 许可协议。转载请注明来自 <a href="https://yinhuidong.github.io" target="_blank">二十</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E8%BD%AF%E4%BB%B6%E6%9E%B6%E6%9E%84/">软件架构</a></div><div class="post_share"><div class="social-share" data-image="/images/cover/dp.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js" defer></script></div></div><div class="post-reward"><div class="reward-button button--animated"><i class="fas fa-qrcode"></i> 打赏</div><div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/img/wechat_pay.jpg" target="_blank"><img class="post-qr-code-img" src="/img/wechat_pay.jpg" alt="微信"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="/img/alipay.jpg" target="_blank"><img class="post-qr-code-img" src="/img/alipay.jpg" alt="支付宝"/></a><div class="post-qr-code-desc">支付宝</div></li></ul></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/2022/01/11/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E8%BD%AF%E4%BB%B6%E6%9E%B6%E6%9E%84%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%8E%9F%E5%88%99/"><img class="next-cover" src="/images/cover/dp.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">软件架构的基本原则</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2022/01/11/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E8%BD%AF%E4%BB%B6%E6%9E%B6%E6%9E%84%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%8E%9F%E5%88%99/" title="软件架构的基本原则"><img class="cover" src="/images/cover/dp.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-11</div><div class="title">软件架构的基本原则</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/head.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">二十</div><div class="author-info__description">欢迎来到二十的博客卷....</div></div><div class="card-info-data"><div class="card-info-data-item is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">89</div></a></div><div class="card-info-data-item is-center"><a href="/tags/"><div class="headline">标签</div><div class="length-num">9</div></a></div><div class="card-info-data-item is-center"><a href="/categories/"><div class="headline">分类</div><div class="length-num">9</div></a></div></div><a class="button--animated" id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/yinhuidong"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/yinhuidong" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="mailto:1972039773@qq.com" target="_blank" title="Email"><i class="fas fa-envelope"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn card-announcement-animation"></i><span>公告</span></div><div class="announcement_content">欢迎来到二十的个人博客，对本站的文章和技术问题有疑问和建议请联系作者：VX：yinhuidong666</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%80%EF%BC%8C%E8%BD%AF%E4%BB%B6%E8%AE%BE%E8%AE%A1%E6%A6%82%E8%BF%B0"><span class="toc-text">一，软件设计概述</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E8%BD%AF%E4%BB%B6%E8%AE%BE%E8%AE%A1%E7%9A%84%E6%A6%82%E5%BF%B5"><span class="toc-text">1.软件设计的概念</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E5%AD%A6%E4%B9%A0%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E7%9A%84%E6%84%8F%E4%B9%89"><span class="toc-text">2.学习设计模式的意义</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E8%BD%AF%E4%BB%B6%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E7%9A%84%E5%9F%BA%E6%9C%AC%E8%A6%81%E7%B4%A0"><span class="toc-text">3.软件设计模式的基本要素</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%8C%EF%BC%8C%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E7%9A%84%E5%88%86%E7%B1%BB%E4%B8%8E%E5%8A%9F%E8%83%BD"><span class="toc-text">二，设计模式的分类与功能</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E6%A0%B9%E6%8D%AE%E7%9B%AE%E7%9A%84%E6%9D%A5%E5%88%86"><span class="toc-text">1.根据目的来分</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E6%A0%B9%E6%8D%AE%E4%BD%9C%E7%94%A8%E8%8C%83%E5%9B%B4%E6%9D%A5%E5%88%86"><span class="toc-text">2.根据作用范围来分</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E7%9A%84%E5%8A%9F%E8%83%BD"><span class="toc-text">3.设计模式的功能</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%89%EF%BC%8CUML%E7%BB%9F%E4%B8%80%E5%BB%BA%E6%A8%A1%E8%AF%AD%E8%A8%80"><span class="toc-text">三，UML统一建模语言</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-text">1.应用场景</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E5%9F%BA%E6%9C%AC%E6%9E%84%E4%BB%B6"><span class="toc-text">2.基本构件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E4%BA%8B%E7%89%A9"><span class="toc-text">3.事物</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1%EF%BC%89%E7%BB%93%E6%9E%84%E4%BA%8B%E7%89%A9"><span class="toc-text">1）结构事物</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2%EF%BC%89%E8%A1%8C%E4%B8%BA%E4%BA%8B%E7%89%A9"><span class="toc-text">2）行为事物</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3%EF%BC%89%E5%88%86%E7%BB%84%E4%BA%8B%E7%89%A9"><span class="toc-text">3）分组事物</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4%EF%BC%89%E6%B3%A8%E9%87%8A%E4%BA%8B%E7%89%A9"><span class="toc-text">4）注释事物</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E5%9B%BE"><span class="toc-text">4.图</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%9B%9B%EF%BC%8CUML%E7%B1%BB%E5%9B%BE%E5%8F%8A%E7%B1%BB%E5%9B%BE%E4%B9%8B%E9%97%B4%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="toc-text">四，UML类图及类图之间的关系</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E7%B1%BB%EF%BC%8C%E6%8E%A5%E5%8F%A3%EF%BC%8C%E7%B1%BB%E5%9B%BE"><span class="toc-text">1.类，接口，类图</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1%EF%BC%89%E7%B1%BB"><span class="toc-text">1）类</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2%EF%BC%89%E6%8E%A5%E5%8F%A3"><span class="toc-text">2）接口</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E7%B1%BB%E5%9B%BE"><span class="toc-text">3)类图</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E7%B1%BB%E4%B9%8B%E9%97%B4%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="toc-text">2.类之间的关系</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1%EF%BC%89%E4%BE%9D%E8%B5%96%E5%85%B3%E7%B3%BB"><span class="toc-text">1）依赖关系</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2%EF%BC%89%E5%85%B3%E8%81%94%E5%85%B3%E7%B3%BB"><span class="toc-text">2）关联关系</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3%EF%BC%89%E8%81%9A%E5%90%88%E5%85%B3%E7%B3%BB"><span class="toc-text">3）聚合关系</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4%EF%BC%89%E7%BB%84%E5%90%88%E5%85%B3%E7%B3%BB"><span class="toc-text">4）组合关系</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5%EF%BC%89%E6%B3%9B%E5%8C%96%E5%85%B3%E7%B3%BB"><span class="toc-text">5）泛化关系</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6%EF%BC%89%E5%AE%9E%E7%8E%B0%E5%85%B3%E7%B3%BB"><span class="toc-text">6）实现关系</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E7%B1%BB%E5%85%B3%E7%B3%BB%E8%AE%B0%E5%BF%86%E6%8A%80%E5%B7%A7"><span class="toc-text">3.类关系记忆技巧</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2022/01/11/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E8%BD%AF%E4%BB%B6%E8%AE%BE%E8%AE%A1%E6%A6%82%E8%BF%B0/" title="软件设计概述"><img src="/images/cover/dp.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="软件设计概述"/></a><div class="content"><a class="title" href="/2022/01/11/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E8%BD%AF%E4%BB%B6%E8%AE%BE%E8%AE%A1%E6%A6%82%E8%BF%B0/" title="软件设计概述">软件设计概述</a><time datetime="2022-01-11T12:02:25.638Z" title="发表于 2022-01-11 20:02:25">2022-01-11</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/01/11/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E8%BD%AF%E4%BB%B6%E6%9E%B6%E6%9E%84%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%8E%9F%E5%88%99/" title="软件架构的基本原则"><img src="/images/cover/dp.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="软件架构的基本原则"/></a><div class="content"><a class="title" href="/2022/01/11/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E8%BD%AF%E4%BB%B6%E6%9E%B6%E6%9E%84%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%8E%9F%E5%88%99/" title="软件架构的基本原则">软件架构的基本原则</a><time datetime="2022-01-11T12:02:16.665Z" title="发表于 2022-01-11 20:02:16">2022-01-11</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/01/11/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E4%B8%89%E7%A7%8D%E7%B1%BB%E5%9E%8B%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E7%9A%84%E7%89%B9%E7%82%B9/" title="设计模式概览"><img src="/images/cover/dp.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="设计模式概览"/></a><div class="content"><a class="title" href="/2022/01/11/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E4%B8%89%E7%A7%8D%E7%B1%BB%E5%9E%8B%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E7%9A%84%E7%89%B9%E7%82%B9/" title="设计模式概览">设计模式概览</a><time datetime="2022-01-11T12:02:08.137Z" title="发表于 2022-01-11 20:02:08">2022-01-11</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/01/11/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E5%88%9B%E5%BB%BA%E5%9E%8B%E6%A8%A1%E5%BC%8F%E4%B9%8B%E5%8D%95%E4%BE%8B%E6%A8%A1%E5%BC%8F/" title="单例模式"><img src="/images/cover/dp.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="单例模式"/></a><div class="content"><a class="title" href="/2022/01/11/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E5%88%9B%E5%BB%BA%E5%9E%8B%E6%A8%A1%E5%BC%8F%E4%B9%8B%E5%8D%95%E4%BE%8B%E6%A8%A1%E5%BC%8F/" title="单例模式">单例模式</a><time datetime="2022-01-11T12:02:00.546Z" title="发表于 2022-01-11 20:02:00">2022-01-11</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/01/11/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E5%88%9B%E5%BB%BA%E5%9E%8B%E6%A8%A1%E5%BC%8F%E4%B9%8B%E5%8E%9F%E5%9E%8B%E6%A8%A1%E5%BC%8F/" title="原型模式"><img src="/images/cover/dp.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="原型模式"/></a><div class="content"><a class="title" href="/2022/01/11/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E5%88%9B%E5%BB%BA%E5%9E%8B%E6%A8%A1%E5%BC%8F%E4%B9%8B%E5%8E%9F%E5%9E%8B%E6%A8%A1%E5%BC%8F/" title="原型模式">原型模式</a><time datetime="2022-01-11T12:01:51.844Z" title="发表于 2022-01-11 20:01:51">2022-01-11</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('/images/cover/dp.png')"><div id="footer-wrap"><div class="copyright">&copy;2021 - 2022 By 二十</div><div class="footer_custom_text">骑摩托车去酒吧，该省省，该花花。</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="font-plus" type="button" title="放大字体"><i class="fas fa-plus"></i></button><button id="font-minus" type="button" title="缩小字体"><i class="fas fa-minus"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div id="local-search"><div class="search-dialog"><div class="search-dialog__title" id="local-search-title">本地搜索</div><div id="local-input-panel"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div></div><hr/><div id="local-search-results"></div><span class="search-close-button"><i class="fas fa-times"></i></span></div><div id="search-mask"></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/search/local-search.js"></script><div class="js-pjax"></div><script src="https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js"></script><script src="/js/chocolate.js"></script><script defer="defer" id="fluttering_ribbon" mobile="true" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/canvas-fluttering-ribbon.min.js"></script><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="true" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/canvas-nest.min.js"></script><script id="click-show-text" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/click-show-text.min.js" data-mobile="false" data-text="二十,二十二十,二十二十二十,二十二十二十二十,二十二十二十二十二十,二十二十二十二十二十二十,二十二十二十二十二十二十二十,二十二十二十二十二十二十二十二十,二十二十二十二十二十二十二十二十二十,二十二十二十二十二十二十二十二十二十二十" data-fontsize="15px" data-random="true" async="async"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

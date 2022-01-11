@@ -1,0 +1,379 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>软件架构的基本原则 | 二十</title><meta name="keywords" content="软件架构"><meta name="author" content="二十"><meta name="copyright" content="二十"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="软件架构">
+<meta property="og:type" content="article">
+<meta property="og:title" content="软件架构的基本原则">
+<meta property="og:url" content="https://yinhuidong.github.io/2022/01/11/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E8%BD%AF%E4%BB%B6%E6%9E%B6%E6%9E%84%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%8E%9F%E5%88%99/index.html">
+<meta property="og:site_name" content="二十">
+<meta property="og:description" content="软件架构">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yinhuidong.github.io/images/cover/dp.png">
+<meta property="article:published_time" content="2022-01-11T12:02:16.665Z">
+<meta property="article:modified_time" content="2022-01-11T12:12:16.081Z">
+<meta property="article:author" content="二十">
+<meta property="article:tag" content="软件架构">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://yinhuidong.github.io/images/cover/dp.png"><link rel="shortcut icon" href="/img/favicon.jpg"><link rel="canonical" href="https://yinhuidong.github.io/2022/01/11/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E8%BD%AF%E4%BB%B6%E6%9E%B6%E6%9E%84%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%8E%9F%E5%88%99/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":800},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js',
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css'
+    },
+    fancybox: {
+      js: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isanchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '软件架构的基本原则',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2022-01-11 20:12:16'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const fontSizeVal = saveToLocal.get('global-font-size')
+    if (fontSizeVal !== undefined) {
+      document.documentElement.style.setProperty('--global-font-size', fontSizeVal + 'px')
+    }
+    
+    const detectApple = () => {
+      if (GLOBAL_CONFIG_SITE.isHome && /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/custom.css"><meta name="referrer" content="no-referrer" /><meta name="generator" content="Hexo 5.4.0"></head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/head.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data"><div class="data-item is-center"><div class="data-item-link"><a href="/archives/"><div class="headline">文章</div><div class="length-num">89</div></a></div></div><div class="data-item is-center"><div class="data-item-link"><a href="/tags/"><div class="headline">标签</div><div class="length-num">9</div></a></div></div><div class="data-item is-center"><div class="data-item-link"><a href="/categories/"><div class="headline">分类</div><div class="length-num">9</div></a></div></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/%E5%85%B3%E4%BA%8E%E6%88%91/"><i class="fa-fw fas fa-user"></i><span> 关于我</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/images/cover/dp.png')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">二十</a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/%E5%85%B3%E4%BA%8E%E6%88%91/"><i class="fa-fw fas fa-user"></i><span> 关于我</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">软件架构的基本原则</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-01-11T12:02:16.665Z" title="发表于 2022-01-11 20:02:16">2022-01-11</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2022-01-11T12:12:16.081Z" title="更新于 2022-01-11 20:12:16">2022-01-11</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E8%BD%AF%E4%BB%B6%E6%9E%B6%E6%9E%84/">软件架构</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">7.1k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>20分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="软件架构的基本原则"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="一，软件架构的两个要点"><a href="#一，软件架构的两个要点" class="headerlink" title="一，软件架构的两个要点"></a>一，软件架构的两个要点</h1><h2 id="1-代码复用"><a href="#1-代码复用" class="headerlink" title="1.代码复用"></a>1.代码复用</h2><p>无论是开发哪种软件产品，成本和时间都是最重要的。较少的开发时间意味着可以比竞争对手更早进入市场。较低的开发成本意味着能够留出更多的营销资金，覆盖更广泛的潜在客户。</p>
+<p>代码复用是减少开发成本最常用的方式之一，其目的非常明显，即：与其反复从头开发，不如在新对象中重用已有的代码。</p>
+<p>使用设计模式是增加软件组件灵活性并使其易于复用的方式之一。但是，这可能也会让组件变得更加复杂。</p>
+<p>一般情况下，复用可以分为三个层次。在最底层，可以复用类、类库、容器，也许还有一些类的“团体（例如容器和迭代器）”。</p>
+<p>框架位于最高层。它们能帮助你精简自己的设计，可以明确解决问题所需的抽象概念，然后用类来表示这些概念并定义其关系。例如，JUnit  是一个小型框架，也是框架的“Hello, world”，其中定义了 Test、TestCase 和 TestSuite  这几个类及其关系。框架通常比单个类的颗粒度要大。你可以通过在某处构建子类来与框架建立联系。这些子类信奉“别给我们打电话，我们会给你打电话的。”</p>
+<p>还有一个中间层次。这是我觉得设计模式所处的位置。设计模式比框架更小且更抽象。它们实际上是对一组类的关系及其互动方式的描述。当你从类转向模式，并最终到达框架的过程中，复用程度会不断增加。</p>
+<p>中间层次的优点在于模式提供的复用方式要比框架的风险小。创建框架是一项投入重大且风险很高的工作，模式则能让你独立于具体代码来复用设计思想和理念。</p>
+<h2 id="2-扩展性"><a href="#2-扩展性" class="headerlink" title="2.扩展性"></a>2.扩展性</h2><p>需求变化是程序员生命中唯一不变的事情。比如以下几种场景：</p>
+<ul>
+<li>你在 Windows 平台上发布了一款游戏，现在人们想要 Mac OS 的版本。</li>
+<li>你创建了一个使用方形按钮的 GUI 框架，但几个月后开始流行原型按钮。</li>
+<li>你设计了一款优秀的电子商务网站，但仅仅几个月后，客户就要求新增电话订单的功能。</li>
+</ul>
+<p>首先，在完成了第一版的程序后，我们就应该做好了从头开始优化重写代码的准备，因为现在你已经能在很多方面更好的理解问题了，同时在专业水平上也有所提高，所以之前的代码现在看上去可能会显得很糟糕。</p>
+<p>其次，可能是在你掌控之外的某些事情发生了变化，这也是导致许多开发团队转变最初想法的原因。比如，每位在网络应用中使用 Flash 的开发者都必须重新开发或移植代码，因为不断地有浏览器停止对 Flash 格式地支持。</p>
+<p>最后，可能是需求的改变，之前你的客户对当前版本的程序感到满意，但是现在希望对程序进行 11 个“小小”的改动，使其可完成原始计划阶段中完全没有提到的功能，新增或改变功能。</p>
+<p>当然这也有好的一面，如果有人要求你对程序进行修改，至少说明还有人关心它。因此在设计程序架构时，有经验的开发者都会尽量选择支持未来任何可能变更的方式。</p>
+<h1 id="二，正确使用设计模式"><a href="#二，正确使用设计模式" class="headerlink" title="二，正确使用设计模式"></a>二，正确使用设计模式</h1><p>设计模式不是为每个人准备的，而是基于业务来选择设计模式，需要时就能想到它。要明白一点，技术永远为业务服务，技术只是满足业务需要的一个工具。我们需要掌握每种设计模式的应用场景、特征、优缺点，以及每种设计模式的关联关系，这样就能够很好地满足日常业务的需要。</p>
+<p>设计模式不是为了特定场景而生的，而是为了让人可以更好和更快地开发。</p>
+<p>设计模式只是实现了七大设计原则的具体方式，套用太多设计模式只会陷入模式套路陷阱，最后代码写的凌乱不堪。</p>
+<p>不能为了使用设计模式而去做架构，而是有了做架构的需求后，发现它符合某一类设计模式的结构，在将两者结合。</p>
+<p>想要游刃有余地使用设计模式，需要打下牢固的程序设计语言基础、夯实自己的编程思想、积累大量的时间经验、提高开发能力。目的都是让程序低耦合，高复用，高内聚，易扩展，易维护。</p>
+<h2 id="1-需求驱动"><a href="#1-需求驱动" class="headerlink" title="1.需求驱动"></a>1.需求驱动</h2><p>不仅仅是功能性需求，需求驱动还包括性能和运行时的需求，如软件的可维护性和可复用性等方面。设计模式是针对软件设计的，而软件设计是针对需求的，一定不要为了使用设计模式而使用设计模式，否则可能会使设计变得复杂，使软件难以调试和维护。</p>
+<h2 id="2-分析已经存在的项目"><a href="#2-分析已经存在的项目" class="headerlink" title="2.分析已经存在的项目"></a>2.分析已经存在的项目</h2><p>对现有的应用实例进行分析是一个很好的学习途径，应当注意学习已有的项目，而不仅是学习设计模式如何实现，更重要的是注意在什么场合使用设计模式。</p>
+<h2 id="3-掌握当前开发平台"><a href="#3-掌握当前开发平台" class="headerlink" title="3.掌握当前开发平台"></a>3.掌握当前开发平台</h2><p>设计模式大部分都是针对面向对象的软件设计，因此在理论上适合任何面向对象的语言，但随着技术的发展和编程环境的改善，设计模式的实现方式会有很大的差别。在一些平台下，某些设计模式是自然实现的。</p>
+<h2 id="4-开发中领悟"><a href="#4-开发中领悟" class="headerlink" title="4.开发中领悟"></a>4.开发中领悟</h2><p>软件开发是一项实践工作，最直接的方法就是编程。没有从来不下棋却熟悉定式的围棋高手，也没有不会编程就能成为架构设计师的先例。掌握设计模式是水到渠成的事情，除了理论只是和实践积累，可能会“渐悟”或者“顿悟”。</p>
+<h2 id="5-避免过度设计"><a href="#5-避免过度设计" class="headerlink" title="5.避免过度设计"></a>5.避免过度设计</h2><p>设计模式解决的是设计不足的问题，但同时也要避免设计过度。一定要牢记简洁原则，要知道设计模式是为了使设计简单，而不是更复杂。如果引入设计模式使得设计变得复杂，只能说我们把简单问题复杂化了，问题本身不需要设计模式。</p>
+<p>这里需要把握的是需求变化的程度，一定要区分需求的稳定部分和可变部分。一个软件必然有稳定部分，这个部分就是核心业务逻辑。如果核心业务逻辑发生变化，软件就没有存在的必要，核心业务逻辑是我们需要固化的。对于可变的部分，需要判断可能发生变化的程度来确定设计策略和设计风险。要知道，设计过度与设计不足同样对项目有害。</p>
+<p><strong>设计模式从来都不是单个设计模式独立使用的。在实际应用中，通常多个设计模式混合使用，你中有我，我中有你。</strong></p>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1621784748129-dfd06954-cdc4-4e36-b2c0-3de7601f3537.png#align=left&display=inline&height=877&id=ube7d8d82&margin=%5Bobject%20Object%5D&name=1.png&originHeight=877&originWidth=761&size=52870&status=done&style=none&width=761" alt="1.png"></p>
+<h1 id="三，开闭原则"><a href="#三，开闭原则" class="headerlink" title="三，开闭原则"></a>三，开闭原则</h1><h2 id="1-定义"><a href="#1-定义" class="headerlink" title="1.定义"></a>1.定义</h2><p><strong>软件实体应当对扩展开放，对修改关闭。</strong></p>
+<p>何为软件实体？</p>
+<ul>
+<li>项目中划分出的模块</li>
+<li>类与接口</li>
+<li>方法</li>
+</ul>
+<p><code>开闭原则的含义是：当应用的需求改变时，在不修改软件实体的源代码或者二进制代码的前提下，可以扩展模块的功能，使其满足新的需求。</code></p>
+<h2 id="2-作用"><a href="#2-作用" class="headerlink" title="2.作用"></a>2.作用</h2><p>开闭原则是面向对象程序设计的终极目标，它使软件实体拥有一定的适应性和灵活性的同时具备稳定性和延续性。</p>
+<ul>
+<li>软件测试：软件遵守开闭原则的话，软件测试时只需要对扩展的代码进行测试就可以了，因为原有的测试代码仍然能够正常运行。</li>
+<li>提高代码复用性：粒度越小，被复用的可能性就越大；在面向对象的程序设计中，根据原子和抽象编程可以提高代码的可复用性。</li>
+<li>提高软件可维护性：遵守开闭原则的软件，其稳定性高和延续性强，从而易于扩展和维护。</li>
+</ul>
+<h2 id="3-实现方法"><a href="#3-实现方法" class="headerlink" title="3.实现方法"></a>3.实现方法</h2><p>可以通过“抽象约束、封装变化”来实现开闭原则，即通过接口或者抽象类为软件实体定义一个相对稳定的抽象层，而将相同的可变因素封装在相同的具体实现类中。</p>
+<p>因为抽象灵活性好，适应性广，只要抽象的合理，可以基本保持软件架构的稳定。而软件中易变的细节可以从抽象派生来的实现类来进行扩展，当软件需要发生变化时，只需要根据需求重新派生一个实现类来扩展就可以了。</p>
+<p><strong>Windows 的桌面主题设计</strong></p>
+<p>Windows  的主题是桌面背景图片、窗口颜色和声音等元素的组合。用户可以根据自己的喜爱更换自己的桌面主题，也可以从网上下载新的主题。这些主题有共同的特点，可以为其定义一个抽象类（Abstract Subject），而每个具体的主题（Specific  Subject）是其子类。用户窗体可以根据需要选择或者增加新的主题，而不需要修改原代码，所以它是满足开闭原则的。</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1621784761959-cea18a76-5d79-4718-802d-4d32855ab849.png#align=left&display=inline&height=687&id=uc1f3c198&margin=%5Bobject%20Object%5D&name=2.png&originHeight=687&originWidth=1034&size=40770&status=done&style=none&width=1034" alt="2.png"></p>
+<h1 id="四，里氏替换原则"><a href="#四，里氏替换原则" class="headerlink" title="四，里氏替换原则"></a>四，里氏替换原则</h1><h2 id="1-定义-1"><a href="#1-定义-1" class="headerlink" title="1.定义"></a>1.定义</h2><p><strong>继承必须确保超类所拥有的性质在子类中仍然成立</strong></p>
+<p>里氏替换原则主要阐述了有关继承的一些原则，也就是什么时候应该使用继承，什么时候不应该使用继承，以及其中蕴含的原理。里氏替换原是继承复用的基础，它反映了基类与子类之间的关系，是对开闭原则的补充，是对实现抽象化的具体步骤的规范。</p>
+<h2 id="2-作用-1"><a href="#2-作用-1" class="headerlink" title="2.作用"></a>2.作用</h2><ul>
+<li>里氏替换原则是实现开闭原则的重要方式之一</li>
+<li>它克服了继承中重写父类造成的可复用性变差的缺点</li>
+<li>它是动作正确性的保证。即类的扩展不会给已有的系统引入新的错误，降低了代码出错的可能性</li>
+<li>加强程序的健壮性，同时变更时可以做到非常好的兼容性，提高程序的维护性、可扩展性，降低需求变更时引入的风险</li>
+</ul>
+<h2 id="3-实现方法-1"><a href="#3-实现方法-1" class="headerlink" title="3.实现方法"></a>3.实现方法</h2><p>里氏替换原则通俗来讲就是：子类可以扩展父类的功能，但不能改变父类原有的功能。也就是说：子类继承父类时，除添加新的方法完成新增功能外，尽量不要重写父类的方法。</p>
+<ul>
+<li>子类可以实现父类的抽象方法，但不能覆盖父类的非抽象方法</li>
+<li>子类中可以增加自己特有的方法</li>
+<li>当子类的方法重载父类的方法时，方法的前置条件（即方法的输入参数）要比父类的方法更宽松</li>
+<li>当子类的方法实现父类的方法时（重写/重载或实现抽象方法），方法的后置条件（即方法的的输出/返回值）要比父类的方法更严格或相等</li>
+</ul>
+<p>通过重写父类的方法来完成新的功能写起来虽然简单，但是整个继承体系的可复用性会比较差，特别是运用多态比较频繁时，程序运行出错的概率会非常大。</p>
+<p>如果程序违背了里氏替换原则，则继承类的对象在基类出现的地方会出现运行错误。这时其修正方法是：取消原来的继承关系，重新设计它们之间的关系。</p>
+<p><strong>里氏替换原则在“几维鸟不是鸟”实例中的应用。</strong></p>
+<p>分析：鸟一般都会飞行，如燕子的飞行速度大概是每小时 120 千米。但是新西兰的几维鸟由于翅膀退化无法飞行。假如要设计一个实例，计算这两种鸟飞行  300  千米要花费的时间。显然，拿燕子来测试这段代码，结果正确，能计算出所需要的时间；但拿几维鸟来测试，结果会发生“除零异常”或是“无穷大”，明显不符合预期。</p>
+<p>正确的做法是：取消几维鸟原来的继承关系，定义鸟和几维鸟的更一般的父类，如动物类，它们都有奔跑的能力。几维鸟的飞行速度虽然为 0，但奔跑速度不为 0，可以计算出其奔跑 300 千米所要花费的时间。</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1621784775021-a23ddd99-4189-4a5f-b7a4-4c97d3fa2fd7.png#align=left&display=inline&height=765&id=u4ff5cf71&margin=%5Bobject%20Object%5D&name=3.png&originHeight=765&originWidth=840&size=26150&status=done&style=none&width=840" alt="3.png"></p>
+<h1 id="五，依赖倒置原则"><a href="#五，依赖倒置原则" class="headerlink" title="五，依赖倒置原则"></a>五，依赖倒置原则</h1><h2 id="1-定义-2"><a href="#1-定义-2" class="headerlink" title="1.定义"></a>1.定义</h2><p><strong>高层模块不应该依赖低层模块，两者都应该依赖其抽象；抽象不应该依赖细节，细节应该依赖抽象</strong></p>
+<p>核心思想是：要面向接口编程，不要面向实现编程。</p>
+<p>依赖倒置原则是实现开闭原则的重要途径之一，它降低了客户与实现模块之间的耦合。</p>
+<p>由于在软件设计中，细节具有多变性，而抽象层则相对稳定，因此以抽象为基础搭建起来的架构要比以细节为基础搭建起来的架构要稳定得多。这里的抽象指的是接口或者抽象类，而细节是指具体的实现类。</p>
+<p>使用接口或者抽象类的目的是制定好规范和契约，而不去涉及任何具体的操作，把展现细节的任务交给它们的实现类去完成。</p>
+<h2 id="2-作用-2"><a href="#2-作用-2" class="headerlink" title="2.作用"></a>2.作用</h2><ul>
+<li>依赖倒置原则可以降低类间的耦合性。</li>
+<li>依赖倒置原则可以提高系统的稳定性。</li>
+<li>依赖倒置原则可以减少并行开发引起的风险。</li>
+<li>依赖倒置原则可以提高代码的可读性和可维护性。</li>
+</ul>
+<h2 id="3-实现方法-2"><a href="#3-实现方法-2" class="headerlink" title="3.实现方法"></a>3.实现方法</h2><p>依赖倒置原则的目的是通过要面向接口的编程来降低类间的耦合性，所以我们在实际编程中只要遵循以下4点，就能在项目中满足这个规则。</p>
+<ul>
+<li>每个类尽量提供接口或抽象类，或者两者都具备。</li>
+<li>变量的声明类型尽量是接口或者是抽象类。</li>
+<li>任何类都不应该从具体类派生</li>
+<li>使用继承时尽量遵循里氏替换原则</li>
+</ul>
+<p><strong>依赖倒置原则在“顾客购物程序”中的应用。</strong></p>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1621784789138-97d2f6a1-133a-47e4-b15d-9b4c76c00296.png#align=left&display=inline&height=591&id=u14684ed6&margin=%5Bobject%20Object%5D&name=4.png&originHeight=591&originWidth=1011&size=31634&status=done&style=none&width=1011" alt="4.png"></p>
+<h1 id="六，单一职责原则"><a href="#六，单一职责原则" class="headerlink" title="六，单一职责原则"></a>六，单一职责原则</h1><h2 id="1-定义-3"><a href="#1-定义-3" class="headerlink" title="1.定义"></a>1.定义</h2><p><strong>一个类应该有且仅有一个引起它变化的原因，否则类应该被拆分。</strong></p>
+<p>该原则提出对象不应该承担太多职责，如果一个对象承担了太多的职责，至少存在以下两个缺点：</p>
+<ul>
+<li>一个职责的变化可能会削弱或者抑制这个类实现其他职责的能力；</li>
+<li>当客户端需要该对象的某一个职责时，不得不将其他不需要的职责全都包含进来，从而造成冗余代码或代码的浪费。</li>
+</ul>
+<h2 id="2-优点"><a href="#2-优点" class="headerlink" title="2.优点"></a>2.优点</h2><p>单一职责原则的核心就是控制类的粒度大小、将对象解耦、提高其内聚性。如果遵循单一职责原则将有以下优点。</p>
+<ul>
+<li>降低类的复杂度。一个类只负责一项职责，其逻辑肯定要比负责多项职责简单得多。</li>
+<li>提高类的可读性。复杂性降低，自然其可读性会提高。</li>
+<li>提高系统的可维护性。可读性提高，那自然更容易维护了。</li>
+<li>变更引起的风险降低。变更是必然的，如果单一职责原则遵守得好，当修改一个功能时，可以显著降低对其他功能的影响。</li>
+</ul>
+<h2 id="3-实现方法-3"><a href="#3-实现方法-3" class="headerlink" title="3.实现方法"></a>3.实现方法</h2><p>单一职责原则是最简单但又最难运用的原则，需要设计人员发现类的不同职责并将其分离，再封装到不同的类或模块中。而发现类的多重职责需要设计人员具有较强的分析设计能力和相关重构经验。</p>
+<p><strong>大学学生工作管理程序</strong></p>
+<p>分析：大学学生工作主要包括学生生活辅导和学生学业指导两个方面的工作，其中生活辅导主要包括班委建设、出勤统计、心理辅导、费用催缴、班级管理等工作，学业指导主要包括专业引导、学习辅导、科研指导、学习总结等工作。如果将这些工作交给一位老师负责显然不合理，正确的做 法是生活辅导由辅导员负责，学业指导由学业导师负责。</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1621784802973-2b8c04eb-3b23-4012-b33a-b312a9ed3fe5.png#align=left&display=inline&height=449&id=ua0588801&margin=%5Bobject%20Object%5D&name=5.png&originHeight=449&originWidth=645&size=55152&status=done&style=none&width=645" alt="5.png"></p>
+<p><strong>单一职责同样也适用于方法。一个方法应该尽可能做好一件事情。如果一个方法处理的事情太多，其颗粒度会变得很粗，不利于重用。</strong></p>
+<h1 id="七，接口隔离原则"><a href="#七，接口隔离原则" class="headerlink" title="七，接口隔离原则"></a>七，接口隔离原则</h1><h2 id="1-定义-4"><a href="#1-定义-4" class="headerlink" title="1.定义"></a>1.定义</h2><p><strong>单一职责同样也适用于方法。一个方法应该尽可能做好一件事情。如果一个方法处理的事情太多，其颗粒度会变得很粗，不利于重用。</strong></p>
+<p>要为各个类建立它们需要的专用接口，而不要试图去建立一个很庞大的接口供所有依赖它的类去调用。</p>
+<p>接口隔离原则和单一职责都是为了提高类的内聚性、降低它们之间的耦合性，体现了封装的思想，但两者是不同的：</p>
+<ul>
+<li>单一职责原则注重的是职责，而接口隔离原则注重的是对接口依赖的隔离。</li>
+<li>单一职责原则主要是约束类，它针对的是程序中的实现和细节；接口隔离原则主要约束接口，主要针对抽象和程序整体框架的构建。</li>
+</ul>
+<h2 id="2-优点-1"><a href="#2-优点-1" class="headerlink" title="2.优点"></a>2.优点</h2><p>接口隔离原则是为了约束接口、降低类对接口的依赖性，遵循接口隔离原则有以下 5 个优点。</p>
+<ol>
+<li>将臃肿庞大的接口分解为多个粒度小的接口，可以预防外来变更的扩散，提高系统的灵活性和可维护性。</li>
+<li>接口隔离提高了系统的内聚性，减少了对外交互，降低了系统的耦合性。</li>
+<li>如果接口的粒度大小定义合理，能够保证系统的稳定性；但是，如果定义过小，则会造成接口数量过多，使设计复杂化；如果定义太大，灵活性降低，无法提供定制服务，给整体项目带来无法预料的风险。</li>
+<li>使用多个专门的接口还能够体现对象的层次，因为可以通过接口的继承，实现对总接口的定义。</li>
+<li>能减少项目工程中的代码冗余。过大的大接口里面通常放置许多不用的方法，当实现这个接口的时候，被迫设计冗余的代码。</li>
+</ol>
+<h2 id="3-实现方法-4"><a href="#3-实现方法-4" class="headerlink" title="3.实现方法"></a>3.实现方法</h2><p>在具体应用接口隔离原则时，应该根据以下几个规则来衡量。</p>
+<ul>
+<li>接口尽量小，但是要有限度。一个接口只服务于一个子模块或业务逻辑。</li>
+<li>为依赖接口的类定制服务。只提供调用者需要的方法，屏蔽不需要的方法。</li>
+<li>了解环境，拒绝盲从。每个项目或产品都有选定的环境因素，环境不同，接口拆分的标准就不同深入了解业务逻辑。</li>
+<li>提高内聚，减少对外交互。使接口用最少的方法去完成最多的事情。</li>
+</ul>
+<p><strong>学生成绩管理程序</strong></p>
+<p>分析：学生成绩管理程序一般包含插入成绩、删除成绩、修改成绩、计算总分、计算均分、打印成绩信息、査询成绩信息等功能，如果将这些功能全部放到一个接口中显然不太合理，正确的做法是将它们分别放在输入模块、统计模块和打印模块等 3 个模块中。</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1621784887294-f0f72821-64e0-45be-821d-bf5c21aea3e0.png#align=left&display=inline&height=569&id=u5d198cb2&margin=%5Bobject%20Object%5D&name=6.png&originHeight=569&originWidth=806&size=68499&status=done&style=none&width=806" alt="6.png"></p>
+<h1 id="八，迪米特法则"><a href="#八，迪米特法则" class="headerlink" title="八，迪米特法则"></a>八，迪米特法则</h1><h2 id="1-定义-5"><a href="#1-定义-5" class="headerlink" title="1.定义"></a>1.定义</h2><p><strong>如果两个软件实体无须直接通信，那么就不应当发生直接的相互调用，可以通过第三方转发该调用。其目的是降低类之间的耦合度，提高模块的相对独立性。</strong></p>
+<p>迪米特法则中的“朋友”是指：当前对象本身、当前对象的成员对象、当前对象所创建的对象、当前对象的方法参数等，这些对象同当前对象存在关联、聚合或组合关系，可以直接访问这些对象的方法。</p>
+<h2 id="2-优点-2"><a href="#2-优点-2" class="headerlink" title="2.优点"></a>2.优点</h2><p>迪米特法则要求限制软件实体之间通信的宽度和深度，正确使用迪米特法则将有以下两个优点。</p>
+<ol>
+<li>降低了类之间的耦合度，提高了模块的相对独立性。</li>
+<li>由于亲合度降低，从而提高了类的可复用率和系统的扩展性。</li>
+</ol>
+<p>但是，过度使用迪米特法则会使系统产生大量的中介类，从而增加系统的复杂性，使模块之间的通信效率降低。所以，在釆用迪米特法则时需要反复权衡，确保高内聚和低耦合的同时，保证系统的结构清晰。</p>
+<h2 id="3-实现方法-5"><a href="#3-实现方法-5" class="headerlink" title="3.实现方法"></a>3.实现方法</h2><p>从迪米特法则的定义和特点可知，它强调以下两点：</p>
+<ol>
+<li>从依赖者的角度来说，只依赖应该依赖的对象。</li>
+<li>从被依赖者的角度说，只暴露应该暴露的方法。</li>
+</ol>
+<p>所以，在运用迪米特法则时要注意以下 6 点。</p>
+<ol>
+<li>在类的划分上，应该创建弱耦合的类。类与类之间的耦合越弱，就越有利于实现可复用的目标。</li>
+<li>在类的结构设计上，尽量降低类成员的访问权限。</li>
+<li>在类的设计上，优先考虑将一个类设置成不变类。</li>
+<li>在对其他类的引用上，将引用其他对象的次数降到最低。</li>
+<li>不暴露类的属性成员，而应该提供相应的访问器（set 和 get 方法）。</li>
+<li>谨慎使用序列化（Serializable）功能。</li>
+</ol>
+<p><strong>明星与经纪人的关系实例</strong></p>
+<p>分析：明星由于全身心投入艺术，所以许多日常事务由经纪人负责处理，如与粉丝的见面会，与媒体公司的业务洽淡等。这里的经纪人是明星的朋友，而粉丝和媒体公司是陌生人，所以适合使用迪米特法则。</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1621784872082-f96f42e8-a0e6-45dd-a881-11e3aafa7aaa.png#align=left&display=inline&height=461&id=ueabfc751&margin=%5Bobject%20Object%5D&name=7.png&originHeight=461&originWidth=855&size=83377&status=done&style=none&width=855" alt="7.png"></p>
+<h1 id="九，合成复用原则"><a href="#九，合成复用原则" class="headerlink" title="九，合成复用原则"></a>九，合成复用原则</h1><h2 id="1-定义-6"><a href="#1-定义-6" class="headerlink" title="1.定义"></a>1.定义</h2><p><strong>它要求在软件复用时，要尽量先使用组合或者聚合等关联关系来实现，其次才考虑使用继承关系来实现。</strong></p>
+<p>如果要使用继承关系，则必须严格遵循里氏替换原则。合成复用原则同里氏替换原则相辅相成的，两者都是开闭原则的具体实现规范。</p>
+<h2 id="2-优点-3"><a href="#2-优点-3" class="headerlink" title="2.优点"></a>2.优点</h2><p>通常类的复用分为继承复用和合成复用两种，继承复用虽然有简单和易实现的优点，但它也存在以下缺点。</p>
+<ol>
+<li>继承复用破坏了类的封装性。因为继承会将父类的实现细节暴露给子类，父类对子类是透明的，所以这种复用又称为“白箱”复用。</li>
+<li>子类与父类的耦合度高。父类的实现的任何改变都会导致子类的实现发生变化，这不利于类的扩展与维护。</li>
+<li>它限制了复用的灵活性。从父类继承而来的实现是静态的，在编译时已经定义，所以在运行时不可能发生变化。</li>
+</ol>
+<p>采用组合或聚合复用时，可以将已有对象纳入新对象中，使之成为新对象的一部分，新对象可以调用已有对象的功能，它有以下优点。</p>
+<ol>
+<li>它维持了类的封装性。因为成分对象的内部细节是新对象看不见的，所以这种复用又称为“黑箱”复用。</li>
+<li>新旧类之间的耦合度低。这种复用所需的依赖较少，新对象存取成分对象的唯一方法是通过成分对象的接口。</li>
+<li>复用的灵活性高。这种复用可以在运行时动态进行，新对象可以动态地引用与成分对象类型相同的对象。</li>
+</ol>
+<h2 id="3-实现方法-6"><a href="#3-实现方法-6" class="headerlink" title="3.实现方法"></a>3.实现方法</h2><p>合成复用原则是通过将已有的对象纳入新对象中，作为新对象的成员对象来实现的，新对象可以调用已有对象的功能，从而达到复用。</p>
+<p><strong>汽车分类管理程序</strong></p>
+<p>分析：汽车按“动力源”划分可分为汽油汽车、电动汽车等；按“颜色”划分可分为白色汽车、黑色汽车和红色汽车等。如果同时考虑这两种分类，其组合就很多。图 1 所示是用继承关系实现的汽车分类的类图。</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1621784858105-07f906fd-8f62-431b-a517-c0de14ecbe2f.png#align=left&display=inline&height=369&id=ud172d088&margin=%5Bobject%20Object%5D&name=8.png&originHeight=369&originWidth=840&size=41984&status=done&style=none&width=840" alt="8.png"></p>
+<h1 id="十，总结"><a href="#十，总结" class="headerlink" title="十，总结"></a>十，总结</h1><p>7 种设计原则，它们分别为开闭原则、里氏替换原则、依赖倒置原则、单一职责原则、接口隔离原则、迪米特法则和合成复用原则。</p>
+<p>这 7  种设计原则是软件设计模式必须尽量遵循的原则，是设计模式的基础。在实际开发过程中，并不是一定要求所有代码都遵循设计原则，而是要综合考虑人力、时间、成本、质量，不刻意追求完美，要在适当的场景遵循设计原则。这体现的是一种平衡取舍，可以帮助我们设计出更加优雅的代码结构。</p>
+<table>
+<thead>
+<tr>
+<th>设计原则</th>
+<th>一句话归纳</th>
+<th>目的</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>开闭原则</td>
+<td>对扩展开放，对修改关闭</td>
+<td>降低维护带来的新风险</td>
+</tr>
+<tr>
+<td>依赖倒置原则</td>
+<td>高层不应该依赖低层，要面向接口编程</td>
+<td>更利于代码结构的升级扩展</td>
+</tr>
+<tr>
+<td>单一职责原则</td>
+<td>一个类只干一件事，实现类要单一</td>
+<td>便于理解，提高代码的可读性</td>
+</tr>
+<tr>
+<td>接口隔离原则</td>
+<td>一个接口只干一件事，接口要精简单一</td>
+<td>功能解耦，高聚合、低耦合</td>
+</tr>
+<tr>
+<td>迪米特法则</td>
+<td>不该知道的不要知道，一个类应该保持对其它对象最少的了解，降低耦合度</td>
+<td>只和朋友交流，不和陌生人说话，减少代码臃肿</td>
+</tr>
+<tr>
+<td>里氏替换原则</td>
+<td>不要破坏继承体系，子类重写方法功能发生改变，不应该影响父类方法的含义</td>
+<td>防止继承泛滥</td>
+</tr>
+<tr>
+<td>合成复用原则</td>
+<td>尽量使用组合或者聚合关系实现代码复用，少使用继承</td>
+<td>降低代码耦合</td>
+</tr>
+</tbody></table>
+<p><strong>实际上，这些原则的目的只有一个：降低对象之间的耦合，增加程序的可复用性、可扩展性和可维护性。</strong></p>
+<p><code>在程序设计时，我们应该将程序功能最小化，每个类只干一件事。若有类似功能基础之上添加新功能，则要合理使用继承。对于多方法的调用，要会运用接口，同时合理设置接口功能与数量。最后类与类之间做到低耦合高内聚。</code></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">二十</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://yinhuidong.github.io/2022/01/11/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E8%BD%AF%E4%BB%B6%E6%9E%B6%E6%9E%84%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%8E%9F%E5%88%99/">https://yinhuidong.github.io/2022/01/11/设计模式/软件架构的基本原则/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://yinhuidong.github.io" target="_blank">二十</a> 许可协议。转载请注明来自 <a href="https://yinhuidong.github.io" target="_blank">二十</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E8%BD%AF%E4%BB%B6%E6%9E%B6%E6%9E%84/">软件架构</a></div><div class="post_share"><div class="social-share" data-image="/images/cover/dp.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js" defer></script></div></div><div class="post-reward"><div class="reward-button button--animated"><i class="fas fa-qrcode"></i> 打赏</div><div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/img/wechat_pay.jpg" target="_blank"><img class="post-qr-code-img" src="/img/wechat_pay.jpg" alt="微信"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="/img/alipay.jpg" target="_blank"><img class="post-qr-code-img" src="/img/alipay.jpg" alt="支付宝"/></a><div class="post-qr-code-desc">支付宝</div></li></ul></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2022/01/11/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E8%BD%AF%E4%BB%B6%E8%AE%BE%E8%AE%A1%E6%A6%82%E8%BF%B0/"><img class="prev-cover" src="/images/cover/dp.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">软件设计概述</div></div></a></div><div class="next-post pull-right"><a href="/2022/01/11/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E4%B8%89%E7%A7%8D%E7%B1%BB%E5%9E%8B%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E7%9A%84%E7%89%B9%E7%82%B9/"><img class="next-cover" src="/images/cover/dp.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">设计模式概览</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2022/01/11/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E8%BD%AF%E4%BB%B6%E8%AE%BE%E8%AE%A1%E6%A6%82%E8%BF%B0/" title="软件设计概述"><img class="cover" src="/images/cover/dp.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-11</div><div class="title">软件设计概述</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/head.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">二十</div><div class="author-info__description">欢迎来到二十的博客卷....</div></div><div class="card-info-data"><div class="card-info-data-item is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">89</div></a></div><div class="card-info-data-item is-center"><a href="/tags/"><div class="headline">标签</div><div class="length-num">9</div></a></div><div class="card-info-data-item is-center"><a href="/categories/"><div class="headline">分类</div><div class="length-num">9</div></a></div></div><a class="button--animated" id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/yinhuidong"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/yinhuidong" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="mailto:1972039773@qq.com" target="_blank" title="Email"><i class="fas fa-envelope"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn card-announcement-animation"></i><span>公告</span></div><div class="announcement_content">欢迎来到二十的个人博客，对本站的文章和技术问题有疑问和建议请联系作者：VX：yinhuidong666</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%80%EF%BC%8C%E8%BD%AF%E4%BB%B6%E6%9E%B6%E6%9E%84%E7%9A%84%E4%B8%A4%E4%B8%AA%E8%A6%81%E7%82%B9"><span class="toc-text">一，软件架构的两个要点</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E4%BB%A3%E7%A0%81%E5%A4%8D%E7%94%A8"><span class="toc-text">1.代码复用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E6%89%A9%E5%B1%95%E6%80%A7"><span class="toc-text">2.扩展性</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%8C%EF%BC%8C%E6%AD%A3%E7%A1%AE%E4%BD%BF%E7%94%A8%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F"><span class="toc-text">二，正确使用设计模式</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E9%9C%80%E6%B1%82%E9%A9%B1%E5%8A%A8"><span class="toc-text">1.需求驱动</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E5%88%86%E6%9E%90%E5%B7%B2%E7%BB%8F%E5%AD%98%E5%9C%A8%E7%9A%84%E9%A1%B9%E7%9B%AE"><span class="toc-text">2.分析已经存在的项目</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E6%8E%8C%E6%8F%A1%E5%BD%93%E5%89%8D%E5%BC%80%E5%8F%91%E5%B9%B3%E5%8F%B0"><span class="toc-text">3.掌握当前开发平台</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E5%BC%80%E5%8F%91%E4%B8%AD%E9%A2%86%E6%82%9F"><span class="toc-text">4.开发中领悟</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E9%81%BF%E5%85%8D%E8%BF%87%E5%BA%A6%E8%AE%BE%E8%AE%A1"><span class="toc-text">5.避免过度设计</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%89%EF%BC%8C%E5%BC%80%E9%97%AD%E5%8E%9F%E5%88%99"><span class="toc-text">三，开闭原则</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%AE%9A%E4%B9%89"><span class="toc-text">1.定义</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E4%BD%9C%E7%94%A8"><span class="toc-text">2.作用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%AE%9E%E7%8E%B0%E6%96%B9%E6%B3%95"><span class="toc-text">3.实现方法</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%9B%9B%EF%BC%8C%E9%87%8C%E6%B0%8F%E6%9B%BF%E6%8D%A2%E5%8E%9F%E5%88%99"><span class="toc-text">四，里氏替换原则</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%AE%9A%E4%B9%89-1"><span class="toc-text">1.定义</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E4%BD%9C%E7%94%A8-1"><span class="toc-text">2.作用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%AE%9E%E7%8E%B0%E6%96%B9%E6%B3%95-1"><span class="toc-text">3.实现方法</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%94%EF%BC%8C%E4%BE%9D%E8%B5%96%E5%80%92%E7%BD%AE%E5%8E%9F%E5%88%99"><span class="toc-text">五，依赖倒置原则</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%AE%9A%E4%B9%89-2"><span class="toc-text">1.定义</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E4%BD%9C%E7%94%A8-2"><span class="toc-text">2.作用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%AE%9E%E7%8E%B0%E6%96%B9%E6%B3%95-2"><span class="toc-text">3.实现方法</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%85%AD%EF%BC%8C%E5%8D%95%E4%B8%80%E8%81%8C%E8%B4%A3%E5%8E%9F%E5%88%99"><span class="toc-text">六，单一职责原则</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%AE%9A%E4%B9%89-3"><span class="toc-text">1.定义</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E4%BC%98%E7%82%B9"><span class="toc-text">2.优点</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%AE%9E%E7%8E%B0%E6%96%B9%E6%B3%95-3"><span class="toc-text">3.实现方法</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%83%EF%BC%8C%E6%8E%A5%E5%8F%A3%E9%9A%94%E7%A6%BB%E5%8E%9F%E5%88%99"><span class="toc-text">七，接口隔离原则</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%AE%9A%E4%B9%89-4"><span class="toc-text">1.定义</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E4%BC%98%E7%82%B9-1"><span class="toc-text">2.优点</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%AE%9E%E7%8E%B0%E6%96%B9%E6%B3%95-4"><span class="toc-text">3.实现方法</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%85%AB%EF%BC%8C%E8%BF%AA%E7%B1%B3%E7%89%B9%E6%B3%95%E5%88%99"><span class="toc-text">八，迪米特法则</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%AE%9A%E4%B9%89-5"><span class="toc-text">1.定义</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E4%BC%98%E7%82%B9-2"><span class="toc-text">2.优点</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%AE%9E%E7%8E%B0%E6%96%B9%E6%B3%95-5"><span class="toc-text">3.实现方法</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B9%9D%EF%BC%8C%E5%90%88%E6%88%90%E5%A4%8D%E7%94%A8%E5%8E%9F%E5%88%99"><span class="toc-text">九，合成复用原则</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%AE%9A%E4%B9%89-6"><span class="toc-text">1.定义</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E4%BC%98%E7%82%B9-3"><span class="toc-text">2.优点</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%AE%9E%E7%8E%B0%E6%96%B9%E6%B3%95-6"><span class="toc-text">3.实现方法</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8D%81%EF%BC%8C%E6%80%BB%E7%BB%93"><span class="toc-text">十，总结</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2022/01/11/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E8%BD%AF%E4%BB%B6%E8%AE%BE%E8%AE%A1%E6%A6%82%E8%BF%B0/" title="软件设计概述"><img src="/images/cover/dp.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="软件设计概述"/></a><div class="content"><a class="title" href="/2022/01/11/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E8%BD%AF%E4%BB%B6%E8%AE%BE%E8%AE%A1%E6%A6%82%E8%BF%B0/" title="软件设计概述">软件设计概述</a><time datetime="2022-01-11T12:02:25.638Z" title="发表于 2022-01-11 20:02:25">2022-01-11</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/01/11/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E8%BD%AF%E4%BB%B6%E6%9E%B6%E6%9E%84%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%8E%9F%E5%88%99/" title="软件架构的基本原则"><img src="/images/cover/dp.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="软件架构的基本原则"/></a><div class="content"><a class="title" href="/2022/01/11/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E8%BD%AF%E4%BB%B6%E6%9E%B6%E6%9E%84%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%8E%9F%E5%88%99/" title="软件架构的基本原则">软件架构的基本原则</a><time datetime="2022-01-11T12:02:16.665Z" title="发表于 2022-01-11 20:02:16">2022-01-11</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/01/11/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E4%B8%89%E7%A7%8D%E7%B1%BB%E5%9E%8B%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E7%9A%84%E7%89%B9%E7%82%B9/" title="设计模式概览"><img src="/images/cover/dp.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="设计模式概览"/></a><div class="content"><a class="title" href="/2022/01/11/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E4%B8%89%E7%A7%8D%E7%B1%BB%E5%9E%8B%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E7%9A%84%E7%89%B9%E7%82%B9/" title="设计模式概览">设计模式概览</a><time datetime="2022-01-11T12:02:08.137Z" title="发表于 2022-01-11 20:02:08">2022-01-11</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/01/11/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E5%88%9B%E5%BB%BA%E5%9E%8B%E6%A8%A1%E5%BC%8F%E4%B9%8B%E5%8D%95%E4%BE%8B%E6%A8%A1%E5%BC%8F/" title="单例模式"><img src="/images/cover/dp.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="单例模式"/></a><div class="content"><a class="title" href="/2022/01/11/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E5%88%9B%E5%BB%BA%E5%9E%8B%E6%A8%A1%E5%BC%8F%E4%B9%8B%E5%8D%95%E4%BE%8B%E6%A8%A1%E5%BC%8F/" title="单例模式">单例模式</a><time datetime="2022-01-11T12:02:00.546Z" title="发表于 2022-01-11 20:02:00">2022-01-11</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/01/11/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E5%88%9B%E5%BB%BA%E5%9E%8B%E6%A8%A1%E5%BC%8F%E4%B9%8B%E5%8E%9F%E5%9E%8B%E6%A8%A1%E5%BC%8F/" title="原型模式"><img src="/images/cover/dp.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="原型模式"/></a><div class="content"><a class="title" href="/2022/01/11/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/%E5%88%9B%E5%BB%BA%E5%9E%8B%E6%A8%A1%E5%BC%8F%E4%B9%8B%E5%8E%9F%E5%9E%8B%E6%A8%A1%E5%BC%8F/" title="原型模式">原型模式</a><time datetime="2022-01-11T12:01:51.844Z" title="发表于 2022-01-11 20:01:51">2022-01-11</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('/images/cover/dp.png')"><div id="footer-wrap"><div class="copyright">&copy;2021 - 2022 By 二十</div><div class="footer_custom_text">骑摩托车去酒吧，该省省，该花花。</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="font-plus" type="button" title="放大字体"><i class="fas fa-plus"></i></button><button id="font-minus" type="button" title="缩小字体"><i class="fas fa-minus"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div id="local-search"><div class="search-dialog"><div class="search-dialog__title" id="local-search-title">本地搜索</div><div id="local-input-panel"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div></div><hr/><div id="local-search-results"></div><span class="search-close-button"><i class="fas fa-times"></i></span></div><div id="search-mask"></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/search/local-search.js"></script><div class="js-pjax"></div><script src="https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js"></script><script src="/js/chocolate.js"></script><script defer="defer" id="fluttering_ribbon" mobile="true" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/canvas-fluttering-ribbon.min.js"></script><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="true" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/canvas-nest.min.js"></script><script id="click-show-text" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/click-show-text.min.js" data-mobile="false" data-text="二十,二十二十,二十二十二十,二十二十二十二十,二十二十二十二十二十,二十二十二十二十二十二十,二十二十二十二十二十二十二十,二十二十二十二十二十二十二十二十,二十二十二十二十二十二十二十二十二十,二十二十二十二十二十二十二十二十二十二十" data-fontsize="15px" data-random="true" async="async"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

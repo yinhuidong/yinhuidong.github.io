@@ -1,0 +1,600 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MySQL[九]基于规则的优化&amp;子查询优化 | 二十</title><meta name="keywords" content="MySQL"><meta name="author" content="二十"><meta name="copyright" content="二十"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="基于规则的优化&amp;子查询优化">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MySQL[九]基于规则的优化&amp;子查询优化">
+<meta property="og:url" content="https://yinhuidong.github.io/2022/01/11/MySQL/MySQL[%E4%B9%9D]%E5%9F%BA%E4%BA%8E%E8%A7%84%E5%88%99%E7%9A%84%E4%BC%98%E5%8C%96&%E5%AD%90%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96/index.html">
+<meta property="og:site_name" content="二十">
+<meta property="og:description" content="基于规则的优化&amp;子查询优化">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yinhuidong.github.io/images/cover/mysql.png">
+<meta property="article:published_time" content="2022-01-11T03:16:30.409Z">
+<meta property="article:modified_time" content="2022-01-11T03:23:03.085Z">
+<meta property="article:author" content="二十">
+<meta property="article:tag" content="MySQL">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://yinhuidong.github.io/images/cover/mysql.png"><link rel="shortcut icon" href="/img/favicon.jpg"><link rel="canonical" href="https://yinhuidong.github.io/2022/01/11/MySQL/MySQL[%E4%B9%9D]%E5%9F%BA%E4%BA%8E%E8%A7%84%E5%88%99%E7%9A%84%E4%BC%98%E5%8C%96&amp;%E5%AD%90%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":800},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js',
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css'
+    },
+    fancybox: {
+      js: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isanchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'MySQL[九]基于规则的优化&子查询优化',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2022-01-11 11:23:03'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const fontSizeVal = saveToLocal.get('global-font-size')
+    if (fontSizeVal !== undefined) {
+      document.documentElement.style.setProperty('--global-font-size', fontSizeVal + 'px')
+    }
+    
+    const detectApple = () => {
+      if (GLOBAL_CONFIG_SITE.isHome && /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/custom.css"><meta name="referrer" content="no-referrer" /><meta name="generator" content="Hexo 5.4.0"></head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/head.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data"><div class="data-item is-center"><div class="data-item-link"><a href="/archives/"><div class="headline">文章</div><div class="length-num">15</div></a></div></div><div class="data-item is-center"><div class="data-item-link"><a href="/tags/"><div class="headline">标签</div><div class="length-num">2</div></a></div></div><div class="data-item is-center"><div class="data-item-link"><a href="/categories/"><div class="headline">分类</div><div class="length-num">2</div></a></div></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/images/cover/mysql.png')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">二十</a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">MySQL[九]基于规则的优化&amp;子查询优化</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-01-11T03:16:30.409Z" title="发表于 2022-01-11 11:16:30">2022-01-11</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2022-01-11T03:23:03.085Z" title="更新于 2022-01-11 11:23:03">2022-01-11</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/MySQL/">MySQL</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">10.1k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>34分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="MySQL[九]基于规则的优化&amp;子查询优化"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><p><code>MySQL</code>依据一些规则，把语句转换成某种可以比较高效执行的形式，这个过程也可以被称作<code>查询重写</code>。</p>
+<h1 id="1-条件化简"><a href="#1-条件化简" class="headerlink" title="1.条件化简"></a>1.条件化简</h1><p>我们编写的查询语句的搜索条件本质上是一个表达式，这些表达式可能比较繁杂，或者不能高效的执行，<code>MySQL</code>的查询优化器会为我们简化这些表达式。</p>
+<h2 id="1-1移除不必要的括号"><a href="#1-1移除不必要的括号" class="headerlink" title="1.1移除不必要的括号"></a>1.1移除不必要的括号</h2><p>有时候表达式里有许多无用的括号，比如这样：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">((a = 5 AND b = c) OR ((a &gt; c) AND (c &lt; 5)))</span><br></pre></td></tr></table></figure>
+
+
+<p>优化器会把那些用不到的括号给干掉，就是这样：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(a = 5 and b = c) OR (a &gt; c AND c &lt; 5)</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="1-2常量传递"><a href="#1-2常量传递" class="headerlink" title="1.2常量传递"></a>1.2常量传递</h2><p>有时候某个表达式是某个列和某个常量做等值匹配，比如这样：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">a = 5</span><br></pre></td></tr></table></figure>
+
+
+<p>当这个表达式和其他涉及列<code>a</code>的表达式使用<code>AND</code>连接起来时，可以将其他表达式中的<code>a</code>的值替换为<code>5</code>，比如这样：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">a = 5 AND b &gt; a</span><br></pre></td></tr></table></figure>
+
+
+<p>就可以被转换为：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">a = 5 AND b &gt; 5</span><br></pre></td></tr></table></figure>
+
+
+<blockquote>
+<p>用OR的表达式不能进行能量传递是因为OR两边的条件是取并集的，或者说互不相关。</p>
+</blockquote>
+<h2 id="1-3-等值传递"><a href="#1-3-等值传递" class="headerlink" title="1.3 等值传递"></a>1.3 等值传递</h2><p>有时候多个列之间存在等值匹配的关系，比如这样：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">a = b and b = c and c = 5</span><br></pre></td></tr></table></figure>
+
+
+<p>这个表达式可以被简化为：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">a = 5 and b = 5 and c = 5</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="1-4移除没用的条件"><a href="#1-4移除没用的条件" class="headerlink" title="1.4移除没用的条件"></a>1.4移除没用的条件</h2><p>对于一些明显永远为<code>TRUE</code>或者<code>FALSE</code>的表达式，优化器会移除掉它们，比如这个表达式：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(a &lt; 1 and b = b) OR (a = 6 OR 5 != 5)</span><br></pre></td></tr></table></figure>
+
+
+<p>很明显，<code>b = b</code>这个表达式永远为<code>TRUE</code>，<code>5 != 5</code>这个表达式永远为<code>FALSE</code>，所以简化后的表达式就是这样的：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(a &lt; 1 and TRUE) OR (a = 6 OR FALSE)</span><br></pre></td></tr></table></figure>
+
+
+<p>可以继续被简化为</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">a &lt; 1 OR a = 6</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="1-5表达式计算"><a href="#1-5表达式计算" class="headerlink" title="1.5表达式计算"></a>1.5表达式计算</h2><p>在查询开始执行之前，如果表达式中只包含常量的话，它的值会被先计算出来，比如这个：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">a = 5 + 1</span><br></pre></td></tr></table></figure>
+
+
+<p>因为<code>5 + 1</code>这个表达式只包含常量，所以就会被化简成：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">a = 6</span><br></pre></td></tr></table></figure>
+
+
+<p>但是这里需要注意的是，如果某个列并不是以单独的形式作为表达式的操作数时，比如出现在函数中，出现在某个更复杂表达式中，就像这样：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ABS(a) &gt; 5</span><br></pre></td></tr></table></figure>
+
+
+<p>或者：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">-a &lt; -8</span><br></pre></td></tr></table></figure>
+
+
+<p>优化器是不会尝试对这些表达式进行化简的。我们前边说过只有搜索条件中索引列和常数使用某些运算符连接起来才可能使用到索引，所以如果可以的话，最好让索引列以单独的形式出现在表达式中。</p>
+<h2 id="1-6HAVING-amp-WHERE子句的合并"><a href="#1-6HAVING-amp-WHERE子句的合并" class="headerlink" title="1.6HAVING&amp;WHERE子句的合并"></a>1.6HAVING&amp;WHERE子句的合并</h2><p>如果查询语句中没有出现诸如<code>SUM</code>、<code>MAX</code>等等的聚集函数以及<code>GROUP BY</code>子句，优化器就把<code>HAVING</code>子句和<code>WHERE</code>子句合并起来。</p>
+<h2 id="1-7常量表检测"><a href="#1-7常量表检测" class="headerlink" title="1.7常量表检测"></a>1.7常量表检测</h2><p><code>MySQL</code>觉得下边这两种查询运行的特别快：</p>
+<ol>
+<li>查询的表中一条记录没有，或者只有一条记录。</li>
+<li>使用主键等值匹配或者唯一二级索引列等值匹配作为搜索条件来查询某个表。</li>
+</ol>
+<p>MySQL觉得这两种查询花费的时间特别少，少到可以忽略，所以也把通过这两种方式查询的表称之为<code>常量表</code>（英文名：<code>constant tables</code>）。优化器在分析一个查询语句时，先首先执行常量表查询，然后把查询中涉及到该表的条件全部替换成常数，最后再分析其余表的查询成本，比方说这个查询语句：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM table1 INNER JOIN table2</span><br><span class="line">    ON table1.column1 = table2.column2 </span><br><span class="line">    WHERE table1.primary_key = 1;</span><br></pre></td></tr></table></figure>
+
+
+<p>很明显，这个查询可以使用主键和常量值的等值匹配来查询<code>table1</code>表，也就是在这个查询中<code>table1</code>表相当于<code>常量表</code>，在分析对<code>table2</code>表的查询成本之前，就会执行对<code>table1</code>表的查询，并把查询中涉及<code>table1</code>表的条件都替换掉，也就是上边的语句会被转换成这样：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">SELECT table1表记录的各个字段的常量值, table2.* FROM table1 INNER JOIN table2 </span><br><span class="line">    ON table1表column1列的常量值 = table2.column2;</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="2-外连接消除"><a href="#2-外连接消除" class="headerlink" title="2.外连接消除"></a>2.外连接消除</h1><p><code>内连接</code>的驱动表和被驱动表的位置可以相互转换，而<code>左（外）连接</code>和<code>右（外）连接</code>的驱动表和被驱动表是固定的。这就导致<code>内连接</code>可能通过优化表的连接顺序来降低整体的查询成本，而<code>外连接</code>却无法优化表的连接顺序。我在之前的文章创建了两个表：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">CREATE TABLE t1 (</span><br><span class="line">    m1 int, </span><br><span class="line">    n1 char(1)</span><br><span class="line">) Engine=InnoDB, CHARSET=utf8;</span><br><span class="line"></span><br><span class="line">CREATE TABLE t2 (</span><br><span class="line">    m2 int, </span><br><span class="line">    n2 char(1)</span><br><span class="line">) Engine=InnoDB, CHARSET=utf8;</span><br></pre></td></tr></table></figure>
+
+
+<p>再看一下表的数据</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; SELECT * FROM t1;</span><br><span class="line">+------+------+</span><br><span class="line">| m1   | n1   |</span><br><span class="line">+------+------+</span><br><span class="line">|    1 | a    |</span><br><span class="line">|    2 | b    |</span><br><span class="line">|    3 | c    |</span><br><span class="line">+------+------+</span><br><span class="line">3 rows in set (0.00 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; SELECT * FROM t2;</span><br><span class="line">+------+------+</span><br><span class="line">| m2   | n2   |</span><br><span class="line">+------+------+</span><br><span class="line">|    2 | b    |</span><br><span class="line">|    3 | c    |</span><br><span class="line">|    4 | d    |</span><br><span class="line">+------+------+</span><br><span class="line">3 rows in set (0.00 sec)</span><br></pre></td></tr></table></figure>
+
+
+<p>外连接和内连接的本质区别就是：对于外连接的驱动表的记录来说，如果无法在被驱动表中找到匹配ON子句中的过滤条件的记录，那么该记录仍然会被加入到结果集中，对应的被驱动表记录的各个字段使用NULL值填充；而内连接的驱动表的记录如果无法在被驱动表中找到匹配ON子句中的过滤条件的记录，那么该记录会被舍弃。查询效果就是这样：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; SELECT * FROM t1 INNER JOIN t2 ON t1.m1 = t2.m2;</span><br><span class="line">+------+------+------+------+</span><br><span class="line">| m1   | n1   | m2   | n2   |</span><br><span class="line">+------+------+------+------+</span><br><span class="line">|    2 | b    |    2 | b    |</span><br><span class="line">|    3 | c    |    3 | c    |</span><br><span class="line">+------+------+------+------+</span><br><span class="line">2 rows in set (0.00 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; SELECT * FROM t1 LEFT JOIN t2 ON t1.m1 = t2.m2;</span><br><span class="line">+------+------+------+------+</span><br><span class="line">| m1   | n1   | m2   | n2   |</span><br><span class="line">+------+------+------+------+</span><br><span class="line">|    2 | b    |    2 | b    |</span><br><span class="line">|    3 | c    |    3 | c    |</span><br><span class="line">|    1 | a    | NULL | NULL |</span><br><span class="line">+------+------+------+------+</span><br><span class="line">3 rows in set (0.00 sec)</span><br></pre></td></tr></table></figure>
+
+
+<p>对于上边例子中的（左）外连接来说，由于驱动表<code>t1</code>中<code>m1=1, n1=&#39;a&#39;</code>的记录无法在被驱动表<code>t2</code>中找到符合<code>ON</code>子句条件<code>t1.m1 = t2.m2</code>的记录，所以就直接把这条记录加入到结果集，对应的<code>t2</code>表的<code>m2</code>和<code>n2</code>列的值都设置为<code>NULL</code>。</p>
+<blockquote>
+<p>右（外）连接和左（外）连接其实只在驱动表的选取方式上是不同的，其余方面都是一样的，所以优化器会首先把右（外）连接查询转换成左（外）连接查询。</p>
+</blockquote>
+<p>凡是不符合WHERE子句中条件的记录都不会参与连接。只要我们在搜索条件中指定关于被驱动表相关列的值不为<code>NULL</code>，那么外连接中在被驱动表中找不到符合<code>ON</code>子句条件的驱动表记录也就被排除出最后的结果集了，也就是说：在这种情况下：外连接和内连接也就没有什么区别了！比方说这个查询：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; SELECT * FROM t1 LEFT JOIN t2 ON t1.m1 = t2.m2 WHERE t2.n2 IS NOT NULL;</span><br><span class="line">+------+------+------+------+</span><br><span class="line">| m1   | n1   | m2   | n2   |</span><br><span class="line">+------+------+------+------+</span><br><span class="line">|    2 | b    |    2 | b    |</span><br><span class="line">|    3 | c    |    3 | c    |</span><br><span class="line">+------+------+------+------+</span><br><span class="line">2 rows in set (0.01 sec)</span><br></pre></td></tr></table></figure>
+
+
+<p>由于指定了被驱动表<code>t2</code>的<code>n2</code>列不允许为<code>NULL</code>，所以上边的<code>t1</code>和<code>t2</code>表的左（外）连接查询和内连接查询是一样一样的。当然，我们也可以不用显式的指定被驱动表的某个列<code>IS NOT NULL</code>，只要隐含的有这个意思就行了，比方说这样：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; SELECT * FROM t1 LEFT JOIN t2 ON t1.m1 = t2.m2 WHERE t2.m2 = 2;</span><br><span class="line">+------+------+------+------+</span><br><span class="line">| m1   | n1   | m2   | n2   |</span><br><span class="line">+------+------+------+------+</span><br><span class="line">|    2 | b    |    2 | b    |</span><br><span class="line">+------+------+------+------+</span><br><span class="line">1 row in set (0.00 sec)</span><br></pre></td></tr></table></figure>
+
+
+<p>在这个例子中，我们在<code>WHERE</code>子句中指定了被驱动表<code>t2</code>的<code>m2</code>列等于<code>2</code>，也就相当于间接的指定了<code>m2</code>列不为<code>NULL</code>值，所以上边的这个左（外）连接查询其实和下边这个内连接查询是等价的：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; SELECT * FROM t1 INNER JOIN t2 ON t1.m1 = t2.m2 WHERE t2.m2 = 2;</span><br><span class="line">+------+------+------+------+</span><br><span class="line">| m1   | n1   | m2   | n2   |</span><br><span class="line">+------+------+------+------+</span><br><span class="line">|    2 | b    |    2 | b    |</span><br><span class="line">+------+------+------+------+</span><br><span class="line">1 row in set (0.00 sec)</span><br></pre></td></tr></table></figure>
+
+
+<p>我们把这种在外连接查询中，指定的<code>WHERE</code>子句中包含被驱动表中的列不为<code>NULL</code>值的条件称之为<code>空值拒绝</code>（英文名：<code>reject-NULL</code>）。在被驱动表的WHERE子句符合空值拒绝的条件后，外连接和内连接可以相互转换。这种转换带来的好处就是查询优化器可以通过评估表的不同连接顺序的成本，选出成本最低的那种连接顺序来执行查询。</p>
+<h1 id="3-子查询优化"><a href="#3-子查询优化" class="headerlink" title="3.子查询优化"></a>3.子查询优化</h1><h2 id="3-1子查询语法"><a href="#3-1子查询语法" class="headerlink" title="3.1子查询语法"></a>3.1子查询语法</h2><h3 id="3-1-1按返回的结果集区分子查询"><a href="#3-1-1按返回的结果集区分子查询" class="headerlink" title="3.1.1按返回的结果集区分子查询"></a>3.1.1按返回的结果集区分子查询</h3><p>因为子查询本身也算是一个查询，所以可以按照它们返回的不同结果集类型而把这些子查询分为不同的类型：</p>
+<ol>
+<li><p> 标量子查询<br>那些只返回一个单一值的子查询称之为<code>标量子查询</code>，比如这样：<br>或者这样：<br>这两个查询语句中的子查询都返回一个单一的值，也就是一个<code>标量</code>。这些标量子查询可以作为一个单一值或者表达式的一部分出现在查询语句的各个地方。 </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SELECT (SELECT m1 FROM t1 LIMIT 1);</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM t1 WHERE m1 = (SELECT MIN(m2) FROM t2);</span><br></pre></td></tr></table></figure></li>
+<li><p> 行子查询<br>顾名思义，就是返回一条记录的子查询，不过这条记录需要包含多个列（只包含一个列就成了标量子查询了）。比如这样：<br>其中的<code>(SELECT m2, n2 FROM t2 LIMIT 1)</code>就是一个行子查询，整条语句的含义就是要从<code>t1</code>表中找一些记录，这些记录的<code>m1</code>和<code>n1</code>列分别等于子查询结果中的<code>m2</code>和<code>n2</code>列。 </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM t1 WHERE (m1, n1) = (SELECT m2, n2 FROM t2 LIMIT 1);</span><br></pre></td></tr></table></figure></li>
+<li><p> 列子查询<br>列子查询自然就是查询出一个列的数据喽，不过这个列的数据需要包含多条记录（只包含一条记录就成了标量子查询了）。比如这样：<br>其中的<code>(SELECT m2 FROM t2)</code>就是一个列子查询，表明查询出<code>t2</code>表的<code>m2</code>列的值作为外层查询<code>IN</code>语句的参数。 </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM t1 WHERE m1 IN (SELECT m2 FROM t2);</span><br></pre></td></tr></table></figure></li>
+<li><p> 表子查询<br>顾名思义，就是子查询的结果既包含很多条记录，又包含很多个列，比如这样：<br>其中的<code>(SELECT m2, n2 FROM t2)</code>就是一个表子查询，这里需要和行子查询对比一下，行子查询中我们用了<code>LIMIT 1</code>来保证子查询的结果只有一条记录，表子查询中不需要这个限制。 </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM t1 WHERE (m1, n1) IN (SELECT m2, n2 FROM t2);</span><br></pre></td></tr></table></figure></li>
+</ol>
+<h3 id="3-1-2按与外层查询关系来区分子查询"><a href="#3-1-2按与外层查询关系来区分子查询" class="headerlink" title="3.1.2按与外层查询关系来区分子查询"></a>3.1.2按与外层查询关系来区分子查询</h3><ol>
+<li> 不相关子查询<br>如果子查询可以单独运行出结果，而不依赖于外层查询的值，我们就可以把这个子查询称之为<code>不相关子查询</code>。我们前边介绍的那些子查询全部都可以看作不相关子查询，所以也就不举例子了哈。 </li>
+<li> 相关子查询<br>如果子查询的执行需要依赖于外层查询的值，我们就可以把这个子查询称之为<code>相关子查询</code>。比如：<br>例子中的子查询是<code>(SELECT m2 FROM t2 WHERE n1 = n2)</code>，可是这个查询中有一个搜索条件是<code>n1 = n2</code>，别忘了<code>n1</code>是表<code>t1</code>的列，也就是外层查询的列，也就是说子查询的执行需要依赖于外层查询的值，所以这个子查询就是一个<code>相关子查询</code>。 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM t1 WHERE m1 IN (SELECT m2 FROM t2 WHERE n1 = n2);</span><br></pre></td></tr></table></figure></li>
+</ol>
+<h3 id="3-1-3-子查询语法注意事项"><a href="#3-1-3-子查询语法注意事项" class="headerlink" title="3.1.3 子查询语法注意事项"></a>3.1.3 子查询语法注意事项</h3><ol>
+<li><p> 子查询必须用小括号扩起来。 </p>
+</li>
+<li><p> 在<code>SELECT</code>子句中的子查询必须是标量子查询。 </p>
+</li>
+<li><p> 在想要得到标量子查询或者行子查询，但又不能保证子查询的结果集只有一条记录时，应该使用<code>LIMIT 1</code>语句来限制记录数量。 </p>
+</li>
+<li><p> 对于<code>[NOT] IN/ANY/SOME/ALL</code>子查询来说，子查询中不允许有<code>LIMIT</code>语句。<br>比如这样是非法的：<br>因为<code>[NOT] IN/ANY/SOME/ALL</code>子查询不支持<code>LIMIT</code>语句，所以子查询中的这些语句也就是多余的了： </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; SELECT * FROM t1 WHERE m1 IN (SELECT * FROM t2 LIMIT 2);</span><br></pre></td></tr></table></figure></li>
+<li><p><code>ORDER BY</code>子句：子查询的结果其实就相当于一个集合，集合里的值排不排序一点儿都不重要。</p>
+</li>
+<li><p><code>DISTINCT</code>语句：集合里的值去不去重也没啥意义。</p>
+</li>
+<li><p>没有聚集函数以及<code>HAVING</code>子句的<code>GROUP BY</code>子句。</p>
+</li>
+</ol>
+<p>对于这些冗余的语句，查询优化器在一开始就把它们给干掉了。 </p>
+<ol start="5">
+<li> 不允许在一条语句中增删改某个表的记录时同时还对该表进行子查询。  <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; DELETE FROM t1 WHERE m1 &lt; (SELECT MAX(m1) FROM t1);</span><br></pre></td></tr></table></figure></li>
+</ol>
+<h2 id="3-2-子查询的执行"><a href="#3-2-子查询的执行" class="headerlink" title="3.2 子查询的执行"></a>3.2 子查询的执行</h2><p>还是复用前面的表：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">CREATE TABLE single_table (</span><br><span class="line">    id INT NOT NULL AUTO_INCREMENT,</span><br><span class="line">    key1 VARCHAR(100),</span><br><span class="line">    key2 INT,</span><br><span class="line">    key3 VARCHAR(100),</span><br><span class="line">    key_part1 VARCHAR(100),</span><br><span class="line">    key_part2 VARCHAR(100),</span><br><span class="line">    key_part3 VARCHAR(100),</span><br><span class="line">    common_field VARCHAR(100),</span><br><span class="line">    PRIMARY KEY (id),</span><br><span class="line">    KEY idx_key1 (key1),</span><br><span class="line">    UNIQUE KEY idx_key2 (key2),</span><br><span class="line">    KEY idx_key3 (key3),</span><br><span class="line">    KEY idx_key_part(key_part1, key_part2, key_part3)</span><br><span class="line">) Engine=InnoDB CHARSET=utf8;</span><br></pre></td></tr></table></figure>
+
+
+<p>我们假设有两个表<code>s1</code>、<code>s2</code>与这个<code>single_table</code>表的构造是相同的，而且这两个表里边儿有10000条记录。</p>
+<h3 id="3-2-1-标量-行子查询的执行方式"><a href="#3-2-1-标量-行子查询的执行方式" class="headerlink" title="3.2.1 标量/行子查询的执行方式"></a>3.2.1 标量/行子查询的执行方式</h3><p>我们经常在下边两个场景中使用到标量子查询或者行子查询：</p>
+<ul>
+<li><code>SELECT</code>子句中，我们前边说过的在查询列表中的子查询必须是标量子查询。</li>
+<li>子查询使用<code>=</code>、<code>&gt;</code>、<code>&lt;</code>、<code>&gt;=</code>、<code>&lt;=</code>、<code>&lt;&gt;</code>、<code>!=</code>、<code>&lt;=&gt;</code>等操作符和某个操作数组成一个布尔表达式，这样的子查询必须是标量子查询或者行子查询。</li>
+</ul>
+<p>对于上述两种场景中的不相关标量子查询或者行子查询来说，它们的执行方式是简单的，比方说下边这个查询语句：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM s1 </span><br><span class="line">    WHERE key1 = (SELECT common_field FROM s2 WHERE key3 = &#x27;a&#x27; LIMIT 1);</span><br></pre></td></tr></table></figure>
+
+
+<ol>
+<li>先单独执行<code>(SELECT common_field FROM s2 WHERE key3 = &#39;a&#39; LIMIT 1)</code>这个子查询。</li>
+<li>然后在将上一步子查询得到的结果当作外层查询的参数再执行外层查询<code>SELECT * FROM s1 WHERE key1 = ...</code>。</li>
+</ol>
+<p>也就是说，<strong>对于包含不相关的标量子查询或者行子查询的查询语句来说，MySQL会分别独立的执行外层查询和子查询，就当作两个单表查询就好了。</strong></p>
+<p>对于相关的标量子查询或者行子查询来说，比如下边这个查询：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM s1 WHERE </span><br><span class="line">    key1 = (SELECT common_field FROM s2 WHERE s1.key3 = s2.key3 LIMIT 1);</span><br></pre></td></tr></table></figure>
+
+
+<p><img src="https://cdn.nlark.com/yuque/0/2022/jpeg/12610368/1641804199349-63a75016-de79-4c41-897b-b2add30ea245.jpeg#clientId=u08f6cf82-f067-4&crop=0&crop=0&crop=1&crop=1&from=ui&id=u42a271a5&margin=%5Bobject%20Object%5D&name=%E7%9B%B8%E5%85%B3%E5%AD%90%E6%9F%A5%E8%AF%A2%E6%89%A7%E8%A1%8C%E6%B5%81%E7%A8%8B.jpg&originHeight=975&originWidth=3093&originalType=binary&ratio=1&rotation=0&showTitle=false&size=259239&status=done&style=none&taskId=u108f4af2-efce-47d1-bcce-7a62b84dd35&title=" alt="相关子查询执行流程.jpg"></p>
+<h3 id="3-2-2-IN子查询优化"><a href="#3-2-2-IN子查询优化" class="headerlink" title="3.2.2 IN子查询优化"></a>3.2.2 IN子查询优化</h3><h4 id="①-物化表的提出"><a href="#①-物化表的提出" class="headerlink" title="① 物化表的提出"></a>① 物化表的提出</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM s1 </span><br><span class="line">    WHERE key1 IN (SELECT common_field FROM s2 WHERE key3 = &#x27;a&#x27;);</span><br></pre></td></tr></table></figure>
+
+
+<p>对于不相关的<code>IN</code>子查询来说，如果子查询的结果集中的记录条数很少，那么把子查询和外层查询分别看成两个单独的单表查询效率还行，但是如果单独执行子查询后的结果集太多的话，就会导致这些问题：</p>
+<ul>
+<li>结果集太多，可能内存中都放不下。</li>
+<li>对于外层查询来说，如果子查询的结果集太多，那就意味着<code>IN</code>子句中的参数特别多，这就导致： <ul>
+<li>无法有效的使用索引，只能对外层查询进行全表扫描。</li>
+<li>在对外层查询执行全表扫描时，由于<code>IN</code>子句中的参数太多，这会导致检测一条记录是否符合和<code>IN</code>子句中的参数匹配花费的时间太长。</li>
+</ul>
+</li>
+</ul>
+<p>所以MySQL并不直接将不相关子查询的结果集当作外层查询的参数，而是将该结果集写入一个临时表里。</p>
+<ol>
+<li><p> 该临时表的列就是子查询结果集中的列。 </p>
+</li>
+<li><p> 写入临时表的记录会被去重。<br>我们说<code>IN</code>语句是判断某个操作数在不在某个集合中，集合中的值重不重复对整个<code>IN</code>语句的结果并没有影响，所以我们在将结果集写入临时表时对记录进行去重可以让临时表变得更小。  </p>
+<blockquote>
+<p>临时表如何对记录进行去重？只要为表中记录的所有列建立主键或者唯一索引就好了嘛～</p>
+</blockquote>
+</li>
+<li><p> 一般情况下子查询结果集不会大的离谱，所以会为它建立基于内存的使用<code>Memory</code>存储引擎的临时表，而且会为该表建立哈希索引。<br>如果子查询的结果集非常大，超过了系统变量<code>tmp_table_size</code>或者<code>max_heap_table_size</code>，临时表会转而使用基于磁盘的存储引擎来保存结果集中的记录，索引类型也对应转变为<code>B+</code>树索引。 </p>
+<blockquote>
+<p>IN语句的本质就是判断某个操作数在不在某个集合里，如果集合中的数据建立了哈希索引，那么这个匹配的过程就是超级快的。</p>
+</blockquote>
+</li>
+</ol>
+<p><code>MySQL</code>把这个将子查询结果集中的记录保存到临时表的过程称之为<code>物化</code>。为了方便起见，我们就把那个存储子查询结果集的临时表称之为<code>物化表</code>。正因为物化表中的记录都建立了索引（基于内存的物化表有哈希索引，基于磁盘的有B+树索引），通过索引执行<code>IN</code>语句判断某个操作数在不在子查询结果集中变得非常快，从而提升了子查询语句的性能。</p>
+<h4 id="②-物化表转连接"><a href="#②-物化表转连接" class="headerlink" title="② 物化表转连接"></a>② 物化表转连接</h4><p>再看一下最开始的那个查询语句：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM s1 </span><br><span class="line">    WHERE key1 IN (SELECT common_field FROM s2 WHERE key3 = &#x27;a&#x27;);</span><br></pre></td></tr></table></figure>
+
+
+<p>当我们把子查询进行物化之后，假设子查询物化表的名称为<code>materialized_table</code>，该物化表存储的子查询结果集的列为<code>m_val</code>，那么这个查询其实可以从下边两种角度来看待：</p>
+<ul>
+<li> 从表<code>s1</code>的角度来看待，整个查询的意思其实是：对于<code>s1</code>表中的每条记录来说，如果该记录的<code>key1</code>列的值在子查询对应的物化表中，则该记录会被加入最终的结果集。画个图表示一下就是这样：<br><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1640267701713-1a419399-7381-4338-a04e-0af34b0555d8.png#clientId=u7473b4e3-8a45-4&crop=0&crop=0&crop=1&crop=1&from=ui&id=u981c0b64&margin=%5Bobject%20Object%5D&name=1.png&originHeight=519&originWidth=728&originalType=binary&ratio=1&rotation=0&showTitle=false&size=126733&status=done&style=none&taskId=ube4d8262-3244-4e4c-9f1a-846f3f773dd&title=" alt="1.png"></li>
+<li> 从子查询物化表的角度来看待，整个查询的意思其实是：对于子查询物化表的每个值来说，如果能在<code>s1</code>表中找到对应的<code>key1</code>列的值与该值相等的记录，那么就把这些记录加入到最终的结果集。画个图表示一下就是这样：<br><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1640267710960-6fc5e0b3-555b-4690-be6f-cef6913cb7e8.png#clientId=u7473b4e3-8a45-4&crop=0&crop=0&crop=1&crop=1&from=ui&id=u1611c8f0&margin=%5Bobject%20Object%5D&name=2.png&originHeight=457&originWidth=687&originalType=binary&ratio=1&rotation=0&showTitle=false&size=103779&status=done&style=none&taskId=u1a52d8a1-26f9-4226-9340-d7cd29f77ac&title=" alt="2.png"></li>
+</ul>
+<p>也就是说其实上边的查询就相当于表<code>s1</code>和子查询物化表<code>materialized_table</code>进行内连接：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SELECT s1.* FROM s1 INNER JOIN materialized_table ON key1 = m_val;</span><br></pre></td></tr></table></figure>
+
+
+<p>转化成内连接之后就有意思了，查询优化器可以评估不同连接顺序需要的成本是多少，选取成本最低的那种查询方式执行查询。我们分析一下上述查询中使用外层查询的表<code>s1</code>和物化表<code>materialized_table</code>进行内连接的成本都是由哪几部分组成的：</p>
+<ul>
+<li>如果使用<code>s1</code>表作为驱动表的话，总查询成本由下边几个部分组成： <ol>
+<li>物化子查询时需要的成本</li>
+<li>扫描<code>s1</code>表时的成本</li>
+<li>s1表中的记录数量 × 通过<code>m_val = xxx</code>对<code>materialized_table</code>表进行单表访问的成本（我们前边说过物化表中的记录是不重复的，并且为物化表中的列建立了索引，所以这个步骤显然是非常快的）。</li>
+</ol>
+</li>
+<li>如果使用<code>materialized_table</code>表作为驱动表的话，总查询成本由下边几个部分组成： <ol>
+<li>物化子查询时需要的成本</li>
+<li>扫描物化表时的成本</li>
+<li>物化表中的记录数量 × 通过<code>key1 = xxx</code>对<code>s1</code>表进行单表访问的成本（非常庆幸<code>key1</code>列上建立了索引，所以这个步骤是非常快的）。</li>
+</ol>
+</li>
+</ul>
+<p><code>MySQL</code>查询优化器会通过运算来选择上述成本更低的方案来执行查询。</p>
+<h4 id="③-将子查询转换为semi-join"><a href="#③-将子查询转换为semi-join" class="headerlink" title="③ 将子查询转换为semi-join"></a>③ 将子查询转换为semi-join</h4><p>虽然将子查询进行物化之后再执行查询都会有建立临时表的成本，但是不管怎么说，我们见识到了将子查询转换为连接的强大作用，能不能不进行物化操作直接把子查询转换为连接呢？</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM s1 </span><br><span class="line">    WHERE key1 IN (SELECT common_field FROM s2 WHERE key3 = &#x27;a&#x27;);</span><br></pre></td></tr></table></figure>
+
+
+<p>我们可以把这个查询理解成：对于<code>s1</code>表中的某条记录，如果我们能在<code>s2</code>表（准确的说是执行完<code>WHERE s2.key3 = &#39;a&#39;</code>之后的结果集）中找到一条或多条记录，这些记录的<code>common_field</code>的值等于<code>s1</code>表记录的<code>key1</code>列的值，那么该条<code>s1</code>表的记录就会被加入到最终的结果集。这个过程其实和把<code>s1</code>和<code>s2</code>两个表连接起来的效果很像：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">SELECT s1.* FROM s1 INNER JOIN s2 </span><br><span class="line">    ON s1.key1 = s2.common_field </span><br><span class="line">    WHERE s2.key3 = &#x27;a&#x27;;</span><br></pre></td></tr></table></figure>
+
+
+<p>只不过我们不能保证对于<code>s1</code>表的某条记录来说，在<code>s2</code>表（准确的说是执行完<code>WHERE s2.key3 = &#39;a&#39;</code>之后的结果集）中有多少条记录满足<code>s1.key1 = s2.common_field</code>这个条件，不过我们可以分三种情况讨论：</p>
+<ul>
+<li>情况一：对于<code>s1</code>表的某条记录来说，<code>s2</code>表中没有任何记录满足<code>s1.key1 = s2.common_field</code>这个条件，那么该记录自然也不会加入到最后的结果集。</li>
+<li>情况二：对于<code>s1</code>表的某条记录来说，<code>s2</code>表中有且只有1条记录满足<code>s1.key1 = s2.common_field</code>这个条件，那么该记录会被加入最终的结果集。</li>
+<li>情况三：对于<code>s1</code>表的某条记录来说，<code>s2</code>表中至少有2条记录满足<code>s1.key1 = s2.common_field</code>这个条件，那么该记录会被多次加入最终的结果集。</li>
+</ul>
+<p>对于<code>s1</code>表的某条记录来说，由于我们只关心<code>s2</code>表中是否存在记录满足<code>s1.key1 = s2.common_field</code>这个条件，而不关心具体有多少条记录与之匹配，又因为有<code>情况三</code>的存在，我们上边所说的<code>IN</code>子查询和两表连接之间并不完全等价。但是将子查询转换为连接又真的可以充分发挥优化器的作用，所以<code>MySQL</code>在这里提出了一个新概念 — <code>半连接</code>。将<code>s1</code>表和<code>s2</code>表进行半连接的意思就是：对于<code>s1</code>表的某条记录来说，我们只关心在<code>s2</code>表中是否存在与之匹配的记录，而不关心具体有多少条记录与之匹配，最终的结果集中只保留<code>s1</code>表的记录。我们假设MySQL内部是这么改写上边的子查询的：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">SELECT s1.* FROM s1 SEMI JOIN s2</span><br><span class="line">    ON s1.key1 = s2.common_field</span><br><span class="line">    WHERE key3 = &#x27;a&#x27;;</span><br></pre></td></tr></table></figure>
+
+
+<blockquote>
+<p>semi-join只是在MySQL内部采用的一种执行子查询的方式，MySQL并没有提供面向用户的semi-join语法，所以我们不需要，也不能尝试把上边这个语句放到mysql客户端执行。</p>
+</blockquote>
+<p>怎么实现这种所谓的<code>半连接</code>呢？</p>
+<ul>
+<li><p> Table pullout （子查询中的表上拉）<br>当子查询的查询列表处只有主键或者唯一索引列时，可以直接把子查询中的表<code>上拉</code>到外层查询的<code>FROM</code>子句中，并把子查询中的搜索条件合并到外层查询的搜索条件中，比如这个<br>由于<code>key2</code>列是<code>s2</code>表的唯一二级索引列，所以我们可以直接把<code>s2</code>表上拉到外层查询的<code>FROM</code>子句中，并且把子查询中的搜索条件合并到外层查询的搜索条件中，上拉之后的查询就是这样的：<br>为什么当子查询的查询列表处只有主键或者唯一索引列时，就可以直接将子查询转换为连接查询呢？主键或者唯一索引列中的数据本身就是不重复的，所以对于同一条<code>s1</code>表中的记录，不可能找到两条以上的符合<code>s1.key2 = s2.key2</code>的记录。 </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM s1 </span><br><span class="line">    WHERE key2 IN (SELECT key2 FROM s2 WHERE key3 = &#x27;a&#x27;);</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">SELECT s1.* FROM s1 INNER JOIN s2 </span><br><span class="line">    ON s1.key2 = s2.key2 </span><br><span class="line">    WHERE s2.key3 = &#x27;a&#x27;;</span><br></pre></td></tr></table></figure></li>
+<li><p> DuplicateWeedout execution strategy （重复值消除）<br>对于这个查询来说：<br>转换为半连接查询后，<code>s1</code>表中的某条记录可能在<code>s2</code>表中有多条匹配的记录，所以该条记录可能多次被添加到最后的结果集中，为了消除重复，我们可以建立一个临时表，比方说这个临时表长这样：<br>这样在执行连接查询的过程中，每当某条<code>s1</code>表中的记录要加入结果集时，就首先把这条记录的<code>id</code>值加入到这个临时表里，如果添加成功，说明之前这条<code>s1</code>表中的记录并没有加入最终的结果集，现在把该记录添加到最终的结果集；如果添加失败，说明之前这条<code>s1</code>表中的记录已经加入过最终的结果集，这里直接把它丢弃就好了，这种使用临时表消除<code>semi-join</code>结果集中的重复值的方式称之为<code>DuplicateWeedout</code>。 </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM s1 </span><br><span class="line">    WHERE key1 IN (SELECT common_field FROM s2 WHERE key3 = &#x27;a&#x27;);</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">CREATE TABLE tmp (</span><br><span class="line">    id PRIMARY KEY</span><br><span class="line">);</span><br></pre></td></tr></table></figure></li>
+<li><p> LooseScan execution strategy （松散扫描）<br>大家看这个查询：<br>在子查询中，对于<code>s2</code>表的访问可以使用到<code>key1</code>列的索引，而恰好子查询的查询列表处就是<code>key1</code>列，这样在将该查询转换为半连接查询后，如果将<code>s2</code>作为驱动表执行查询的话，那么执行过程就是这样：<br><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1640267724986-725be8df-4e22-4b31-ad11-f1f3f52b05ba.png#clientId=u7473b4e3-8a45-4&crop=0&crop=0&crop=1&crop=1&from=ui&id=u4f2fb7fe&margin=%5Bobject%20Object%5D&name=3.png&originHeight=335&originWidth=810&originalType=binary&ratio=1&rotation=0&showTitle=false&size=127580&status=done&style=none&taskId=u525e014a-627f-4977-a72b-fd728749105&title=" alt="3.png"><br>如图所示，在<code>s2</code>表的<code>idx_key1</code>索引中，值为<code>&#39;aa&#39;</code>的二级索引记录一共有3条，那么只需要取第一条的值到<code>s1</code>表中查找<code>s1.key3 = &#39;aa&#39;</code>的记录，如果能在<code>s1</code>表中找到对应的记录，那么就把对应的记录加入到结果集。依此类推，其他值相同的二级索引记录，也只需要取第一条记录的值到<code>s1</code>表中找匹配的记录，这种虽然是扫描索引，但只取值相同的记录的第一条去做匹配操作的方式称之为<code>松散扫描</code>。 </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM s1 </span><br><span class="line">    WHERE key3 IN (SELECT key1 FROM s2 WHERE key1 &gt; &#x27;a&#x27; AND key1 &lt; &#x27;b&#x27;);</span><br></pre></td></tr></table></figure></li>
+<li><p> Semi-join Materialization execution strategy<br>我们之前介绍的先把外层查询的<code>IN</code>子句中的不相关子查询进行物化，然后再进行外层查询的表和物化表的连接本质上也算是一种<code>semi-join</code>，只不过由于物化表中没有重复的记录，所以可以直接将子查询转为连接查询。 </p>
+</li>
+<li><p> FirstMatch execution strategy （首次匹配）<br><code>FirstMatch</code>是一种最原始的半连接执行方式，先取一条外层查询的中的记录，然后到子查询的表中寻找符合匹配条件的记录，如果能找到一条，则将该外层查询的记录放入最终的结果集并且停止查找更多匹配的记录，如果找不到则把该外层查询的记录丢弃掉；然后再开始取下一条外层查询中的记录，重复上边这个过程。 </p>
+</li>
+</ul>
+<p>对于某些使用<code>IN</code>语句的相关子查询，比方这个查询：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM s1 </span><br><span class="line">    WHERE key1 IN (SELECT common_field FROM s2 WHERE s1.key3 = s2.key3);</span><br></pre></td></tr></table></figure>
+
+
+<p>它也可以很方便的转为半连接，转换后的语句类似这样：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">SELECT s1.* FROM s1 SEMI JOIN s2 </span><br><span class="line">    ON s1.key1 = s2.common_field AND s1.key3 = s2.key3;</span><br></pre></td></tr></table></figure>
+
+
+<p>然后就可以使用我们上边介绍过的<code>DuplicateWeedout</code>、<code>LooseScan</code>、<code>FirstMatch</code>等半连接执行策略来执行查询，当然，如果子查询的查询列表处只有主键或者唯一二级索引列，还可以直接使用<code>table pullout</code>的策略来执行查询，但是，由于相关子查询并不是一个独立的查询，所以不能转换为物化表来执行查询。</p>
+<h4 id="④-semi-join的适用条件"><a href="#④-semi-join的适用条件" class="headerlink" title="④ semi-join的适用条件"></a>④ semi-join的适用条件</h4><p>当然，并不是所有包含<code>IN</code>子查询的查询语句都可以转换为<code>semi-join</code>，只有形如这样的查询才可以被转换为<code>semi-join</code>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">SELECT ... FROM outer_tables </span><br><span class="line">    WHERE expr IN (SELECT ... FROM inner_tables ...) AND ...</span><br></pre></td></tr></table></figure>
+
+
+<p>或者这样的形式也可以：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">SELECT ... FROM outer_tables </span><br><span class="line">    WHERE (oe1, oe2, ...) IN (SELECT ie1, ie2, ... FROM inner_tables ...) AND ...</span><br></pre></td></tr></table></figure>
+
+
+<p>用文字总结一下，只有符合下边这些条件的子查询才可以被转换为<code>semi-join</code>：</p>
+<ul>
+<li>该子查询必须是和<code>IN</code>语句组成的布尔表达式，并且在外层查询的<code>WHERE</code>或者<code>ON</code>子句中出现。</li>
+<li>外层查询也可以有其他的搜索条件，只不过和<code>IN</code>子查询的搜索条件必须使用<code>AND</code>连接起来。</li>
+<li>该子查询必须是一个单一的查询，不能是由若干查询由<code>UNION</code>连接起来的形式。</li>
+<li>该子查询不能包含<code>GROUP BY</code>或者<code>HAVING</code>语句或者聚集函数。</li>
+<li>… 还有一些条件比较少见….</li>
+</ul>
+<h4 id="⑤-不适用于semi-join的情况"><a href="#⑤-不适用于semi-join的情况" class="headerlink" title="⑤ 不适用于semi-join的情况"></a>⑤ 不适用于semi-join的情况</h4><p>对于一些不能将子查询转位<code>semi-join</code>的情况，典型的比如下边这几种：</p>
+<ul>
+<li><p> 外层查询的WHERE条件中有其他搜索条件与IN子查询组成的布尔表达式使用<code>OR</code>连接起来  </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM s1 </span><br><span class="line">    WHERE key1 IN (SELECT common_field FROM s2 WHERE key3 = &#x27;a&#x27;)</span><br><span class="line">        OR key2 &gt; 100;</span><br></pre></td></tr></table></figure></li>
+<li><p> 使用<code>NOT IN</code>而不是<code>IN</code>的情况  </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM s1 </span><br><span class="line">    WHERE key1 NOT IN (SELECT common_field FROM s2 WHERE key3 = &#x27;a&#x27;)</span><br></pre></td></tr></table></figure></li>
+<li><p> 在<code>SELECT</code>子句中的IN子查询的情况  </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SELECT key1 IN (SELECT common_field FROM s2 WHERE key3 = &#x27;a&#x27;) FROM s1 ;</span><br></pre></td></tr></table></figure></li>
+<li><p> 子查询中包含<code>GROUP BY</code>、<code>HAVING</code>或者聚集函数的情况  </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM s1 </span><br><span class="line">    WHERE key2 IN (SELECT COUNT(*) FROM s2 GROUP BY key1);</span><br></pre></td></tr></table></figure></li>
+<li><p> 子查询中包含<code>UNION</code>的情况  </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM s1 WHERE key1 IN (</span><br><span class="line">    SELECT common_field FROM s2 WHERE key3 = &#x27;a&#x27; </span><br><span class="line">    UNION</span><br><span class="line">    SELECT common_field FROM s2 WHERE key3 = &#x27;b&#x27;</span><br><span class="line">);</span><br></pre></td></tr></table></figure></li>
+</ul>
+<p><code>MySQL</code>仍然会尝试优化不能转为<code>semi-join</code>查询的子查询，那就是：</p>
+<ul>
+<li><p> 对于不相关子查询来说，可以尝试把它们物化之后再参与查询<br>比如我们上边提到的这个查询：<br>先将子查询物化，然后再判断<code>key1</code>是否在物化表的结果集中可以加快查询执行的速度。  </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM s1 </span><br><span class="line">    WHERE key1 NOT IN (SELECT common_field FROM s2 WHERE key3 = &#x27;a&#x27;)</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>这里将子查询物化之后不能转为和外层查询的表的连接，只能是先扫描s1表，然后对s1表的某条记录来说，判断该记录的key1值在不在物化表中。</p>
+</blockquote>
+</li>
+<li><p> 不管子查询是相关的还是不相关的，都可以把<code>IN</code>子查询尝试转为<code>EXISTS</code>子查询<br>其实对于任意一个IN子查询来说，都可以被转为<code>EXISTS</code>子查询，通用的例子如下：<br>可以被转换为：<br>当然这个过程中有一些特殊情况，比如在<code>outer_expr</code>或者<code>inner_expr</code>值为<code>NULL</code>的情况下就比较特殊。因为有<code>NULL</code>值作为操作数的表达式结果往往是<code>NULL</code>，比方说：<br>而<code>EXISTS</code>子查询的结果肯定是<code>TRUE</code>或者<code>FASLE</code>：<br>但是，我们大部分使用<code>IN</code>子查询的场景是把它放在<code>WHERE</code>或者<code>ON</code>子句中，而<code>WHERE</code>或者<code>ON</code>子句是不区分<code>NULL</code>和<code>FALSE</code>的，比方说：<br>所以只要我们的<code>IN</code>子查询是放在<code>WHERE</code>或者<code>ON</code>子句中的，那么<code>IN -&gt; EXISTS</code>的转换就是没问题的。说了这么多，为啥要转换呢？这是因为不转换的话可能用不到索引，比方说下边这个查询：<br>这个查询中的子查询是一个相关子查询，而且子查询执行的时候不能使用到索引，但是将它转为<code>EXISTS</code>子查询后却可以使用到索引：<br>转为<code>EXISTS</code>子查询时便可以使用到<code>s2</code>表的<code>idx_key3</code>索引了。<br>需要注意的是，如果<code>IN</code>子查询不满足转换为<code>semi-join</code>的条件，又不能转换为物化表或者转换为物化表的成本太大，那么它就会被转换为<code>EXISTS</code>查询。  </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">outer_expr IN (SELECT inner_expr FROM ... WHERE subquery_where)</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">EXISTS (SELECT inner_expr FROM ... WHERE subquery_where AND outer_expr=inner_expr)</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; SELECT NULL IN (1, 2, 3);</span><br><span class="line">+-------------------+</span><br><span class="line">| NULL IN (1, 2, 3) |</span><br><span class="line">+-------------------+</span><br><span class="line">|              NULL |</span><br><span class="line">+-------------------+</span><br><span class="line">1 row in set (0.00 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; SELECT 1 IN (1, 2, 3);</span><br><span class="line">+----------------+</span><br><span class="line">| 1 IN (1, 2, 3) |</span><br><span class="line">+----------------+</span><br><span class="line">|              1 |</span><br><span class="line">+----------------+</span><br><span class="line">1 row in set (0.00 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; SELECT NULL IN (NULL);</span><br><span class="line">+----------------+</span><br><span class="line">| NULL IN (NULL) |</span><br><span class="line">+----------------+</span><br><span class="line">|           NULL |</span><br><span class="line">+----------------+</span><br><span class="line">1 row in set (0.00 sec)</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; SELECT EXISTS (SELECT 1 FROM s1 WHERE NULL = 1);</span><br><span class="line">+------------------------------------------+</span><br><span class="line">| EXISTS (SELECT 1 FROM s1 WHERE NULL = 1) |</span><br><span class="line">+------------------------------------------+</span><br><span class="line">|                                        0 |</span><br><span class="line">+------------------------------------------+</span><br><span class="line">1 row in set (0.01 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; SELECT EXISTS (SELECT 1 FROM s1 WHERE 1 = NULL);</span><br><span class="line">+------------------------------------------+</span><br><span class="line">| EXISTS (SELECT 1 FROM s1 WHERE 1 = NULL) |</span><br><span class="line">+------------------------------------------+</span><br><span class="line">|                                        0 |</span><br><span class="line">+------------------------------------------+</span><br><span class="line">1 row in set (0.00 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; SELECT EXISTS (SELECT 1 FROM s1 WHERE NULL = NULL);</span><br><span class="line">+---------------------------------------------+</span><br><span class="line">| EXISTS (SELECT 1 FROM s1 WHERE NULL = NULL) |</span><br><span class="line">+---------------------------------------------+</span><br><span class="line">|                                           0 |</span><br><span class="line">+---------------------------------------------+</span><br><span class="line">1 row in set (0.00 sec)</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; SELECT 1 FROM s1 WHERE NULL;</span><br><span class="line">Empty set (0.00 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; SELECT 1 FROM s1 WHERE FALSE;</span><br><span class="line">Empty set (0.00 sec)</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM s1</span><br><span class="line">    WHERE key1 IN (SELECT key3 FROM s2 where s1.common_field = s2.common_field) </span><br><span class="line">        OR key2 &gt; 1000;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM s1</span><br><span class="line">    WHERE EXISTS (SELECT 1 FROM s2 where s1.common_field = s2.common_field AND s2.key3 = s1.key1) </span><br><span class="line">        OR key2 &gt; 1000;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>在MySQL5.5以及之前的版本没有引进semi-join和物化的方式优化子查询时，优化器都会把IN子查询转换为EXISTS子查询。</p>
+</blockquote>
+</li>
+</ul>
+<h4 id="⑥-阶段梳理"><a href="#⑥-阶段梳理" class="headerlink" title="⑥ 阶段梳理"></a>⑥ 阶段梳理</h4><ul>
+<li>如果<code>IN</code>子查询符合转换为<code>semi-join</code>的条件，查询优化器会优先把该子查询转换为<code>semi-join</code>，然后再考虑下边5种执行半连接的策略中哪个成本最低： <ul>
+<li>Table pullout</li>
+<li>DuplicateWeedout</li>
+<li>LooseScan</li>
+<li>Materialization</li>
+<li>FirstMatch</li>
+</ul>
+</li>
+</ul>
+<p>选择成本最低的那种执行策略来执行子查询。 </p>
+<ul>
+<li>如果<code>IN</code>子查询不符合转换为<code>semi-join</code>的条件，那么查询优化器会从下边两种策略中找出一种成本更低的方式执行子查询： <ul>
+<li>先将子查询物化之后再执行查询</li>
+<li>执行<code>IN to EXISTS</code>转换。</li>
+</ul>
+</li>
+</ul>
+<h3 id="3-2-3-ANY-ALL子查询优化"><a href="#3-2-3-ANY-ALL子查询优化" class="headerlink" title="3.2.3 ANY/ALL子查询优化"></a>3.2.3 ANY/ALL子查询优化</h3><p>如果ANY/ALL子查询是不相关子查询的话，它们在很多场合都能转换成我们熟悉的方式去执行，比方说：</p>
+<table>
+<thead>
+<tr>
+<th>原始表达式</th>
+<th>转换为</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>&lt; ANY (SELECT inner_expr …)</td>
+<td>&lt; (SELECT MAX(inner_expr) …)</td>
+</tr>
+<tr>
+<td>&gt; ANY (SELECT inner_expr …)</td>
+<td>&gt; (SELECT MIN(inner_expr) …)</td>
+</tr>
+<tr>
+<td>&lt; ALL (SELECT inner_expr …)</td>
+<td>&lt; (SELECT MIN(inner_expr) …)</td>
+</tr>
+<tr>
+<td>&gt; ALL (SELECT inner_expr …)</td>
+<td>&gt; (SELECT MAX(inner_expr) …)</td>
+</tr>
+</tbody></table>
+<h3 id="3-2-4-NOT-EXISTS子查询的执行"><a href="#3-2-4-NOT-EXISTS子查询的执行" class="headerlink" title="3.2.4 [NOT] EXISTS子查询的执行"></a>3.2.4 [NOT] EXISTS子查询的执行</h3><p>如果<code>[NOT] EXISTS</code>子查询是不相关子查询，可以先执行子查询，得出该<code>[NOT] EXISTS</code>子查询的结果是<code>TRUE</code>还是<code>FALSE</code>，并重写原先的查询语句，比如对这个查询来说：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM s1 </span><br><span class="line">    WHERE EXISTS (SELECT 1 FROM s2 WHERE key1 = &#x27;a&#x27;) </span><br><span class="line">        OR key2 &gt; 100;</span><br></pre></td></tr></table></figure>
+
+
+<p>因为这个语句里的子查询是不相关子查询，所以优化器会首先执行该子查询，假设该EXISTS子查询的结果为<code>TRUE</code>，那么接着优化器会重写查询为：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM s1 </span><br><span class="line">    WHERE TRUE OR key2 &gt; 100;</span><br></pre></td></tr></table></figure>
+
+
+<p>进一步简化后就变成了：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM s1 </span><br><span class="line">    WHERE TRUE;</span><br></pre></td></tr></table></figure>
+
+
+<p>对于相关的<code>[NOT] EXISTS</code>子查询来说，比如这个查询：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM s1 </span><br><span class="line">    WHERE EXISTS (SELECT 1 FROM s2 WHERE s1.common_field = s2.common_field);</span><br></pre></td></tr></table></figure>
+
+
+<p>这个查询只能按照普通的那种执行相关子查询的方式来执行。不过如果<code>[NOT] EXISTS</code>子查询中如果可以使用索引的话，那查询速度也会加快不少，比如：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM s1 </span><br><span class="line">    WHERE EXISTS (SELECT 1 FROM s2 WHERE s1.common_field = s2.key1);</span><br></pre></td></tr></table></figure>
+
+
+<p>上边这个<code>EXISTS</code>子查询中可以使用<code>idx_key1</code>来加快查询速度。</p>
+<h3 id="3-2-5-对于派生表的优化"><a href="#3-2-5-对于派生表的优化" class="headerlink" title="3.2.5 对于派生表的优化"></a>3.2.5 对于派生表的优化</h3><p>我们前边说过把子查询放在外层查询的<code>FROM</code>子句后，那么这个子查询的结果相当于一个<code>派生表</code>，比如下边这个查询：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM  (</span><br><span class="line">        SELECT id AS d_id,  key3 AS d_key3 FROM s2 WHERE key1 = &#x27;a&#x27;</span><br><span class="line">    ) AS derived_s1 WHERE d_key3 = &#x27;a&#x27;;</span><br></pre></td></tr></table></figure>
+
+
+<p>子查询<code>( SELECT id AS d_id, key3 AS d_key3 FROM s2 WHERE key1 = &#39;a&#39;)</code>的结果就相当于一个派生表，这个表的名称是<code>derived_s1</code>，该表有两个列，分别是<code>d_id</code>和<code>d_key3</code>。</p>
+<p>对于含有<code>派生表</code>的查询，<code>MySQL</code>提供了两种执行策略：</p>
+<ul>
+<li><p> 把派生表物化<br>我们可以将派生表的结果集写到一个内部的临时表中，然后就把这个物化表当作普通表一样参与查询。当然，在对派生表进行物化时，<code>MySQL</code>使用了一种称为<code>延迟物化</code>的策略，也就是在查询中真正使用到派生表时才会去尝试物化派生表，而不是还没开始执行查询就把派生表物化掉。比方说对于下边这个含有派生表的查询来说：<br>如果采用物化派生表的方式来执行这个查询的话，那么执行时首先会到<code>s2</code>表中找出满足<code>s2.key2 = 1</code>的记录，如果找不到，说明参与连接的<code>s2</code>表记录就是空的，所以整个查询的结果集就是空的，所以也就没有必要去物化查询中的派生表了。 </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM (</span><br><span class="line">        SELECT * FROM s1 WHERE key1 = &#x27;a&#x27;</span><br><span class="line">    ) AS derived_s1 INNER JOIN s2</span><br><span class="line">    ON derived_s1.key1 = s2.key1</span><br><span class="line">    WHERE s2.key2 = 1;</span><br></pre></td></tr></table></figure></li>
+<li><p>将派生表和外层的表合并，也就是将查询重写为没有派生表的形式<br>我们来看这个包含派生表的查询：<br>这个查询本质上就是想查看<code>s1</code>表中满足<code>key1 = &#39;a&#39;</code>条件的的全部记录，所以和下边这个语句是等价的：<br>对于一些稍微复杂的包含派生表的语句，比如我们上边提到的那个：<br>我们可以将派生表与外层查询的表合并，然后将派生表中的搜索条件放到外层查询的搜索条件中，就像这样：<br>这样通过将外层查询和派生表合并的方式成功的消除了派生表，也就意味着我们没必要再付出创建和访问临时表的成本了。可是并不是所有带有派生表的查询都能被成功的和外层查询合并，当派生表中有这些语句就不可以和外层查询合并： </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM (SELECT * FROM s1 WHERE key1 = &#x27;a&#x27;) AS derived_s1;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM s1 WHERE key1 = &#x27;a&#x27;;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM (</span><br><span class="line">        SELECT * FROM s1 WHERE key1 = &#x27;a&#x27;</span><br><span class="line">    ) AS derived_s1 INNER JOIN s2</span><br><span class="line">    ON derived_s1.key1 = s2.key1</span><br><span class="line">    WHERE s2.key2 = 1;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM s1 INNER JOIN s2 </span><br><span class="line">    ON s1.key1 = s2.key1</span><br><span class="line">    WHERE s1.key1 = &#x27;a&#x27; AND s2.key2 = 1;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>聚集函数，比如MAX()、MIN()、SUM()…</li>
+<li>DISTINCT</li>
+<li>GROUP BY</li>
+<li>HAVING</li>
+<li>LIMIT</li>
+<li>UNION 或者 UNION ALL</li>
+<li>派生表对应的子查询的<code>SELECT</code>子句中含有另一个子查询</li>
+<li>… 还有些不常用的情况…</li>
+</ul>
+</li>
+</ul>
+<p>所以<code>MySQL</code>在执行带有派生表的时候，优先尝试把派生表和外层查询合并掉，如果不行的话，再把派生表物化掉执行查询。</p>
+<h1 id="4-总结"><a href="#4-总结" class="headerlink" title="4.总结"></a>4.总结</h1><p>MySQL会对用户编写的SQL语句进行重写操作，比如：</p>
+<ol>
+<li>移除不必要的括号</li>
+<li>常量传递</li>
+<li>移除没用的条件</li>
+<li>表达式计算</li>
+<li>HAVING&amp;WHERE子句的合并</li>
+<li>常量表检测</li>
+</ol>
+<p>在被驱动表的WHERE子句符合空值拒绝条件的时候，外连接&amp;内连接可以相互转换。</p>
+<p>子查询可以按照不同维度进行不同分类，比如按照子查询返回的结果集分类：</p>
+<ol>
+<li>标量子查询</li>
+<li>行子查询</li>
+<li>列子查询</li>
+<li>表子查询</li>
+</ol>
+<p>按照与外层查询的关系来分类：</p>
+<ol>
+<li>不相关子查询</li>
+<li>相关子查询</li>
+</ol>
+<p>MySQL对in查询进行了很多优化。如果in子查询符合转换为半连接的条件，查询优化器会优先把该子查询转换为半连接，然后再考虑下面五种执行半连接查询的策略中哪个成本最低，最后选择成本最低的执行策略来执行子查询。</p>
+<ol>
+<li>table pullout</li>
+<li>duplicate weedout</li>
+<li>looseScan</li>
+<li>Semj-join Materialization</li>
+<li>FirstMatch</li>
+</ol>
+<p>如果IN子查询不符合转换为半连接的条件，查询优化器会从下面的两种策略里面找出一种成本更低的方式去执行子查询：</p>
+<ol>
+<li>先将子查询物化，在执行子查询</li>
+<li>执行in到exists的转换</li>
+</ol>
+<p>MySQL在处理带有派生表的语句的时候，优先尝试把派生表和外层查询进行合并；如果不行，再把派生表物化掉，然后执行查询。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">二十</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://yinhuidong.github.io/2022/01/11/MySQL/MySQL[%E4%B9%9D]%E5%9F%BA%E4%BA%8E%E8%A7%84%E5%88%99%E7%9A%84%E4%BC%98%E5%8C%96&amp;%E5%AD%90%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96/">https://yinhuidong.github.io/2022/01/11/MySQL/MySQL[九]基于规则的优化&amp;子查询优化/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://yinhuidong.github.io" target="_blank">二十</a> 许可协议。转载请注明来自 <a href="https://yinhuidong.github.io" target="_blank">二十</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/MySQL/">MySQL</a></div><div class="post_share"><div class="social-share" data-image="/images/cover/mysql.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js" defer></script></div></div><div class="post-reward"><div class="reward-button button--animated"><i class="fas fa-qrcode"></i> 打赏</div><div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/img/wechat_pay.jpg" target="_blank"><img class="post-qr-code-img" src="/img/wechat_pay.jpg" alt="微信"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="/img/alipay.jpg" target="_blank"><img class="post-qr-code-img" src="/img/alipay.jpg" alt="支付宝"/></a><div class="post-qr-code-desc">支付宝</div></li></ul></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2022/01/11/MySQL/MySQL%5B%E5%8D%81%5DExplain&amp;optimizer%20trace/"><img class="prev-cover" src="/images/cover/mysql.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">MySQL[十]Explain&amp;optimizer trace</div></div></a></div><div class="next-post pull-right"><a href="/2022/01/11/MySQL/MySQL%5B%E5%85%AB%5DInnoDB%E7%BB%9F%E8%AE%A1%E6%95%B0%E6%8D%AE%E6%94%B6%E9%9B%86%E5%8E%9F%E7%90%86/"><img class="next-cover" src="/images/cover/mysql.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">MySQL[八]InnoDB统计数据收集原理</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2022/01/11/MySQL/MySQL%5B%E4%B8%89%5DInnoDB%E7%B4%A2%E5%BC%95%E7%BB%93%E6%9E%84/" title="MySQL[三]InnoDB索引结构"><img class="cover" src="/images/cover/mysql.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-11</div><div class="title">MySQL[三]InnoDB索引结构</div></div></a></div><div><a href="/2022/01/11/MySQL/MySQL%5B%E4%BA%94%5DInnoDb%E8%A1%A8%E7%A9%BA%E9%97%B4/" title="MySQL[五]InnoDb表空间"><img class="cover" src="/images/cover/mysql.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-11</div><div class="title">MySQL[五]InnoDb表空间</div></div></a></div><div><a href="/2022/01/11/MySQL/MySQL%5B%E4%B8%80%5D%E5%85%A5%E9%97%A8/" title="MySQL[一]入门"><img class="cover" src="/images/cover/mysql.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-11</div><div class="title">MySQL[一]入门</div></div></a></div><div><a href="/2022/01/10/MySQL/MySQL%5B%E4%BA%8C%5D%E6%A6%82%E8%BF%B0/" title="MySQL[二]概述"><img class="cover" src="/images/cover/mysql.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-10</div><div class="title">MySQL[二]概述</div></div></a></div><div><a href="/2022/01/11/MySQL/MySQL%5B%E4%B8%83%5D%E5%9F%BA%E4%BA%8E%E6%88%90%E6%9C%AC%E7%9A%84%E4%BC%98%E5%8C%96/" title="MySQL[七]基于成本的优化"><img class="cover" src="/images/cover/mysql.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-11</div><div class="title">MySQL[七]基于成本的优化</div></div></a></div><div><a href="/2022/01/11/MySQL/MySQL%5B%E5%85%AD%5D%E5%8D%95%E8%A1%A8%E6%9F%A5%E8%AF%A2&%E8%BF%9E%E6%8E%A5%E6%9F%A5%E8%AF%A2%E5%8E%9F%E7%90%86/" title="MySQL[六]单表查询&连接查询原理"><img class="cover" src="/images/cover/mysql.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-11</div><div class="title">MySQL[六]单表查询&连接查询原理</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/head.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">二十</div><div class="author-info__description">欢迎来到二十的博客卷....</div></div><div class="card-info-data"><div class="card-info-data-item is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">15</div></a></div><div class="card-info-data-item is-center"><a href="/tags/"><div class="headline">标签</div><div class="length-num">2</div></a></div><div class="card-info-data-item is-center"><a href="/categories/"><div class="headline">分类</div><div class="length-num">2</div></a></div></div><a class="button--animated" id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/yinhuidong"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/yinhuidong" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="mailto:1972039773@qq.com" target="_blank" title="Email"><i class="fas fa-envelope"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn card-announcement-animation"></i><span>公告</span></div><div class="announcement_content">欢迎来到二十的个人博客，对本站的文章和技术问题有疑问和建议请联系作者：VX：yinhuidong666</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E6%9D%A1%E4%BB%B6%E5%8C%96%E7%AE%80"><span class="toc-text">1.条件化简</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-1%E7%A7%BB%E9%99%A4%E4%B8%8D%E5%BF%85%E8%A6%81%E7%9A%84%E6%8B%AC%E5%8F%B7"><span class="toc-text">1.1移除不必要的括号</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-2%E5%B8%B8%E9%87%8F%E4%BC%A0%E9%80%92"><span class="toc-text">1.2常量传递</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-3-%E7%AD%89%E5%80%BC%E4%BC%A0%E9%80%92"><span class="toc-text">1.3 等值传递</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-4%E7%A7%BB%E9%99%A4%E6%B2%A1%E7%94%A8%E7%9A%84%E6%9D%A1%E4%BB%B6"><span class="toc-text">1.4移除没用的条件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-5%E8%A1%A8%E8%BE%BE%E5%BC%8F%E8%AE%A1%E7%AE%97"><span class="toc-text">1.5表达式计算</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-6HAVING-amp-WHERE%E5%AD%90%E5%8F%A5%E7%9A%84%E5%90%88%E5%B9%B6"><span class="toc-text">1.6HAVING&amp;WHERE子句的合并</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-7%E5%B8%B8%E9%87%8F%E8%A1%A8%E6%A3%80%E6%B5%8B"><span class="toc-text">1.7常量表检测</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-%E5%A4%96%E8%BF%9E%E6%8E%A5%E6%B6%88%E9%99%A4"><span class="toc-text">2.外连接消除</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-%E5%AD%90%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96"><span class="toc-text">3.子查询优化</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#3-1%E5%AD%90%E6%9F%A5%E8%AF%A2%E8%AF%AD%E6%B3%95"><span class="toc-text">3.1子查询语法</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-1%E6%8C%89%E8%BF%94%E5%9B%9E%E7%9A%84%E7%BB%93%E6%9E%9C%E9%9B%86%E5%8C%BA%E5%88%86%E5%AD%90%E6%9F%A5%E8%AF%A2"><span class="toc-text">3.1.1按返回的结果集区分子查询</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-2%E6%8C%89%E4%B8%8E%E5%A4%96%E5%B1%82%E6%9F%A5%E8%AF%A2%E5%85%B3%E7%B3%BB%E6%9D%A5%E5%8C%BA%E5%88%86%E5%AD%90%E6%9F%A5%E8%AF%A2"><span class="toc-text">3.1.2按与外层查询关系来区分子查询</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-3-%E5%AD%90%E6%9F%A5%E8%AF%A2%E8%AF%AD%E6%B3%95%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="toc-text">3.1.3 子查询语法注意事项</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-2-%E5%AD%90%E6%9F%A5%E8%AF%A2%E7%9A%84%E6%89%A7%E8%A1%8C"><span class="toc-text">3.2 子查询的执行</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-1-%E6%A0%87%E9%87%8F-%E8%A1%8C%E5%AD%90%E6%9F%A5%E8%AF%A2%E7%9A%84%E6%89%A7%E8%A1%8C%E6%96%B9%E5%BC%8F"><span class="toc-text">3.2.1 标量&#x2F;行子查询的执行方式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-2-IN%E5%AD%90%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96"><span class="toc-text">3.2.2 IN子查询优化</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A0-%E7%89%A9%E5%8C%96%E8%A1%A8%E7%9A%84%E6%8F%90%E5%87%BA"><span class="toc-text">① 物化表的提出</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A1-%E7%89%A9%E5%8C%96%E8%A1%A8%E8%BD%AC%E8%BF%9E%E6%8E%A5"><span class="toc-text">② 物化表转连接</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A2-%E5%B0%86%E5%AD%90%E6%9F%A5%E8%AF%A2%E8%BD%AC%E6%8D%A2%E4%B8%BAsemi-join"><span class="toc-text">③ 将子查询转换为semi-join</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A3-semi-join%E7%9A%84%E9%80%82%E7%94%A8%E6%9D%A1%E4%BB%B6"><span class="toc-text">④ semi-join的适用条件</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A4-%E4%B8%8D%E9%80%82%E7%94%A8%E4%BA%8Esemi-join%E7%9A%84%E6%83%85%E5%86%B5"><span class="toc-text">⑤ 不适用于semi-join的情况</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A5-%E9%98%B6%E6%AE%B5%E6%A2%B3%E7%90%86"><span class="toc-text">⑥ 阶段梳理</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-3-ANY-ALL%E5%AD%90%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96"><span class="toc-text">3.2.3 ANY&#x2F;ALL子查询优化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-4-NOT-EXISTS%E5%AD%90%E6%9F%A5%E8%AF%A2%E7%9A%84%E6%89%A7%E8%A1%8C"><span class="toc-text">3.2.4 [NOT] EXISTS子查询的执行</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-5-%E5%AF%B9%E4%BA%8E%E6%B4%BE%E7%94%9F%E8%A1%A8%E7%9A%84%E4%BC%98%E5%8C%96"><span class="toc-text">3.2.5 对于派生表的优化</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-%E6%80%BB%E7%BB%93"><span class="toc-text">4.总结</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2022/01/11/MySQL/MySQL%5B%E5%8D%81%E5%9B%9B%5Dredo%E6%97%A5%E5%BF%97/" title="MySQL[十四]redo日志"><img src="/images/cover/mysql.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="MySQL[十四]redo日志"/></a><div class="content"><a class="title" href="/2022/01/11/MySQL/MySQL%5B%E5%8D%81%E5%9B%9B%5Dredo%E6%97%A5%E5%BF%97/" title="MySQL[十四]redo日志">MySQL[十四]redo日志</a><time datetime="2022-01-11T03:17:34.284Z" title="发表于 2022-01-11 11:17:34">2022-01-11</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/01/11/MySQL/MySQL%5B%E5%8D%81%E4%B8%89%5D%E4%BA%8B%E5%8A%A1/" title="MySQL[十三]事务"><img src="/images/cover/mysql.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="MySQL[十三]事务"/></a><div class="content"><a class="title" href="/2022/01/11/MySQL/MySQL%5B%E5%8D%81%E4%B8%89%5D%E4%BA%8B%E5%8A%A1/" title="MySQL[十三]事务">MySQL[十三]事务</a><time datetime="2022-01-11T03:17:20.893Z" title="发表于 2022-01-11 11:17:20">2022-01-11</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/01/11/MySQL/MySQL%5B%E5%8D%81%E4%BA%8C%5DInnoDB%E4%B9%8BBufferPool/" title="MySQL[十二]InnoDB之BufferPool"><img src="/images/cover/mysql.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="MySQL[十二]InnoDB之BufferPool"/></a><div class="content"><a class="title" href="/2022/01/11/MySQL/MySQL%5B%E5%8D%81%E4%BA%8C%5DInnoDB%E4%B9%8BBufferPool/" title="MySQL[十二]InnoDB之BufferPool">MySQL[十二]InnoDB之BufferPool</a><time datetime="2022-01-11T03:17:09.017Z" title="发表于 2022-01-11 11:17:09">2022-01-11</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/01/11/MySQL/MySQL%5B%E5%8D%81%E4%B8%80%5D%E9%AB%98%E6%80%A7%E8%83%BDMySQL%E8%B0%83%E4%BC%98%E5%AE%9E%E6%88%98/" title="MySQL[十一]高性能MySQL调优实战"><img src="/images/cover/mysql.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="MySQL[十一]高性能MySQL调优实战"/></a><div class="content"><a class="title" href="/2022/01/11/MySQL/MySQL%5B%E5%8D%81%E4%B8%80%5D%E9%AB%98%E6%80%A7%E8%83%BDMySQL%E8%B0%83%E4%BC%98%E5%AE%9E%E6%88%98/" title="MySQL[十一]高性能MySQL调优实战">MySQL[十一]高性能MySQL调优实战</a><time datetime="2022-01-11T03:16:57.298Z" title="发表于 2022-01-11 11:16:57">2022-01-11</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/01/11/MySQL/MySQL%5B%E5%8D%81%5DExplain&amp;optimizer%20trace/" title="MySQL[十]Explain&amp;optimizer trace"><img src="/images/cover/mysql.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="MySQL[十]Explain&amp;optimizer trace"/></a><div class="content"><a class="title" href="/2022/01/11/MySQL/MySQL%5B%E5%8D%81%5DExplain&amp;optimizer%20trace/" title="MySQL[十]Explain&amp;optimizer trace">MySQL[十]Explain&amp;optimizer trace</a><time datetime="2022-01-11T03:16:42.428Z" title="发表于 2022-01-11 11:16:42">2022-01-11</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('/images/cover/mysql.png')"><div id="footer-wrap"><div class="copyright">&copy;2021 - 2022 By 二十</div><div class="footer_custom_text">骑摩托车去酒吧，该省省，该花花。</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="font-plus" type="button" title="放大字体"><i class="fas fa-plus"></i></button><button id="font-minus" type="button" title="缩小字体"><i class="fas fa-minus"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div id="local-search"><div class="search-dialog"><div class="search-dialog__title" id="local-search-title">本地搜索</div><div id="local-input-panel"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div></div><hr/><div id="local-search-results"></div><span class="search-close-button"><i class="fas fa-times"></i></span></div><div id="search-mask"></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/search/local-search.js"></script><div class="js-pjax"></div><script src="https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js"></script><script src="/js/chocolate.js"></script><script defer="defer" id="fluttering_ribbon" mobile="true" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/canvas-fluttering-ribbon.min.js"></script><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="true" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/canvas-nest.min.js"></script><script id="click-show-text" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/click-show-text.min.js" data-mobile="false" data-text="二十,二十二十,二十二十二十,二十二十二十二十,二十二十二十二十二十,二十二十二十二十二十二十,二十二十二十二十二十二十二十,二十二十二十二十二十二十二十二十,二十二十二十二十二十二十二十二十二十,二十二十二十二十二十二十二十二十二十二十" data-fontsize="15px" data-random="true" async="async"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

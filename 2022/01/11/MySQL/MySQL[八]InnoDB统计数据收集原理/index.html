@@ -1,0 +1,366 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MySQL[八]InnoDB统计数据收集原理 | 二十</title><meta name="keywords" content="MySQL"><meta name="author" content="二十"><meta name="copyright" content="二十"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="InnoDB统计数据收集原理">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MySQL[八]InnoDB统计数据收集原理">
+<meta property="og:url" content="https://yinhuidong.github.io/2022/01/11/MySQL/MySQL[%E5%85%AB]InnoDB%E7%BB%9F%E8%AE%A1%E6%95%B0%E6%8D%AE%E6%94%B6%E9%9B%86%E5%8E%9F%E7%90%86/index.html">
+<meta property="og:site_name" content="二十">
+<meta property="og:description" content="InnoDB统计数据收集原理">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yinhuidong.github.io/images/cover/mysql.png">
+<meta property="article:published_time" content="2022-01-11T03:16:18.849Z">
+<meta property="article:modified_time" content="2022-01-11T03:22:22.716Z">
+<meta property="article:author" content="二十">
+<meta property="article:tag" content="MySQL">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://yinhuidong.github.io/images/cover/mysql.png"><link rel="shortcut icon" href="/img/favicon.jpg"><link rel="canonical" href="https://yinhuidong.github.io/2022/01/11/MySQL/MySQL[%E5%85%AB]InnoDB%E7%BB%9F%E8%AE%A1%E6%95%B0%E6%8D%AE%E6%94%B6%E9%9B%86%E5%8E%9F%E7%90%86/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":800},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js',
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css'
+    },
+    fancybox: {
+      js: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isanchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'MySQL[八]InnoDB统计数据收集原理',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2022-01-11 11:22:22'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const fontSizeVal = saveToLocal.get('global-font-size')
+    if (fontSizeVal !== undefined) {
+      document.documentElement.style.setProperty('--global-font-size', fontSizeVal + 'px')
+    }
+    
+    const detectApple = () => {
+      if (GLOBAL_CONFIG_SITE.isHome && /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/custom.css"><meta name="referrer" content="no-referrer" /><meta name="generator" content="Hexo 5.4.0"></head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/head.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data"><div class="data-item is-center"><div class="data-item-link"><a href="/archives/"><div class="headline">文章</div><div class="length-num">15</div></a></div></div><div class="data-item is-center"><div class="data-item-link"><a href="/tags/"><div class="headline">标签</div><div class="length-num">2</div></a></div></div><div class="data-item is-center"><div class="data-item-link"><a href="/categories/"><div class="headline">分类</div><div class="length-num">2</div></a></div></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/images/cover/mysql.png')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">二十</a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">MySQL[八]InnoDB统计数据收集原理</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-01-11T03:16:18.849Z" title="发表于 2022-01-11 11:16:18">2022-01-11</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2022-01-11T03:22:22.716Z" title="更新于 2022-01-11 11:22:22">2022-01-11</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/MySQL/">MySQL</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">5.2k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>17分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="MySQL[八]InnoDB统计数据收集原理"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><blockquote>
+<p>本篇我们来分析下<code>InnoDB</code>存储引擎的统计数据收集策略。</p>
+</blockquote>
+<h1 id="1-统计数据的存储方式"><a href="#1-统计数据的存储方式" class="headerlink" title="1.统计数据的存储方式"></a>1.统计数据的存储方式</h1><p><code>InnoDB</code>提供了两种存储统计数据的方式：</p>
+<ol>
+<li> 永久性的统计数据<br>这种统计数据存储在磁盘上，也就是服务器重启之后这些统计数据还在。 </li>
+<li> 非永久性的统计数据<br>这种统计数据存储在内存中，当服务器关闭时这些这些统计数据就都被清除掉了，等到服务器重启之后，在某些适当的场景下才会重新收集这些统计数据。 </li>
+</ol>
+<p><code>MySQL</code>提供了系统变量<code>innodb_stats_persistent</code>来控制到底采用哪种方式去存储统计数据。在<code>MySQL 5.6.6</code>之前，<code>innodb_stats_persistent</code>的值默认是<code>OFF</code>，也就是说<code>InnoDB</code>的统计数据默认是存储到内存的，之后的版本中<code>innodb_stats_persistent</code>的值默认是<code>ON</code>，也就是统计数据默认被存储到磁盘中。</p>
+<p>不过<code>InnoDB</code>默认是以表为单位来收集和存储统计数据的，也就是说我们可以把某些表的统计数据（以及该表的索引统计数据）存储在磁盘上，把另一些表的统计数据存储在内存中。</p>
+<p>我们可以在创建和修改表的时候通过指定<code>STATS_PERSISTENT</code>属性来指明该表的统计数据存储方式：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">CREATE TABLE 表名 (...) Engine=InnoDB, STATS_PERSISTENT = (1|0);</span><br><span class="line"></span><br><span class="line">ALTER TABLE 表名 Engine=InnoDB, STATS_PERSISTENT = (1|0);</span><br></pre></td></tr></table></figure>
+
+
+<p>当<code>STATS_PERSISTENT=1</code>时，表明我们想把该表的统计数据永久的存储到磁盘上，当<code>STATS_PERSISTENT=0</code>时，表明我们想把该表的统计数据临时的存储到内存中。如果我们在创建表时未指定<code>STATS_PERSISTENT</code>属性，那默认采用系统变量<code>innodb_stats_persistent</code>的值作为该属性的值。</p>
+<h1 id="2-永久性统计数据"><a href="#2-永久性统计数据" class="headerlink" title="2.永久性统计数据"></a>2.永久性统计数据</h1><p>当我们选择把某个表以及该表索引的统计数据存放到磁盘上时，实际上是把这些统计数据存储到了两个表里：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; SHOW TABLES FROM mysql LIKE &#x27;innodb%&#x27;;</span><br><span class="line">+---------------------------+</span><br><span class="line">| Tables_in_mysql (innodb%) |</span><br><span class="line">+---------------------------+</span><br><span class="line">| innodb_index_stats        |</span><br><span class="line">| innodb_table_stats        |</span><br><span class="line">+---------------------------+</span><br><span class="line">2 rows in set (0.01 sec)</span><br></pre></td></tr></table></figure>
+
+
+<p>可以看到，这两个表都位于<code>mysql</code>系统数据库下边，其中：</p>
+<ul>
+<li><code>innodb_table_stats</code>存储了关于表的统计数据，每一条记录对应着一个表的统计数据。</li>
+<li><code>innodb_index_stats</code>存储了关于索引的统计数据，每一条记录对应着一个索引的一个统计项的统计数据。</li>
+</ul>
+<p>看一下这两个表里边都有什么以及表里的数据是如何生成的。</p>
+<h2 id="2-1-innodb-table-stats"><a href="#2-1-innodb-table-stats" class="headerlink" title="2.1 innodb_table_stats"></a>2.1 innodb_table_stats</h2><p>直接看一下这个<code>innodb_table_stats</code>表中的各个列都是干嘛的：</p>
+<table>
+<thead>
+<tr>
+<th>字段名</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>database_name</code></td>
+<td>数据库名</td>
+</tr>
+<tr>
+<td><code>table_name</code></td>
+<td>表名</td>
+</tr>
+<tr>
+<td><code>last_update</code></td>
+<td>本条记录最后更新时间</td>
+</tr>
+<tr>
+<td><code>n_rows</code></td>
+<td>表中记录的条数</td>
+</tr>
+<tr>
+<td><code>clustered_index_size</code></td>
+<td>表的聚簇索引占用的页面数量</td>
+</tr>
+<tr>
+<td><code>sum_of_other_index_sizes</code></td>
+<td>表的其他索引占用的页面数量</td>
+</tr>
+</tbody></table>
+<p>注意这个表的主键是<code>(database_name,table_name)</code>，也就是innodb_table_stats表的每条记录代表着一个表的统计信息。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; SELECT * FROM mysql.innodb_table_stats;</span><br><span class="line">+---------------+---------------+---------------------+--------+----------------------+--------------------------+</span><br><span class="line">| database_name | table_name    | last_update         | n_rows | clustered_index_size | sum_of_other_index_sizes |</span><br><span class="line">+---------------+---------------+---------------------+--------+----------------------+--------------------------+</span><br><span class="line">| mysql         | gtid_executed | 2021-12-14 00:00:08 |      0 |                    1 |                        0 |</span><br><span class="line">| sys           | sys_config    | 2021-12-14 00:00:09 |      6 |                    1 |                        0 |</span><br><span class="line">| yhd           | person_info   | 2021-12-19 00:27:39 |      0 |                    1 |                        1 |</span><br><span class="line">| yhd           | single_table  | 2021-12-19 02:13:19 | 910545 |                 3109 |                     5836 |</span><br><span class="line">+---------------+---------------+---------------------+--------+----------------------+--------------------------+</span><br><span class="line">4 rows in set (0.00 sec)</span><br></pre></td></tr></table></figure>
+
+
+<p>可以看到<code>single_table</code>表的统计信息就对应着<code>mysql.innodb_table_stats</code>的第三条记录。几个重要统计信息项的值如下：</p>
+<ul>
+<li><code>n_rows</code>的值是<code>9693</code>，表明<code>single_table</code>表中大约有<code>9693</code>条记录，注意这个数据是估计值。</li>
+<li><code>clustered_index_size</code>的值是<code>97</code>，表明<code>single_table</code>表的聚簇索引占用97个页面，这个值是也是一个估计值。</li>
+<li><code>sum_of_other_index_sizes</code>的值是<code>175</code>，表明<code>single_table</code>表的其他索引一共占用175个页面，这个值是也是一个估计值。</li>
+</ul>
+<h3 id="2-1-1-n-rows统计项的收集"><a href="#2-1-1-n-rows统计项的收集" class="headerlink" title="2.1.1 n_rows统计项的收集"></a>2.1.1 n_rows统计项的收集</h3><p>为啥<code>n_rows</code>这个统计项的值是估计值呢？InnoDB`统计一个表中有多少行记录的套路是这样的：</p>
+<ul>
+<li> 按照一定算法（并不是纯粹随机的）选取几个叶子节点页面，计算每个页面中主键值记录数量，然后计算平均一个页面中主键值的记录数量乘以全部叶子节点的数量就算是该表的<code>n_rows</code>值。  <blockquote>
+<p>真实的计算过程比这个稍微复杂一些，不过大致上就是这样。</p>
+</blockquote>
+</li>
+</ul>
+<p>可以看出来这个<code>n_rows</code>值精确与否取决于统计时采样的页面数量，<code>MySQL</code>为我们准备了一个名为<code>innodb_stats_persistent_sample_pages</code>的系统变量来控制使用永久性的统计数据时，计算统计数据时采样的页面数量。该值设置的越大，统计出的<code>n_rows</code>值越精确，但是统计耗时也就最久；该值设置的越小，统计出的<code>n_rows</code>值越不精确，但是统计耗时特别少。所以在实际使用是需要我们去权衡利弊，该系统变量的默认值是<code>20</code>。</p>
+<p>我们前边说过，不过<code>InnoDB</code>默认是以表为单位来收集和存储统计数据的，我们也可以单独设置某个表的采样页面的数量，设置方式就是在创建或修改表的时候通过指定<code>STATS_SAMPLE_PAGES</code>属性来指明该表的统计数据存储方式：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">CREATE TABLE 表名 (...) Engine=InnoDB, STATS_SAMPLE_PAGES = 具体的采样页面数量;</span><br><span class="line"></span><br><span class="line">ALTER TABLE 表名 Engine=InnoDB, STATS_SAMPLE_PAGES = 具体的采样页面数量;</span><br></pre></td></tr></table></figure>
+
+
+<p>如果我们在创建表的语句中并没有指定<code>STATS_SAMPLE_PAGES</code>属性的话，将默认使用系统变量<code>innodb_stats_persistent_sample_pages</code>的值作为该属性的值。</p>
+<h3 id="2-1-2-clustered-index-size和sum-of-other-index-sizes统计项的收集"><a href="#2-1-2-clustered-index-size和sum-of-other-index-sizes统计项的收集" class="headerlink" title="2.1.2 clustered_index_size和sum_of_other_index_sizes统计项的收集"></a>2.1.2 clustered_index_size和sum_of_other_index_sizes统计项的收集</h3><p>这两个统计项的收集过程如下：</p>
+<ul>
+<li> 从数据字典里找到表的各个索引对应的根页面位置。<br>系统表<code>SYS_INDEXES</code>里存储了各个索引对应的根页面信息。 </li>
+<li>从根页面的<code>Page Header</code>里找到叶子节点段和非叶子节点段对应的<code>Segment Header</code>。<br>在每个索引的根页面的<code>Page Header</code>部分都有两个字段： <ul>
+<li><code>PAGE_BTR_SEG_LEAF</code>：表示B+树叶子段的<code>Segment Header</code>信息。</li>
+<li><code>PAGE_BTR_SEG_TOP</code>：表示B+树非叶子段的<code>Segment Header</code>信息。</li>
+</ul>
+</li>
+<li> 从叶子节点段和非叶子节点段的<code>Segment Header</code>中找到这两个段对应的<code>INODE Entry</code>结构。<br>这个是<code>Segment Header</code>结构：<br><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1640188725245-45998fe0-ca45-4a90-9fbb-85d0fa39744d.png#clientId=ucf54091a-1d82-4&crop=0&crop=0&crop=1&crop=1&from=ui&id=u664e06a0&margin=%5Bobject%20Object%5D&name=1.png&originHeight=261&originWidth=541&originalType=binary&ratio=1&rotation=0&showTitle=false&size=87783&status=done&style=none&taskId=u43c2aedd-8d61-4203-85ad-6f9875928e5&title=" alt="1.png"></li>
+<li> 从对应的<code>INODE Entry</code>结构中可以找到该段对应所有零散的页面地址以及<code>FREE</code>、<code>NOT_FULL</code>、<code>FULL</code>链表的基节点。<br>这个是<code>INODE Entry</code>结构：<br><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1640188857945-2f6e0703-1c75-4280-a7dd-5d30eabec059.png#clientId=ucf54091a-1d82-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=509&id=ue79edf9e&margin=%5Bobject%20Object%5D&name=image.png&originHeight=509&originWidth=848&originalType=binary&ratio=1&rotation=0&showTitle=false&size=187896&status=done&style=none&taskId=ub5bc9cbc-5d67-457c-ae3a-58017a6198d&title=&width=848" alt="image.png"></li>
+<li> 直接统计零散的页面有多少个，然后从那三个链表的<code>List Length</code>字段中读出该段占用的区的大小，每个区占用<code>64</code>个页，所以就可以统计出整个段占用的页面。<br>这个是链表基节点的示意图：<br><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1640188756249-938d7c13-7332-46d4-aeea-cebd520a8faf.png#clientId=ucf54091a-1d82-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=388&id=uf62cb732&margin=%5Bobject%20Object%5D&name=image.png&originHeight=388&originWidth=750&originalType=binary&ratio=1&rotation=0&showTitle=false&size=134904&status=done&style=none&taskId=u8941ec55-2b91-454b-a3ff-4ad64206a27&title=&width=750" alt="image.png"></li>
+<li> 分别计算聚簇索引的叶子结点段和非叶子节点段占用的页面数，它们的和就是<code>clustered_index_size</code>的值，按照同样的套路把其余索引占用的页面数都算出来，加起来之后就是<code>sum_of_other_index_sizes</code>的值。 </li>
+</ul>
+<p>注意，我们说一个段的数据在非常多时（超过32个页面），会以<code>区</code>为单位来申请空间，这里头的问题是以区为单位申请空间中有一些页可能并没有使用，但是在统计<code>clustered_index_size</code>和<code>sum_of_other_index_sizes</code>时都把它们算进去了，所以说聚簇索引和其他的索引占用的页面数可能比这两个值要小一些。</p>
+<h2 id="2-2-innodb-index-stats"><a href="#2-2-innodb-index-stats" class="headerlink" title="2.2 innodb_index_stats"></a>2.2 innodb_index_stats</h2><p>直接看一下这个<code>innodb_index_stats</code>表中的各个列：</p>
+<table>
+<thead>
+<tr>
+<th>字段名</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>database_name</code></td>
+<td>数据库名</td>
+</tr>
+<tr>
+<td><code>table_name</code></td>
+<td>表名</td>
+</tr>
+<tr>
+<td><code>index_name</code></td>
+<td>索引名</td>
+</tr>
+<tr>
+<td><code>last_update</code></td>
+<td>本条记录最后更新时间</td>
+</tr>
+<tr>
+<td><code>stat_name</code></td>
+<td>统计项的名称</td>
+</tr>
+<tr>
+<td><code>stat_value</code></td>
+<td>对应的统计项的值</td>
+</tr>
+<tr>
+<td><code>sample_size</code></td>
+<td>为生成统计数据而采样的页面数量</td>
+</tr>
+<tr>
+<td><code>stat_description</code></td>
+<td>对应的统计项的描述</td>
+</tr>
+</tbody></table>
+<p>注意这个表的主键是<code>(database_name,table_name,index_name,stat_name)</code>，其中的<code>stat_name</code>是指统计项的名称，也就是说innodb_index_stats表的每条记录代表着一个索引的一个统计项。我们直接看一下关于<code>single_table</code>表的索引统计数据都有些什么：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; SELECT * FROM mysql.innodb_index_stats WHERE table_name = &#x27;single_table&#x27;;</span><br><span class="line">+---------------+--------------+--------------+---------------------+--------------+------------+-------------+-----------------------------------+</span><br><span class="line">| database_name | table_name   | index_name   | last_update         | stat_name    | stat_value | sample_size | stat_description                  |</span><br><span class="line">+---------------+--------------+--------------+---------------------+--------------+------------+-------------+-----------------------------------+</span><br><span class="line">| yhd           | single_table | PRIMARY      | 2021-12-19 02:13:19 | n_diff_pfx01 |     910518 |          20 | id                                |</span><br><span class="line">| yhd           | single_table | PRIMARY      | 2021-12-19 02:13:19 | n_leaf_pages |       3097 |        NULL | Number of leaf pages in the index |</span><br><span class="line">| yhd           | single_table | PRIMARY      | 2021-12-19 02:13:19 | size         |       3109 |        NULL | Number of pages in the index      |</span><br><span class="line">| yhd           | single_table | idx_key1     | 2021-12-19 02:13:19 | n_diff_pfx01 |          8 |          10 | key1                              |</span><br><span class="line">| yhd           | single_table | idx_key1     | 2021-12-19 02:13:19 | n_diff_pfx02 |     882192 |          20 | key1,id                           |</span><br><span class="line">| yhd           | single_table | idx_key1     | 2021-12-19 02:13:19 | n_leaf_pages |        828 |        NULL | Number of leaf pages in the index |</span><br><span class="line">| yhd           | single_table | idx_key1     | 2021-12-19 02:13:19 | size         |        993 |        NULL | Number of pages in the index      |</span><br><span class="line">| yhd           | single_table | idx_key3     | 2021-12-19 02:13:19 | n_diff_pfx01 |          8 |          10 | key3                              |</span><br><span class="line">| yhd           | single_table | idx_key3     | 2021-12-19 02:13:19 | n_diff_pfx02 |     910072 |          20 | key3,id                           |</span><br><span class="line">| yhd           | single_table | idx_key3     | 2021-12-19 02:13:19 | n_leaf_pages |        827 |        NULL | Number of leaf pages in the index |</span><br><span class="line">| yhd           | single_table | idx_key3     | 2021-12-19 02:13:19 | size         |        993 |        NULL | Number of pages in the index      |</span><br><span class="line">| yhd           | single_table | idx_key_part | 2021-12-19 02:13:19 | n_diff_pfx01 |          8 |          10 | key_part1                         |</span><br><span class="line">| yhd           | single_table | idx_key_part | 2021-12-19 02:13:19 | n_diff_pfx02 |         82 |          20 | key_part1,key_part2               |</span><br><span class="line">| yhd           | single_table | idx_key_part | 2021-12-19 02:13:19 | n_diff_pfx03 |        730 |          20 | key_part1,key_part2,key_part3     |</span><br><span class="line">| yhd           | single_table | idx_key_part | 2021-12-19 02:13:19 | n_diff_pfx04 |    1028534 |          20 | key_part1,key_part2,key_part3,id  |</span><br><span class="line">| yhd           | single_table | idx_key_part | 2021-12-19 02:13:19 | n_leaf_pages |       2556 |        NULL | Number of leaf pages in the index |</span><br><span class="line">| yhd           | single_table | idx_key_part | 2021-12-19 02:13:19 | size         |       2985 |        NULL | Number of pages in the index      |</span><br><span class="line">| yhd           | single_table | uk_key2      | 2021-12-19 02:13:19 | n_diff_pfx01 |     913104 |          20 | key2                              |</span><br><span class="line">| yhd           | single_table | uk_key2      | 2021-12-19 02:13:19 | n_leaf_pages |        816 |        NULL | Number of leaf pages in the index |</span><br><span class="line">| yhd           | single_table | uk_key2      | 2021-12-19 02:13:19 | size         |        865 |        NULL | Number of pages in the index      |</span><br><span class="line">+---------------+--------------+--------------+---------------------+--------------+------------+-------------+-----------------------------------+</span><br><span class="line">20 rows in set (0.01 sec)</span><br></pre></td></tr></table></figure>
+
+
+<p>这个结果有点儿多，正确查看这个结果的方式是这样的：</p>
+<ol>
+<li><p> 先查看<code>index_name</code>列，这个列说明该记录是哪个索引的统计信息，从结果中我们可以看出来，<code>PRIMARY</code>索引（也就是主键）占了3条记录，<code>idx_key_part</code>索引占了6条记录。 </p>
+</li>
+<li><p> 针对<code>index_name</code>列相同的记录，<code>stat_name</code>表示针对该索引的统计项名称，<code>stat_value</code>展示的是该索引在该统计项上的值，<code>stat_description</code>指的是来描述该统计项的含义的。我们来具体看一下一个索引都有哪些统计项： </p>
+</li>
+<li><p> <code>n_leaf_pages</code>：表示该索引的叶子节点占用多少页面。 </p>
+</li>
+<li><p> <code>size</code>：表示该索引共占用多少页面。 </p>
+</li>
+<li><p> <code>n_diff_pfx**NN**</code>：表示对应的索引列不重复的值有多少。<br>其实<code>NN</code>可以被替换为<code>01</code>、<code>02</code>、<code>03</code>… 这样的数字。比如对于<code>idx_key_part</code>来说：       1. <code>n_diff_pfx01</code>表示的是统计<code>key_part1</code>这单单一个列不重复的值有多少。      1. <code>n_diff_pfx02</code>表示的是统计<code>key_part1、key_part2</code>这两个列组合起来不重复的值有多少。      1. <code>n_diff_pfx03</code>表示的是统计<code>key_part1、key_part2、key_part3</code>这三个列组合起来不重复的值有多少。      1. <code>n_diff_pfx04</code>表示的是统计<code>key_part1、key_part2、key_part3、id</code>这四个列组合起来不重复的值有多少。</p>
+<blockquote>
+<p>注意：对于普通的二级索引，并不能保证它的索引列值是唯一的，比如对于idx_key1来说，key1列就可能有很多值重复的记录。此时只有在索引列上加上主键值才可以区分两条索引列值都一样的二级索引记录。对于主键和唯一二级索引则没有这个问题，它们本身就可以保证索引列值的不重复，所以也不需要再统计一遍在索引列后加上主键值的不重复值有多少。比如上边的idx_key1有n_diff_pfx01、n_diff_pfx02两个统计项，而idx_key2却只有n_diff_pfx01一个统计项。</p>
+</blockquote>
+</li>
+<li><p> 在计算某些索引列中包含多少不重复值时，需要对一些叶子节点页面进行采样，<code>sample_size</code>列就表明了采样的页面数量是多少。  </p>
+<blockquote>
+<p>注意：对于有多个列的联合索引来说，采样的页面数量是：innodb_stats_persistent_sample_pages × 索引列的个数。当需要采样的页面数量大于该索引的叶子节点数量的话，就直接采用全表扫描来统计索引列的不重复值数量了。所以在查询结果中看到不同索引对应的size列的值可能是不同的。</p>
+</blockquote>
+</li>
+</ol>
+<h2 id="2-3定期更新统计数据"><a href="#2-3定期更新统计数据" class="headerlink" title="2.3定期更新统计数据"></a>2.3定期更新统计数据</h2><p>随着我们不断的对表进行增删改操作，表中的数据也一直在变化，<code>innodb_table_stats</code>和<code>innodb_index_stats</code>表里的统计数据是要变的，不变的话<code>MySQL</code>查询优化器计算的成本就会有问题。<code>MySQL</code>提供了如下两种更新统计数据的方式：</p>
+<ul>
+<li><p> 开启<code>innodb_stats_auto_recalc</code>。<br>系统变量<code>innodb_stats_auto_recalc</code>决定着服务器是否自动重新计算统计数据，它的默认值是<code>ON</code>，也就是该功能默认是开启的。每个表都维护了一个变量，该变量记录着对该表进行增删改的记录条数，如果发生变动的记录数量超过了表大小的<code>10%</code>，并且自动重新计算统计数据的功能是打开的，那么服务器会重新进行一次统计数据的计算，并且更新<code>innodb_table_stats</code>和<code>innodb_index_stats</code>表。不过自动重新计算统计数据的过程是异步发生的，也就是即使表中变动的记录数超过了<code>10%</code>，自动重新计算统计数据也不会立即发生，可能会延迟几秒才会进行计算。<br><code>InnoDB</code>默认是以表为单位来收集和存储统计数据的，我们也可以单独为某个表设置是否自动重新计算统计数的属性，设置方式就是在创建或修改表的时候通过指定<code>STATS_AUTO_RECALC</code>属性来指明该表的统计数据存储方式：<br>当<code>STATS_AUTO_RECALC=1</code>时，表明我们想让该表自动重新计算统计数据，当<code>STATS_AUTO_RECALC=0</code>时，表明不想让该表自动重新计算统计数据。如果我们在创建表时未指定<code>STATS_AUTO_RECALC</code>属性，那默认采用系统变量<code>innodb_stats_auto_recalc</code>的值作为该属性的值。 </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">CREATE TABLE 表名 (...) Engine=InnoDB, STATS_AUTO_RECALC = (1|0);</span><br><span class="line"></span><br><span class="line">ALTER TABLE 表名 Engine=InnoDB, STATS_AUTO_RECALC = (1|0);</span><br></pre></td></tr></table></figure></li>
+<li><p> 手动调用<code>ANALYZE TABLE</code>语句来更新统计信息<br>如果<code>innodb_stats_auto_recalc</code>系统变量的值为<code>OFF</code>的话，我们也可以手动调用<code>ANALYZE TABLE</code>语句来重新计算统计数据，比如我们可以这样更新关于<code>single_table</code>表的统计数据：<br>需要注意的是，<strong>ANALYZE TABLE</strong>语句会立即重新计算统计数据，也就是这个过程是同步的，在表中索引多或者采样页面特别多时这个过程可能会特别慢，请不要没事儿就运行一下<code>ANALYZE TABLE</code>语句，最好在业务不是很繁忙的时候再运行。 </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; ANALYZE TABLE single_table;</span><br><span class="line">+------------------------+---------+----------+----------+</span><br><span class="line">| Table                  | Op      | Msg_type | Msg_text |</span><br><span class="line">+------------------------+---------+----------+----------+</span><br><span class="line">| yhd.single_table | analyze | status   | OK       |</span><br><span class="line">+------------------------+---------+----------+----------+</span><br><span class="line">1 row in set (0.08 sec)</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h2 id="2-4手动更新统计数据"><a href="#2-4手动更新统计数据" class="headerlink" title="2.4手动更新统计数据"></a>2.4手动更新统计数据</h2><p>其实<code>innodb_table_stats</code>和<code>innodb_index_stats</code>表就相当于一个普通的表一样，我们能对它们做增删改查操作。这也就意味着我们可以手动更新某个表或者索引的统计数据。比如说我们想把<code>single_table</code>表关于行数的统计数据更改一下可以这么做：</p>
+<ol>
+<li><p> 步骤一：更新<code>innodb_table_stats</code>表。  </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">UPDATE innodb_table_stats </span><br><span class="line">    SET n_rows = 1</span><br><span class="line">    WHERE table_name = &#x27;single_table&#x27;;</span><br></pre></td></tr></table></figure></li>
+<li><p> 步骤二：让<code>MySQL</code>查询优化器重新加载我们更改过的数据。<br>更新完<code>innodb_table_stats</code>只是单纯的修改了一个表的数据，需要让<code>MySQL</code>查询优化器重新加载我们更改过的数据，运行下边的命令就可以了：  </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">FLUSH TABLE single_table;</span><br></pre></td></tr></table></figure></li>
+</ol>
+<p>之后我们使用<code>SHOW TABLE STATUS</code>语句查看表的统计数据时就看到<code>Rows</code>行变为了<code>1</code>。</p>
+<h1 id="3-非永久性统计数据"><a href="#3-非永久性统计数据" class="headerlink" title="3.非永久性统计数据"></a>3.非永久性统计数据</h1><p>当我们把系统变量<code>innodb_stats_persistent</code>的值设置为<code>OFF</code>时，之后创建的表的统计数据默认就都是非永久性的了，或者我们直接在创建表或修改表时设置<code>STATS_PERSISTENT</code>属性的值为<code>0</code>，那么该表的统计数据就是非永久性的了。</p>
+<p>与永久性的统计数据不同，非永久性的统计数据采样的页面数量是由<code>innodb_stats_transient_sample_pages</code>控制的，这个系统变量的默认值是<code>8</code>。</p>
+<p>另外，由于非永久性的统计数据经常更新，所以导致<code>MySQL</code>查询优化器计算查询成本的时候依赖的是经常变化的统计数据，也就会生成经常变化的执行计划。</p>
+<h1 id="4-innodb-stats-method"><a href="#4-innodb-stats-method" class="headerlink" title="4.innodb_stats_method"></a>4.innodb_stats_method</h1><p><code>索引列不重复的值的数量</code>这个统计数据对于<code>MySQL</code>查询优化器十分重要，因为通过它可以计算出在索引列中平均一个值重复多少行，它的应用场景主要有两个：</p>
+<ul>
+<li><p> 单表查询中单点区间太多，比方说这样：<br>当<code>IN</code>里的参数数量过多时，采用<code>index dive</code>的方式直接访问<code>B+</code>树索引去统计每个单点区间对应的记录的数量就太耗费性能了，所以直接依赖统计数据中的平均一个值重复多少行来计算单点区间对应的记录数量。 </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM tbl_name WHERE key IN (&#x27;xx1&#x27;, &#x27;xx2&#x27;, ..., &#x27;xxn&#x27;);</span><br></pre></td></tr></table></figure></li>
+<li><p> 连接查询时，如果有涉及两个表的等值匹配连接条件，该连接条件对应的被驱动表中的列又拥有索引时，则可以使用<code>ref</code>访问方法来对被驱动表进行查询，比方说这样：<br>在真正执行对<code>t2</code>表的查询前，<code>t1.comumn</code>的值是不确定的，所以我们也不能通过<code>index dive</code>的方式直接访问<code>B+</code>树索引去统计每个单点区间对应的记录的数量，所以也只能依赖统计数据中的平均一个值重复多少行来计算单点区间对应的记录数量。 </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM t1 JOIN t2 ON t1.column = t2.key WHERE ...;</span><br></pre></td></tr></table></figure></li>
+</ul>
+<p>在统计索引列不重复的值的数量时，有一个比较烦的问题就是索引列中出现<code>NULL</code>值怎么办，比方说某个索引列的内容是这样：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">+------+</span><br><span class="line">| col  |</span><br><span class="line">+------+</span><br><span class="line">|    1 |</span><br><span class="line">|    2 |</span><br><span class="line">| NULL |</span><br><span class="line">| NULL |</span><br><span class="line">+------+</span><br></pre></td></tr></table></figure>
+
+
+<p>此时计算这个<code>col</code>列中不重复的值的数量就有下边的分歧：</p>
+<ul>
+<li><p> 有的人认为<code>NULL</code>值代表一个未确定的值，所以<code>MySQL</code>认为任何和<code>NULL</code>值做比较的表达式的值都为<code>NULL</code>，就是这样：<br>所以每一个<code>NULL</code>值都是独一无二的，也就是说统计索引列不重复的值的数量时，应该把<code>NULL</code>值当作一个独立的值，所以<code>col</code>列的不重复的值的数量就是：<code>4</code>（分别是1、2、NULL、NULL这四个值）。 </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; SELECT 1 = NULL;</span><br><span class="line">+----------+</span><br><span class="line">| 1 = NULL |</span><br><span class="line">+----------+</span><br><span class="line">|     NULL |</span><br><span class="line">+----------+</span><br><span class="line">1 row in set (0.00 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; SELECT 1 != NULL;</span><br><span class="line">+-----------+</span><br><span class="line">| 1 != NULL |</span><br><span class="line">+-----------+</span><br><span class="line">|      NULL |</span><br><span class="line">+-----------+</span><br><span class="line">1 row in set (0.00 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; SELECT NULL = NULL;</span><br><span class="line">+-------------+</span><br><span class="line">| NULL = NULL |</span><br><span class="line">+-------------+</span><br><span class="line">|        NULL |</span><br><span class="line">+-------------+</span><br><span class="line">1 row in set (0.00 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; SELECT NULL != NULL;</span><br><span class="line">+--------------+</span><br><span class="line">| NULL != NULL |</span><br><span class="line">+--------------+</span><br><span class="line">|         NULL |</span><br><span class="line">+--------------+</span><br><span class="line">1 row in set (0.00 sec)</span><br></pre></td></tr></table></figure></li>
+<li><p> 有的人认为其实<code>NULL</code>值在业务上就是代表没有，所有的<code>NULL</code>值代表的意义是一样的，所以<code>col</code>列不重复的值的数量就是：<code>3</code>（分别是1、2、NULL这三个值）。 </p>
+</li>
+<li><p> 有的人认为这<code>NULL</code>完全没有意义嘛，所以在统计索引列不重复的值的数量时压根儿不能把它们算进来，所以<code>col</code>列不重复的值的数量就是：<code>2</code>（分别是1、2这两个值）。 </p>
+</li>
+</ul>
+<p><code>MySQL</code>提供了一个名为<code>innodb_stats_method</code>的系统变量，我们可以自己来设置，这个系统变量有三个候选值：</p>
+<ol>
+<li> <code>nulls_equal</code>：认为所有<code>NULL</code>值都是相等的。这个值也是<code>innodb_stats_method</code>的默认值。<br>如果某个索引列中<code>NULL</code>值特别多的话，这种统计方式会让优化器认为某个列中平均一个值重复次数特别多，所以倾向于不使用索引进行访问。 </li>
+<li> <code>nulls_unequal</code>：认为所有<code>NULL</code>值都是不相等的。<br>如果某个索引列中<code>NULL</code>值特别多的话，这种统计方式会让优化器认为某个列中平均一个值重复次数特别少，所以倾向于使用索引进行访问。 </li>
+<li> <code>nulls_ignored</code>：直接把<code>NULL</code>值忽略掉。 </li>
+</ol>
+<h1 id="5-总结"><a href="#5-总结" class="headerlink" title="5.总结"></a>5.总结</h1><ol>
+<li><code>InnoDB</code>以表为单位来收集统计数据，这些统计数据可以是基于磁盘的永久性统计数据，也可以是基于内存的非永久性统计数据。</li>
+<li><code>innodb_stats_persistent</code>控制着使用永久性统计数据还是非永久性统计数据；<code>innodb_stats_persistent_sample_pages</code>控制着永久性统计数据的采样页面数量；<code>innodb_stats_transient_sample_pages</code>控制着非永久性统计数据的采样页面数量；<code>innodb_stats_auto_recalc</code>控制着是否自动重新计算统计数据。</li>
+<li>我们可以针对某个具体的表，在创建和修改表时通过指定<code>STATS_PERSISTENT</code>、<code>STATS_AUTO_RECALC</code>、<code>STATS_SAMPLE_PAGES</code>的值来控制相关统计数据属性。</li>
+<li><code>innodb_stats_method</code>决定着在统计某个索引列不重复值的数量时如何对待<code>NULL</code>值。</li>
+</ol>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">二十</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://yinhuidong.github.io/2022/01/11/MySQL/MySQL[%E5%85%AB]InnoDB%E7%BB%9F%E8%AE%A1%E6%95%B0%E6%8D%AE%E6%94%B6%E9%9B%86%E5%8E%9F%E7%90%86/">https://yinhuidong.github.io/2022/01/11/MySQL/MySQL[八]InnoDB统计数据收集原理/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://yinhuidong.github.io" target="_blank">二十</a> 许可协议。转载请注明来自 <a href="https://yinhuidong.github.io" target="_blank">二十</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/MySQL/">MySQL</a></div><div class="post_share"><div class="social-share" data-image="/images/cover/mysql.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js" defer></script></div></div><div class="post-reward"><div class="reward-button button--animated"><i class="fas fa-qrcode"></i> 打赏</div><div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/img/wechat_pay.jpg" target="_blank"><img class="post-qr-code-img" src="/img/wechat_pay.jpg" alt="微信"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="/img/alipay.jpg" target="_blank"><img class="post-qr-code-img" src="/img/alipay.jpg" alt="支付宝"/></a><div class="post-qr-code-desc">支付宝</div></li></ul></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2022/01/11/MySQL/MySQL%5B%E4%B9%9D%5D%E5%9F%BA%E4%BA%8E%E8%A7%84%E5%88%99%E7%9A%84%E4%BC%98%E5%8C%96&amp;%E5%AD%90%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96/"><img class="prev-cover" src="/images/cover/mysql.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">MySQL[九]基于规则的优化&amp;子查询优化</div></div></a></div><div class="next-post pull-right"><a href="/2022/01/11/MySQL/MySQL%5B%E4%B8%83%5D%E5%9F%BA%E4%BA%8E%E6%88%90%E6%9C%AC%E7%9A%84%E4%BC%98%E5%8C%96/"><img class="next-cover" src="/images/cover/mysql.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">MySQL[七]基于成本的优化</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2022/01/11/MySQL/MySQL%5B%E4%B8%89%5DInnoDB%E7%B4%A2%E5%BC%95%E7%BB%93%E6%9E%84/" title="MySQL[三]InnoDB索引结构"><img class="cover" src="/images/cover/mysql.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-11</div><div class="title">MySQL[三]InnoDB索引结构</div></div></a></div><div><a href="/2022/01/11/MySQL/MySQL%5B%E4%BA%94%5DInnoDb%E8%A1%A8%E7%A9%BA%E9%97%B4/" title="MySQL[五]InnoDb表空间"><img class="cover" src="/images/cover/mysql.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-11</div><div class="title">MySQL[五]InnoDb表空间</div></div></a></div><div><a href="/2022/01/11/MySQL/MySQL%5B%E4%B8%80%5D%E5%85%A5%E9%97%A8/" title="MySQL[一]入门"><img class="cover" src="/images/cover/mysql.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-11</div><div class="title">MySQL[一]入门</div></div></a></div><div><a href="/2022/01/10/MySQL/MySQL%5B%E4%BA%8C%5D%E6%A6%82%E8%BF%B0/" title="MySQL[二]概述"><img class="cover" src="/images/cover/mysql.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-10</div><div class="title">MySQL[二]概述</div></div></a></div><div><a href="/2022/01/11/MySQL/MySQL%5B%E4%B8%83%5D%E5%9F%BA%E4%BA%8E%E6%88%90%E6%9C%AC%E7%9A%84%E4%BC%98%E5%8C%96/" title="MySQL[七]基于成本的优化"><img class="cover" src="/images/cover/mysql.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-11</div><div class="title">MySQL[七]基于成本的优化</div></div></a></div><div><a href="/2022/01/11/MySQL/MySQL%5B%E5%85%AD%5D%E5%8D%95%E8%A1%A8%E6%9F%A5%E8%AF%A2&%E8%BF%9E%E6%8E%A5%E6%9F%A5%E8%AF%A2%E5%8E%9F%E7%90%86/" title="MySQL[六]单表查询&连接查询原理"><img class="cover" src="/images/cover/mysql.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-11</div><div class="title">MySQL[六]单表查询&连接查询原理</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/head.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">二十</div><div class="author-info__description">欢迎来到二十的博客卷....</div></div><div class="card-info-data"><div class="card-info-data-item is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">15</div></a></div><div class="card-info-data-item is-center"><a href="/tags/"><div class="headline">标签</div><div class="length-num">2</div></a></div><div class="card-info-data-item is-center"><a href="/categories/"><div class="headline">分类</div><div class="length-num">2</div></a></div></div><a class="button--animated" id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/yinhuidong"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/yinhuidong" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="mailto:1972039773@qq.com" target="_blank" title="Email"><i class="fas fa-envelope"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn card-announcement-animation"></i><span>公告</span></div><div class="announcement_content">欢迎来到二十的个人博客，对本站的文章和技术问题有疑问和建议请联系作者：VX：yinhuidong666</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E7%BB%9F%E8%AE%A1%E6%95%B0%E6%8D%AE%E7%9A%84%E5%AD%98%E5%82%A8%E6%96%B9%E5%BC%8F"><span class="toc-text">1.统计数据的存储方式</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-%E6%B0%B8%E4%B9%85%E6%80%A7%E7%BB%9F%E8%AE%A1%E6%95%B0%E6%8D%AE"><span class="toc-text">2.永久性统计数据</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#2-1-innodb-table-stats"><span class="toc-text">2.1 innodb_table_stats</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-1-n-rows%E7%BB%9F%E8%AE%A1%E9%A1%B9%E7%9A%84%E6%94%B6%E9%9B%86"><span class="toc-text">2.1.1 n_rows统计项的收集</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-2-clustered-index-size%E5%92%8Csum-of-other-index-sizes%E7%BB%9F%E8%AE%A1%E9%A1%B9%E7%9A%84%E6%94%B6%E9%9B%86"><span class="toc-text">2.1.2 clustered_index_size和sum_of_other_index_sizes统计项的收集</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-2-innodb-index-stats"><span class="toc-text">2.2 innodb_index_stats</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-3%E5%AE%9A%E6%9C%9F%E6%9B%B4%E6%96%B0%E7%BB%9F%E8%AE%A1%E6%95%B0%E6%8D%AE"><span class="toc-text">2.3定期更新统计数据</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-4%E6%89%8B%E5%8A%A8%E6%9B%B4%E6%96%B0%E7%BB%9F%E8%AE%A1%E6%95%B0%E6%8D%AE"><span class="toc-text">2.4手动更新统计数据</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-%E9%9D%9E%E6%B0%B8%E4%B9%85%E6%80%A7%E7%BB%9F%E8%AE%A1%E6%95%B0%E6%8D%AE"><span class="toc-text">3.非永久性统计数据</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-innodb-stats-method"><span class="toc-text">4.innodb_stats_method</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-%E6%80%BB%E7%BB%93"><span class="toc-text">5.总结</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2022/01/11/MySQL/MySQL%5B%E5%8D%81%E5%9B%9B%5Dredo%E6%97%A5%E5%BF%97/" title="MySQL[十四]redo日志"><img src="/images/cover/mysql.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="MySQL[十四]redo日志"/></a><div class="content"><a class="title" href="/2022/01/11/MySQL/MySQL%5B%E5%8D%81%E5%9B%9B%5Dredo%E6%97%A5%E5%BF%97/" title="MySQL[十四]redo日志">MySQL[十四]redo日志</a><time datetime="2022-01-11T03:17:34.284Z" title="发表于 2022-01-11 11:17:34">2022-01-11</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/01/11/MySQL/MySQL%5B%E5%8D%81%E4%B8%89%5D%E4%BA%8B%E5%8A%A1/" title="MySQL[十三]事务"><img src="/images/cover/mysql.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="MySQL[十三]事务"/></a><div class="content"><a class="title" href="/2022/01/11/MySQL/MySQL%5B%E5%8D%81%E4%B8%89%5D%E4%BA%8B%E5%8A%A1/" title="MySQL[十三]事务">MySQL[十三]事务</a><time datetime="2022-01-11T03:17:20.893Z" title="发表于 2022-01-11 11:17:20">2022-01-11</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/01/11/MySQL/MySQL%5B%E5%8D%81%E4%BA%8C%5DInnoDB%E4%B9%8BBufferPool/" title="MySQL[十二]InnoDB之BufferPool"><img src="/images/cover/mysql.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="MySQL[十二]InnoDB之BufferPool"/></a><div class="content"><a class="title" href="/2022/01/11/MySQL/MySQL%5B%E5%8D%81%E4%BA%8C%5DInnoDB%E4%B9%8BBufferPool/" title="MySQL[十二]InnoDB之BufferPool">MySQL[十二]InnoDB之BufferPool</a><time datetime="2022-01-11T03:17:09.017Z" title="发表于 2022-01-11 11:17:09">2022-01-11</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/01/11/MySQL/MySQL%5B%E5%8D%81%E4%B8%80%5D%E9%AB%98%E6%80%A7%E8%83%BDMySQL%E8%B0%83%E4%BC%98%E5%AE%9E%E6%88%98/" title="MySQL[十一]高性能MySQL调优实战"><img src="/images/cover/mysql.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="MySQL[十一]高性能MySQL调优实战"/></a><div class="content"><a class="title" href="/2022/01/11/MySQL/MySQL%5B%E5%8D%81%E4%B8%80%5D%E9%AB%98%E6%80%A7%E8%83%BDMySQL%E8%B0%83%E4%BC%98%E5%AE%9E%E6%88%98/" title="MySQL[十一]高性能MySQL调优实战">MySQL[十一]高性能MySQL调优实战</a><time datetime="2022-01-11T03:16:57.298Z" title="发表于 2022-01-11 11:16:57">2022-01-11</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/01/11/MySQL/MySQL%5B%E5%8D%81%5DExplain&amp;optimizer%20trace/" title="MySQL[十]Explain&amp;optimizer trace"><img src="/images/cover/mysql.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="MySQL[十]Explain&amp;optimizer trace"/></a><div class="content"><a class="title" href="/2022/01/11/MySQL/MySQL%5B%E5%8D%81%5DExplain&amp;optimizer%20trace/" title="MySQL[十]Explain&amp;optimizer trace">MySQL[十]Explain&amp;optimizer trace</a><time datetime="2022-01-11T03:16:42.428Z" title="发表于 2022-01-11 11:16:42">2022-01-11</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('/images/cover/mysql.png')"><div id="footer-wrap"><div class="copyright">&copy;2021 - 2022 By 二十</div><div class="footer_custom_text">骑摩托车去酒吧，该省省，该花花。</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="font-plus" type="button" title="放大字体"><i class="fas fa-plus"></i></button><button id="font-minus" type="button" title="缩小字体"><i class="fas fa-minus"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div id="local-search"><div class="search-dialog"><div class="search-dialog__title" id="local-search-title">本地搜索</div><div id="local-input-panel"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div></div><hr/><div id="local-search-results"></div><span class="search-close-button"><i class="fas fa-times"></i></span></div><div id="search-mask"></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/search/local-search.js"></script><div class="js-pjax"></div><script src="https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js"></script><script src="/js/chocolate.js"></script><script defer="defer" id="fluttering_ribbon" mobile="true" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/canvas-fluttering-ribbon.min.js"></script><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="true" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/canvas-nest.min.js"></script><script id="click-show-text" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/click-show-text.min.js" data-mobile="false" data-text="二十,二十二十,二十二十二十,二十二十二十二十,二十二十二十二十二十,二十二十二十二十二十二十,二十二十二十二十二十二十二十,二十二十二十二十二十二十二十二十,二十二十二十二十二十二十二十二十二十,二十二十二十二十二十二十二十二十二十二十" data-fontsize="15px" data-random="true" async="async"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

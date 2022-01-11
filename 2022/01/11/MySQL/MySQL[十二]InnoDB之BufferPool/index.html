@@ -1,0 +1,328 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MySQL[十二]InnoDB之BufferPool | 二十</title><meta name="keywords" content="MySQL"><meta name="author" content="二十"><meta name="copyright" content="二十"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="InnoDB之BufferPool">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MySQL[十二]InnoDB之BufferPool">
+<meta property="og:url" content="https://yinhuidong.github.io/2022/01/11/MySQL/MySQL[%E5%8D%81%E4%BA%8C]InnoDB%E4%B9%8BBufferPool/index.html">
+<meta property="og:site_name" content="二十">
+<meta property="og:description" content="InnoDB之BufferPool">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yinhuidong.github.io/images/cover/mysql.png">
+<meta property="article:published_time" content="2022-01-11T03:17:09.017Z">
+<meta property="article:modified_time" content="2022-01-11T03:24:53.735Z">
+<meta property="article:author" content="二十">
+<meta property="article:tag" content="MySQL">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://yinhuidong.github.io/images/cover/mysql.png"><link rel="shortcut icon" href="/img/favicon.jpg"><link rel="canonical" href="https://yinhuidong.github.io/2022/01/11/MySQL/MySQL[%E5%8D%81%E4%BA%8C]InnoDB%E4%B9%8BBufferPool/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":800},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js',
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css'
+    },
+    fancybox: {
+      js: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isanchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'MySQL[十二]InnoDB之BufferPool',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2022-01-11 11:24:53'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const fontSizeVal = saveToLocal.get('global-font-size')
+    if (fontSizeVal !== undefined) {
+      document.documentElement.style.setProperty('--global-font-size', fontSizeVal + 'px')
+    }
+    
+    const detectApple = () => {
+      if (GLOBAL_CONFIG_SITE.isHome && /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/custom.css"><meta name="referrer" content="no-referrer" /><meta name="generator" content="Hexo 5.4.0"></head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/head.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data"><div class="data-item is-center"><div class="data-item-link"><a href="/archives/"><div class="headline">文章</div><div class="length-num">15</div></a></div></div><div class="data-item is-center"><div class="data-item-link"><a href="/tags/"><div class="headline">标签</div><div class="length-num">2</div></a></div></div><div class="data-item is-center"><div class="data-item-link"><a href="/categories/"><div class="headline">分类</div><div class="length-num">2</div></a></div></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/images/cover/mysql.png')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">二十</a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">MySQL[十二]InnoDB之BufferPool</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-01-11T03:17:09.017Z" title="发表于 2022-01-11 11:17:09">2022-01-11</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2022-01-11T03:24:53.735Z" title="更新于 2022-01-11 11:24:53">2022-01-11</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/MySQL/">MySQL</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">9.2k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>29分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="MySQL[十二]InnoDB之BufferPool"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="一，缓存的重要性"><a href="#一，缓存的重要性" class="headerlink" title="一，缓存的重要性"></a>一，缓存的重要性</h1><p>对于使用<code>InnoDB</code>作为存储引擎的表来说，不管是用于存储用户数据的索引（包括聚簇索引和二级索引），还是各种系统数据，都是以<code>页</code>的形式存放在<code>表空间</code>中的，而所谓的<code>表空间</code>只不过是<code>InnoDB</code>对文件系统上一个或几个实际文件的抽象，也就是说我们的数据说到底还是存储在磁盘上的。但是磁盘太慢了，所以<code>InnoDB</code>存储引擎在处理客户端的请求时，当需要访问某个页的数据时，就会把完整的页的数据全部加载到内存中，也就是说即使我们只需要访问一个页的一条记录，那也需要先把整个页的数据加载到内存中。将整个页加载到内存中后就可以进行读写访问了，在进行完读写访问之后并不着急把该页对应的内存空间释放掉，而是将其<code>缓存</code>起来，这样将来有请求再次访问该页面时，就可以省去磁盘<code>IO</code>的开销了。</p>
+<h1 id="二，InnoDB的Buffer-Pool"><a href="#二，InnoDB的Buffer-Pool" class="headerlink" title="二，InnoDB的Buffer Pool"></a>二，InnoDB的Buffer Pool</h1><p><img src="https://cdn.nlark.com/yuque/0/2021/jpeg/12610368/1640692719739-2a4a2c42-463b-4bb9-9628-5f513cf6af7a.jpeg#clientId=ubc6de47a-2285-4&crop=0&crop=0&crop=1&crop=1&from=ui&id=uf96ce3e6&margin=%5Bobject%20Object%5D&name=BufferPool.jpg&originHeight=3134&originWidth=2791&originalType=binary&ratio=1&rotation=0&showTitle=false&size=670441&status=done&style=none&taskId=ua4826271-d9b1-4095-8d82-d0212d81af6&title=" alt="BufferPool.jpg"></p>
+<h3 id="1-啥是个Buffer-Pool"><a href="#1-啥是个Buffer-Pool" class="headerlink" title="1.啥是个Buffer Pool"></a>1.啥是个Buffer Pool</h3><p>为了缓存磁盘中的页，在<code>MySQL</code>服务器启动的时候就向操作系统申请了一片连续的内存，叫做<code>Buffer Pool</code>（中文名是<code>缓冲池</code>）。那它有多大呢？这个其实看我们机器的配置，默认情况下<code>Buffer Pool</code>只有<code>128M</code>大小，但是可以在启动服务器的时候配置<code>innodb_buffer_pool_size</code>参数的值，它表示<code>Buffer Pool</code>的大小，就像这样：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[server]</span><br><span class="line">innodb_buffer_pool_size = 268435456</span><br></pre></td></tr></table></figure>
+
+
+<p>其中，<code>268435456</code>的单位是字节，也就是我指定<code>Buffer Pool</code>的大小为<code>256M</code>。需要注意的是，<code>Buffer Pool</code>也不能太小，最小值为<code>5M</code>(当小于该值时会自动设置成<code>5M</code>)。</p>
+<h3 id="2-Buffer-Pool内部组成"><a href="#2-Buffer-Pool内部组成" class="headerlink" title="2.Buffer Pool内部组成"></a>2.Buffer Pool内部组成</h3><p><code>Buffer Pool</code>中默认的缓存页大小和在磁盘上默认的页大小是一样的，都是<code>16KB</code>。为了更好的管理这些在<code>Buffer Pool</code>中的缓存页，<code>InnoDB</code>为每一个缓存页都创建了一些所谓的<code>控制信息</code>，这些控制信息包括该页所属的表空间编号、页号、缓存页在<code>Buffer Pool</code>中的地址、链表节点信息、一些锁信息以及<code>LSN</code>信息（锁和<code>LSN</code>先忽略），当然还有一些别的控制信息，暂时省略。</p>
+<p>每个缓存页对应的控制信息占用的内存大小是相同的，我们就把每个页对应的控制信息占用的一块内存称为一个<code>控制块</code>，控制块和缓存页是一一对应的，它们都被存放到 Buffer Pool 中，其中控制块被存放到 Buffer Pool 的前边，缓存页被存放到 Buffer Pool 后边。</p>
+<p>每一个控制块都对应一个缓存页，那在分配足够多的控制块和缓存页后，可能剩余的那点儿空间不够一对控制块和缓存页的大小，这个用不到的那点儿内存空间就被称为<code>碎片</code>。当然，如果把<code>Buffer Pool</code>的大小设置的刚刚好的话，也可能不会产生<code>碎片</code>。</p>
+<blockquote>
+<p>每个控制块大约占用缓存页大小的5%，在MySQL5.7.21这个版本中，每个控制块占用的大小是808字节。而我们设置的innodb_buffer_pool_size并不包含这部分控制块占用的内存空间大小，也就是说InnoDB在为Buffer Pool向操作系统申请连续的内存空间时，这片连续的内存空间一般会比innodb_buffer_pool_size的值大5%左右。</p>
+</blockquote>
+<h3 id="3-free链表的管理"><a href="#3-free链表的管理" class="headerlink" title="3.free链表的管理"></a>3.free链表的管理</h3><p>当我们最初启动<code>MySQL</code>服务器的时候，需要完成对<code>Buffer Pool</code>的初始化过程，就是先向操作系统申请<code>Buffer Pool</code>的内存空间，然后把它划分成若干对控制块和缓存页。但是此时并没有真实的磁盘页被缓存到<code>Buffer Pool</code>中（因为还没有用到），之后随着程序的运行，会不断的有磁盘上的页被缓存到<code>Buffer Pool</code>中。那么问题来了，从磁盘上读取一个页到<code>Buffer Pool</code>中的时候该放到哪个缓存页的位置呢？或者说怎么区分<code>Buffer Pool</code>中哪些缓存页是空闲的，哪些已经被使用了呢？我们最好在某个地方记录一下Buffer Pool中哪些缓存页是可用的，我们可以把所有空闲的缓存页对应的控制块作为一个节点放到一个链表中，这个链表也可以被称作<code>free链表</code>（或者说空闲链表）。刚刚完成初始化的<code>Buffer Pool</code>中所有的缓存页都是空闲的，所以每一个缓存页对应的控制块都会被加入到<code>free链表</code>中。</p>
+<p>为了管理好这个<code>free链表</code>，特意为这个链表定义了一个<code>基节点</code>，里边儿包含着链表的头节点地址，尾节点地址，以及当前链表中节点的数量等信息。这里需要注意的是，链表的基节点占用的内存空间并不包含在为<code>Buffer Pool</code>申请的一大片连续内存空间之内，而是单独申请的一块内存空间。</p>
+<blockquote>
+<p>链表基节点占用的内存空间并不大，在MySQL5.7.21这个版本里，每个基节点只占用40字节大小。后边我们即将介绍许多不同的链表，它们的基节点和free链表的基节点的内存分配方式是一样的，都是单独申请的一块40字节大小的内存空间，并不包含在为Buffer Pool申请的一大片连续内存空间之内。</p>
+</blockquote>
+<p>有了这个<code>free链表</code>之后，每当需要从磁盘中加载一个页到<code>Buffer Pool</code>中时，就从<code>free链表</code>中取一个空闲的缓存页，并且把该缓存页对应的<code>控制块</code>的信息填上（就是该页所在的表空间、页号之类的信息），然后把该缓存页对应的<code>free链表</code>节点从链表中移除，表示该缓存页已经被使用了。</p>
+<h3 id="4-缓存页的哈希处理"><a href="#4-缓存页的哈希处理" class="headerlink" title="4.缓存页的哈希处理"></a>4.缓存页的哈希处理</h3><p>当我们需要访问某个页中的数据时，就会把该页从磁盘加载到<code>Buffer Pool</code>中，如果该页已经在<code>Buffer Pool</code>中的话直接使用就可以了。那么问题也就来了，我们怎么知道该页在不在<code>Buffer Pool</code>中呢？难不成需要依次遍历<code>Buffer Pool</code>中各个缓存页么？</p>
+<p>我们其实是根据<code>表空间号 + 页号</code>来定位一个页的，也就相当于<code>表空间号 + 页号</code>是一个<code>key</code>，<code>缓存页</code>就是对应的<code>value</code>，怎么通过一个<code>key</code>来快速找着一个<code>value</code>呢？那肯定是哈希表。</p>
+<p>所以我们可以用<code>表空间号 + 页号</code>作为<code>key</code>，<code>缓存页</code>作为<code>value</code>创建一个哈希表，在需要访问某个页的数据时，先从哈希表中根据<code>表空间号 + 页号</code>看看有没有对应的缓存页，如果有，直接使用该缓存页就好，如果没有，那就从<code>free链表</code>中选一个空闲的缓存页，然后把磁盘中对应的页加载到该缓存页的位置。</p>
+<h3 id="5-flush链表的管理"><a href="#5-flush链表的管理" class="headerlink" title="5.flush链表的管理"></a>5.flush链表的管理</h3><p>如果我们修改了<code>Buffer Pool</code>中某个缓存页的数据，那它就和磁盘上的页不一致了，这样的缓存页也被称为<code>脏页</code>（英文名：<code>dirty page</code>）。最简单的做法就是每发生一次修改就立即同步到磁盘上对应的页上，但是频繁的往磁盘中写数据会严重的影响程序的性能。所以每次修改缓存页后，我们一般一般异步同步磁盘。</p>
+<p>但是如果不立即同步到磁盘的话，那之后再同步的时候我们怎么知道<code>Buffer Pool</code>中哪些页是<code>脏页</code>，哪些页从来没被修改过呢？创建一个存储脏页的链表，凡是修改过的缓存页对应的控制块都会作为一个节点加入到一个链表中，因为这个链表节点对应的缓存页都是需要被刷新到磁盘上的，所以也叫<code>flush链表</code>。链表的构造和<code>free链表</code>差不多。</p>
+<h3 id="6-LRU链表的管理"><a href="#6-LRU链表的管理" class="headerlink" title="6.LRU链表的管理"></a>6.LRU链表的管理</h3><h4 id="6-1-缓存不够的窘境"><a href="#6-1-缓存不够的窘境" class="headerlink" title="6.1 缓存不够的窘境"></a>6.1 缓存不够的窘境</h4><p><code>Buffer Pool</code>对应的内存大小毕竟是有限的，如果需要缓存的页占用的内存大小超过了<code>Buffer Pool</code>大小，也就是<code>free链表</code>中已经没有多余的空闲缓存页咋办？当然是把某些旧的缓存页从<code>Buffer Pool</code>中移除，然后再把新的页放进来， 那么移除哪些缓存页呢？</p>
+<p>我们设立<code>Buffer Pool</code>的初衷就是想减少和磁盘的<code>IO</code>交互，最好每次在访问某个页的时候它都已经被缓存到<code>Buffer Pool</code>中了。假设我们一共访问了<code>n</code>次页，那么被访问的页已经在缓存中的次数除以<code>n</code>就是所谓的<code>缓存命中率</code>，我们的期望就是让<code>缓存命中率</code>越高越好。所以是留下最近很频繁使用的。</p>
+<h4 id="6-2简单的LRU链表"><a href="#6-2简单的LRU链表" class="headerlink" title="6.2简单的LRU链表"></a>6.2简单的LRU链表</h4><p>管理<code>Buffer Pool</code>的缓存页其实也是这个道理，当<code>Buffer Pool</code>中不再有空闲的缓存页时，就需要淘汰掉部分最近很少使用的缓存页。怎么知道哪些缓存页最近频繁使用，哪些最近很少使用呢？我们可以再创建一个链表，由于这个链表是为了<code>按照最近最少使用</code>的原则去淘汰缓存页的，所以这个链表可以被称为<code>LRU链表</code>（LRU的英文全称：Least Recently Used）。当我们需要访问某个页时，可以这样处理<code>LRU链表</code>：</p>
+<ul>
+<li>如果该页不在<code>Buffer Pool</code>中，在把该页从磁盘加载到<code>Buffer Pool</code>中的缓存页时，就把该缓存页对应的<code>控制块</code>作为节点塞到链表的头部。</li>
+<li>如果该页已经缓存在<code>Buffer Pool</code>中，则直接把该页对应的<code>控制块</code>移动到<code>LRU链表</code>的头部。</li>
+</ul>
+<p>也就是说：只要我们使用到某个缓存页，就把该缓存页调整到<code>LRU链表</code>的头部，这样<code>LRU链表</code>尾部就是最近最少使用的缓存页了。 所以当<code>Buffer Pool</code>中的空闲缓存页使用完时，到<code>LRU链表</code>的尾部找些缓存页淘汰。</p>
+<h4 id="6-3划分区域的LRU链表"><a href="#6-3划分区域的LRU链表" class="headerlink" title="6.3划分区域的LRU链表"></a>6.3划分区域的LRU链表</h4><p>上边的这个简单的<code>LRU</code>链表有问题，因为存在这两种比较尴尬的情况：</p>
+<ul>
+<li><p>情况一：<code>InnoDB</code>提供了一个服务——<code>预读</code>（英文名：<code>read ahead</code>）。所谓<code>预读</code>，就是<code>InnoDB</code>认为执行当前的请求可能之后会读取某些页面，就预先把它们加载到<code>Buffer Pool</code>中。根据触发方式的不同，<code>预读</code>又可以细分为下边两种： </p>
+<ul>
+<li><p> 线性预读<br><code>InnoDB</code>提供了一个系统变量<code>innodb_read_ahead_threshold</code>，如果顺序访问了某个区（<code>extent</code>）的页面超过这个系统变量的值，就会触发一次<code>异步</code>读取下一个区中全部的页面到<code>Buffer Pool</code>的请求，<code>异步</code>读取意味着从磁盘中加载这些被预读的页面并不会影响到当前工作线程的正常执行。这个<code>innodb_read_ahead_threshold</code>系统变量的值默认是<code>56</code>，我们可以在服务器启动时通过启动参数或者服务器运行过程中直接调整该系统变量的值，不过它是一个全局变量，注意使用<code>SET GLOBAL</code>命令来修改。  </p>
+<blockquote>
+<p>InnoDB是怎么实现异步读取的呢？在Windows或者Linux平台上，可能是直接调用操作系统内核提供的AIO接口，在其它类Unix操作系统中，使用了一种模拟AIO接口的方式来实现异步读取，其实就是让别的线程去读取需要预读的页面。</p>
+</blockquote>
+</li>
+<li><p> 随机预读<br>如果<code>Buffer Pool</code>中已经缓存了某个区的13个连续的页面，不论这些页面是不是顺序读取的，都会触发一次<code>异步</code>读取本区中所有其的页面到<code>Buffer Pool</code>的请求。<code>InnoDB</code>同时提供了<code>innodb_random_read_ahead</code>系统变量，它的默认值为<code>OFF</code>，也就意味着<code>InnoDB</code>并不会默认开启随机预读的功能，如果我们想开启该功能，可以通过修改启动参数或者直接使用<code>SET GLOBAL</code>命令把该变量的值设置为<code>ON</code>。 </p>
+</li>
+</ul>
+</li>
+</ul>
+<p>如果预读到<code>Buffer Pool</code>中的页成功的被使用到，那就可以极大的提高语句执行的效率。可是如果用不到呢？这些预读的页都会放到<code>LRU</code>链表的头部，但是如果此时<code>Buffer Pool</code>的容量不太大而且很多预读的页面都没有用到的话，这就会导致处在<code>LRU链表</code>尾部的一些缓存页会很快的被淘汰掉，也就是所谓的<code>劣币驱逐良币</code>，会大大降低缓存命中率。 </p>
+<ul>
+<li> 情况二：有一些扫描全表的查询语句（比如没有建立合适的索引或者压根儿没有WHERE子句的查询）。<br>扫描全表意味着将访问到该表所在的所有页！假设这个表中记录非常多的话，那该表会占用特别多的<code>页</code>，当需要访问这些页时，会把它们统统都加载到<code>Buffer Pool</code>中，这也就意味着<code>Buffer Pool</code>中的所有页都被换了一次，其他查询语句在执行时又得执行一次从磁盘加载到<code>Buffer Pool</code>的操作。而这种全表扫描的语句执行的频率也不高，每次执行都要把<code>Buffer Pool</code>中的缓存页换一次，这严重的影响到其他查询对 <code>Buffer Pool</code>的使用，从而大大降低了缓存命中率。 </li>
+</ul>
+<p>总结一下上边说的可能降低<code>Buffer Pool</code>的两种情况：</p>
+<ul>
+<li>加载到<code>Buffer Pool</code>中的页不一定被用到。</li>
+<li>如果非常多的使用频率偏低的页被同时加载到<code>Buffer Pool</code>时，可能会把那些使用频率非常高的页从<code>Buffer Pool</code>中淘汰掉。</li>
+</ul>
+<p>因为有这两种情况的存在，所以<code>InnoDB</code>把这个<code>LRU链表</code>按照一定比例分成两截，分别是：</p>
+<ul>
+<li>一部分存储使用频率非常高的缓存页，所以这一部分链表也叫做<code>热数据</code>，或者称<code>young区域</code>。</li>
+<li>另一部分存储使用频率不是很高的缓存页，所以这一部分链表也叫做<code>冷数据</code>，或者称<code>old区域</code>。</li>
+</ul>
+<p>我们是按照某个比例将LRU链表分成两半的，不是某些节点固定是young区域的，某些节点固定是old区域的，随着程序的运行，某个节点所属的区域也可能发生变化。那这个划分成两截的比例怎么确定呢？对于<code>InnoDB</code>存储引擎来说，我们可以通过查看系统变量<code>innodb_old_blocks_pct</code>的值来确定<code>old</code>区域在<code>LRU链表</code>中所占的比例，比方说这样：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; SHOW VARIABLES LIKE &#x27;innodb_old_blocks_pct&#x27;;</span><br><span class="line">+-----------------------+-------+</span><br><span class="line">| Variable_name         | Value |</span><br><span class="line">+-----------------------+-------+</span><br><span class="line">| innodb_old_blocks_pct | 37    |</span><br><span class="line">+-----------------------+-------+</span><br><span class="line">1 row in set (0.01 sec)</span><br></pre></td></tr></table></figure>
+
+
+<p>从结果可以看出来，默认情况下，<code>old</code>区域在<code>LRU链表</code>中所占的比例是<code>37%</code>，也就是说<code>old</code>区域大约占<code>LRU链表</code>的<code>3/8</code>。这个比例我们是可以设置的，我们可以在启动时修改<code>innodb_old_blocks_pct</code>参数来控制<code>old</code>区域在<code>LRU链表</code>中所占的比例，比方说这样修改配置文件：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[server]</span><br><span class="line">innodb_old_blocks_pct = 40</span><br></pre></td></tr></table></figure>
+
+
+<p>这样我们在启动服务器后，<code>old</code>区域占<code>LRU链表</code>的比例就是<code>40%</code>。当然，如果在服务器运行期间，我们也可以修改这个系统变量的值，不过需要注意的是，这个系统变量属于<code>全局变量</code>，一经修改，会对所有客户端生效，所以我们只能这样修改：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SET GLOBAL innodb_old_blocks_pct = 40;</span><br></pre></td></tr></table></figure>
+
+
+<p>有了这个被划分成<code>young</code>和<code>old</code>区域的<code>LRU</code>链表之后，<code>InnoDB</code>就可以针对我们上边提到的两种可能降低缓存命中率的情况进行优化：</p>
+<ul>
+<li> 针对预读的页面可能不进行后续访问情况的优化<br><code>InnoDB</code>规定，当磁盘上的某个页面在初次加载到Buffer Pool中的某个缓存页时，该缓存页对应的控制块会被放到old区域的头部。这样针对预读到<code>Buffer Pool</code>却不进行后续访问的页面就会被逐渐从<code>old</code>区域逐出，而不会影响<code>young</code>区域中被使用比较频繁的缓存页。 </li>
+<li> 针对全表扫描时，短时间内访问大量使用频率非常低的页面情况的优化<br>在进行全表扫描时，虽然首次被加载到<code>Buffer Pool</code>的页被放到了<code>old</code>区域的头部，但是后续会被马上访问到，每次进行访问的时候又会把该页放到<code>young</code>区域的头部，这样仍然会把那些使用频率比较高的页面给顶下去。<br>全表扫描有一个特点，那就是它的执行频率非常低，而且在执行全表扫描的过程中，即使某个页面中有很多条记录，也就是去多次访问这个页面所花费的时间也是非常少的。所以我们只需要规定，在对某个处在<code>old</code>区域的缓存页进行第一次访问时就在它对应的控制块中记录下来这个访问时间，如果后续的访问时间与第一次访问的时间在某个时间间隔内，那么该页面就不会被从old区域移动到young区域的头部，否则将它移动到young区域的头部。上述的这个间隔时间是由系统变量<code>innodb_old_blocks_time</code>控制的： </li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; SHOW VARIABLES LIKE &#x27;innodb_old_blocks_time&#x27;;</span><br><span class="line">+------------------------+-------+</span><br><span class="line">| Variable_name          | Value |</span><br><span class="line">+------------------------+-------+</span><br><span class="line">| innodb_old_blocks_time | 1000  |</span><br><span class="line">+------------------------+-------+</span><br><span class="line">1 row in set (0.01 sec)</span><br></pre></td></tr></table></figure>
+
+
+<p>这个<code>innodb_old_blocks_time</code>的默认值是<code>1000</code>，它的单位是毫秒，也就意味着对于从磁盘上被加载到<code>LRU</code>链表的<code>old</code>区域的某个页来说，如果第一次和最后一次访问该页面的时间间隔小于<code>1s</code>（很明显在一次全表扫描的过程中，多次访问一个页面中的时间不会超过<code>1s</code>），那么该页是不会被加入到<code>young</code>区域的。 当然，像<code>innodb_old_blocks_pct</code>一样，我们也可以在服务器启动或运行时设置<code>innodb_old_blocks_time</code>的值。 这里需要注意的是，如果我们把<code>innodb_old_blocks_time</code>的值设置为<code>0</code>，那么每次我们访问一个页面时就会把该页面放到<code>young</code>区域的头部。</p>
+<p>综上所述，正是因为将<code>LRU</code>链表划分为<code>young</code>和<code>old</code>区域这两个部分，又添加了<code>innodb_old_blocks_time</code>这个系统变量，才使得预读机制和全表扫描造成的缓存命中率降低的问题得到了遏制，因为用不到的预读页面以及全表扫描的页面都只会被放到<code>old</code>区域，而不影响<code>young</code>区域中的缓存页。</p>
+<h4 id="6-4-更进一步优化LRU链表"><a href="#6-4-更进一步优化LRU链表" class="headerlink" title="6.4 更进一步优化LRU链表"></a>6.4 更进一步优化LRU链表</h4><p>对于<code>young</code>区域的缓存页来说，我们每次访问一个缓存页就要把它移动到<code>LRU链表</code>的头部，这样开销太大了，毕竟在<code>young</code>区域的缓存页都是热点数据，也就是可能被经常访问的，这样频繁的对<code>LRU链表</code>进行节点移动操作不太好，为了解决这个问题其实我们还可以提出一些优化策略，比如只有被访问的缓存页位于<code>young</code>区域的<code>1/4</code>的后边，才会被移动到<code>LRU链表</code>头部，这样就可以降低调整<code>LRU链表</code>的频率，从而提升性能（也就是说如果某个缓存页对应的节点在<code>young</code>区域的<code>1/4</code>中，再次访问该缓存页时也不会将其移动到<code>LRU</code>链表头部）。</p>
+<blockquote>
+<p>介绍随机预读的时候曾说，如果Buffer Pool中有某个区的13个连续页面就会触发随机预读，这其实是不严谨的（但是MySQL文档就是这么说的），其实还要求这13个页面是非常热的页面，所谓的非常热，指的是这些页面在整个young区域的头1/4处。</p>
+</blockquote>
+<p>还有针对<code>LRU链表</code>的优化措施，核心就是尽量高效的提高 <strong><em>Buffer Pool</em></strong> 的缓存命中率。</p>
+<h3 id="7-其他的一些链表"><a href="#7-其他的一些链表" class="headerlink" title="7.其他的一些链表"></a>7.其他的一些链表</h3><p>为了更好的管理<code>Buffer Pool</code>中的缓存页，除了我们上边提到的一些措施，<code>InnoDB</code>还引进了其他的一些<code>链表</code>，比如<code>unzip LRU链表</code>用于管理解压页，<code>zip clean链表</code>用于管理没有被解压的压缩页，<code>zip free数组</code>中每一个元素都代表一个链表，它们组成所谓的<code>伙伴系统</code>来为压缩页提供内存空间等等，为了更好的管理这个<code>Buffer Pool</code>引入了各种链表或其他数据结构。</p>
+<h3 id="8-刷新脏页到磁盘"><a href="#8-刷新脏页到磁盘" class="headerlink" title="8.刷新脏页到磁盘"></a>8.刷新脏页到磁盘</h3><p>后台有专门的线程每隔一段时间负责把脏页刷新到磁盘，这样可以不影响用户线程处理正常的请求。主要有两种刷新路径：</p>
+<ul>
+<li> 从<code>LRU链表</code>的冷数据中刷新一部分页面到磁盘。<br>后台线程会定时从<code>LRU链表</code>尾部开始扫描一些页面，扫描的页面数量可以通过系统变量<code>innodb_lru_scan_depth</code>来指定，如果从里边儿发现脏页，会把它们刷新到磁盘。这种刷新页面的方式被称之为<code>BUF_FLUSH_LRU</code>。 </li>
+<li> 从<code>flush链表</code>中刷新一部分页面到磁盘。<br>后台线程也会定时从<code>flush链表</code>中刷新一部分页面到磁盘，刷新的速率取决于当时系统是不是很繁忙。这种刷新页面的方式被称之为<code>BUF_FLUSH_LIST</code>。 </li>
+</ul>
+<p>有时候后台线程刷新脏页的进度比较慢，导致用户线程在准备加载一个磁盘页到<code>Buffer Pool</code>时没有可用的缓存页，这时就会尝试看看<code>LRU链表</code>尾部有没有可以直接释放掉的未修改页面，如果没有的话会不得不将<code>LRU链表</code>尾部的一个脏页同步刷新到磁盘（和磁盘交互是很慢的，这会降低处理用户请求的速度）。这种刷新单个页面到磁盘中的刷新方式被称之为<code>BUF_FLUSH_SINGLE_PAGE</code>。</p>
+<p>当然，有时候系统特别繁忙时，也可能出现用户线程批量的从<code>flush链表</code>中刷新脏页的情况，很显然在处理用户请求过程中去刷新脏页是一种严重降低处理速度的行为，这属于一种迫不得已的情况。</p>
+<h3 id="9-多个Buffer-Pool实例"><a href="#9-多个Buffer-Pool实例" class="headerlink" title="9.多个Buffer Pool实例"></a>9.多个Buffer Pool实例</h3><p><code>Buffer Pool</code>本质是<code>InnoDB</code>向操作系统申请的一块连续的内存空间，在多线程环境下，访问<code>Buffer Pool</code>中的各种链表都需要加锁处理，在<code>Buffer Pool</code>特别大而且多线程并发访问特别高的情况下，单一的<code>Buffer Pool</code>可能会影响请求的处理速度。所以在<code>Buffer Pool</code>特别大的时候，我们可以把它们拆分成若干个小的<code>Buffer Pool</code>，每个<code>Buffer Pool</code>都称为一个<code>实例</code>，它们都是独立的，独立的去申请内存空间，独立的管理各种链表，所以在多线程并发访问时并不会相互影响，从而提高并发处理能力。我们可以在服务器启动的时候通过设置<code>innodb_buffer_pool_instances</code>的值来修改<code>Buffer Pool</code>实例的个数，比方说这样：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[server]</span><br><span class="line">innodb_buffer_pool_instances = 2</span><br></pre></td></tr></table></figure>
+
+
+<p>这样就表明我们要创建2个<code>Buffer Pool</code>实例。</p>
+<p>每个<code>Buffer Pool</code>实例实际占多少内存空间呢？其实使用这个公式算出来的：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">innodb_buffer_pool_size/innodb_buffer_pool_instances</span><br></pre></td></tr></table></figure>
+
+
+<p>也就是总共的大小除以实例的个数，结果就是每个<code>Buffer Pool</code>实例占用的大小。</p>
+<p>不过也不是说<code>Buffer Pool</code>实例创建的越多越好，分别管理各个<code>Buffer Pool</code>也是需要性能开销的，<code>InnoDB</code>规定：当innodb_buffer_pool_size的值小于1G的时候设置多个实例是无效的，InnoDB会默认把innodb_buffer_pool_instances 的值修改为1。而MySQL希望在<code>Buffer Pool</code>大于或等于1G的时候设置多个<code>Buffer Pool</code>实例。</p>
+<h3 id="10-innodb-buffer-pool-chunk-size"><a href="#10-innodb-buffer-pool-chunk-size" class="headerlink" title="10.innodb_buffer_pool_chunk_size"></a>10.innodb_buffer_pool_chunk_size</h3><p>在<code>MySQL 5.7.5</code>之前，<code>Buffer Pool</code>的大小只能在服务器启动时通过配置<code>innodb_buffer_pool_size</code>启动参数来调整大小，在服务器运行过程中是不允许调整该值的。不过<code>MySQL</code>在<code>5.7.5</code>以及之后的版本中支持了在服务器运行过程中调整<code>Buffer Pool</code>大小的功能，但是有一个问题，就是每次当我们要重新调整<code>Buffer Pool</code>大小时，都需要重新向操作系统申请一块连续的内存空间，然后将旧的<code>Buffer Pool</code>中的内容复制到这一块新空间，这是极其耗时的。所以<code>MySQL</code>决定不再一次性为某个<code>Buffer Pool</code>实例向操作系统申请一大片连续的内存空间，而是以一个所谓的<code>chunk</code>为单位向操作系统申请空间。也就是说一个<code>Buffer Pool</code>实例其实是由若干个<code>chunk</code>组成的，一个<code>chunk</code>就代表一片连续的内存空间，里边儿包含了若干缓存页与其对应的控制块。</p>
+<p>正是因为发明了这个<code>chunk</code>的概念，我们在服务器运行期间调整<code>Buffer Pool</code>的大小时就是以<code>chunk</code>为单位增加或者删除内存空间，而不需要重新向操作系统申请一片大的内存，然后进行缓存页的复制。这个所谓的<code>chunk</code>的大小是我们在启动操作<code>MySQL</code>服务器时通过<code>innodb_buffer_pool_chunk_size</code>启动参数指定的，它的默认值是<code>134217728</code>，也就是<code>128M</code>。不过需要注意的是，innodb_buffer_pool_chunk_size的值只能在服务器启动时指定，在服务器运行过程中是不可以修改的。</p>
+<blockquote>
+<p>为什么不允许在服务器运行过程中修改innodb_buffer_pool_chunk_size的值？因为innodb_buffer_pool_chunk_size的值代表InnoDB向操作系统申请的一片连续的内存空间的大小，如果你在服务器运行过程中修改了该值，就意味着要重新向操作系统申请连续的内存空间并且将原先的缓存页和它们对应的控制块复制到这个新的内存空间中，这是十分耗时的操作！ 另外，这个innodb_buffer_pool_chunk_size的值并不包含缓存页对应的控制块的内存空间大小，所以实际上InnoDB向操作系统申请连续内存空间时，每个chunk的大小要比innodb_buffer_pool_chunk_size的值大一些，约5%。</p>
+</blockquote>
+<h3 id="11-配置Buffer-Pool时的注意事项"><a href="#11-配置Buffer-Pool时的注意事项" class="headerlink" title="11.配置Buffer Pool时的注意事项"></a>11.配置Buffer Pool时的注意事项</h3><ul>
+<li><p> <code>innodb_buffer_pool_size</code>必须是<code>innodb_buffer_pool_chunk_size × innodb_buffer_pool_instances</code>的倍数（这主要是想保证每一个<code>Buffer Pool</code>实例中包含的<code>chunk</code>数量相同）。<br>假设我们指定的<code>innodb_buffer_pool_chunk_size</code>的值是<code>128M</code>，<code>innodb_buffer_pool_instances</code>的值是<code>16</code>，那么这两个值的乘积就是<code>2G</code>，也就是说<code>innodb_buffer_pool_size</code>的值必须是<code>2G</code>或者<code>2G</code>的整数倍。比方说我们在启动<code>MySQL</code>服务器是这样指定启动参数的：<br>默认的<code>innodb_buffer_pool_chunk_size</code>值是<code>128M</code>，指定的<code>innodb_buffer_pool_instances</code>的值是<code>16</code>，所以<code>innodb_buffer_pool_size</code>的值必须是<code>2G</code>或者<code>2G</code>的整数倍，上边例子中指定的<code>innodb_buffer_pool_size</code>的值是<code>8G</code>，符合规定，所以在服务器启动完成之后我们查看一下该变量的值就是我们指定的<code>8G</code>（8589934592字节）：<br>如果我们指定的<code>innodb_buffer_pool_size</code>大于<code>2G</code>并且不是<code>2G</code>的整数倍，那么服务器会自动的把<code>innodb_buffer_pool_size</code>的值调整为<code>2G</code>的整数倍，比方说我们在启动服务器时指定的<code>innodb_buffer_pool_size</code>的值是<code>9G</code>：<br>那么服务器会自动把<code>innodb_buffer_pool_size</code>的值调整为<code>10G，</code>10737418240字节。  </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysqld --innodb-buffer-pool-size=8G --innodb-buffer-pool-instances=16</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; show variables like &#x27;innodb_buffer_pool_size&#x27;;</span><br><span class="line">+-------------------------+------------+</span><br><span class="line">| Variable_name           | Value      |</span><br><span class="line">+-------------------------+------------+</span><br><span class="line">| innodb_buffer_pool_size | 8589934592 |</span><br><span class="line">+-------------------------+------------+</span><br><span class="line">1 row in set (0.00 sec)</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysqld --innodb-buffer-pool-size=9G --innodb-buffer-pool-instances=16</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; show variables like &#x27;innodb_buffer_pool_size&#x27;;</span><br><span class="line">+-------------------------+-------------+</span><br><span class="line">| Variable_name           | Value       |</span><br><span class="line">+-------------------------+-------------+</span><br><span class="line">| innodb_buffer_pool_size | 10737418240 |</span><br><span class="line">+-------------------------+-------------+</span><br><span class="line">1 row in set (0.01 sec)</span><br></pre></td></tr></table></figure></li>
+<li><p> 如果在服务器启动时，<code>innodb_buffer_pool_chunk_size × innodb_buffer_pool_instances</code>的值已经大于<code>innodb_buffer_pool_size</code>的值，那么<code>innodb_buffer_pool_chunk_size</code>的值会被服务器自动设置为<code>innodb_buffer_pool_size/innodb_buffer_pool_instances</code>的值。<br>比方说我们在启动服务器时指定的<code>innodb_buffer_pool_size</code>的值为<code>2G</code>，<code>innodb_buffer_pool_instances</code>的值为16，<code>innodb_buffer_pool_chunk_size</code>的值为<code>256M</code>：<br>由于<code>256M × 16 = 4G</code>，而<code>4G &gt; 2G</code>，所以<code>innodb_buffer_pool_chunk_size</code>值会被服务器改写为<code>innodb_buffer_pool_size/innodb_buffer_pool_instances</code>的值，也就是：<code>2G/16 = 128M</code>（134217728字节）。  </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysqld --innodb-buffer-pool-size=2G --innodb-buffer-pool-instances=16 --innodb-buffer-pool-chunk-size=256M</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; show variables like &#x27;innodb_buffer_pool_size&#x27;;</span><br><span class="line">+-------------------------+------------+</span><br><span class="line">| Variable_name           | Value      |</span><br><span class="line">+-------------------------+------------+</span><br><span class="line">| innodb_buffer_pool_size | 2147483648 |</span><br><span class="line">+-------------------------+------------+</span><br><span class="line">1 row in set (0.01 sec)</span><br><span class="line"></span><br><span class="line">mysql&gt; show variables like &#x27;innodb_buffer_pool_chunk_size&#x27;;</span><br><span class="line">+-------------------------------+-----------+</span><br><span class="line">| Variable_name                 | Value     |</span><br><span class="line">+-------------------------------+-----------+</span><br><span class="line">| innodb_buffer_pool_chunk_size | 134217728 |</span><br><span class="line">+-------------------------------+-----------+</span><br><span class="line">1 row in set (0.00 sec)</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h3 id="12-Buffer-Pool中存储的其它信息"><a href="#12-Buffer-Pool中存储的其它信息" class="headerlink" title="12.Buffer Pool中存储的其它信息"></a>12.Buffer Pool中存储的其它信息</h3><p><code>Buffer Pool</code>的缓存页除了用来缓存磁盘上的页面以外，还可以存储锁信息、自适应哈希索引等信息。</p>
+<h3 id="13-查看Buffer-Pool的状态信息"><a href="#13-查看Buffer-Pool的状态信息" class="headerlink" title="13.查看Buffer Pool的状态信息"></a>13.查看Buffer Pool的状态信息</h3><p><code>MySQL</code>给我们提供了<code>SHOW ENGINE INNODB STATUS</code>语句来查看关于<code>InnoDB</code>存储引擎运行过程中的一些状态信息，其中就包括<code>Buffer Pool</code>的一些信息，我们看一下（为了突出重点，我们只把输出中关于<code>Buffer Pool</code>的部分提取了出来）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; SHOW ENGINE INNODB STATUS\G</span><br><span class="line"></span><br><span class="line">(...省略前边的许多状态)</span><br><span class="line">----------------------</span><br><span class="line">BUFFER POOL AND MEMORY</span><br><span class="line">----------------------</span><br><span class="line">Total memory allocated 13218349056;</span><br><span class="line">Dictionary memory allocated 4014231</span><br><span class="line">Buffer pool size   786432</span><br><span class="line">Free buffers       8174</span><br><span class="line">Database pages     710576</span><br><span class="line">Old database pages 262143</span><br><span class="line">Modified db pages  124941</span><br><span class="line">Pending reads 0</span><br><span class="line">Pending writes: LRU 0, flush list 0, single page 0</span><br><span class="line">Pages made young 6195930012, not young 78247510485</span><br><span class="line">108.18 youngs/s, 226.15 non-youngs/s</span><br><span class="line">Pages read 2748866728, created 29217873, written 4845680877</span><br><span class="line">160.77 reads/s, 3.80 creates/s, 190.16 writes/s</span><br><span class="line">Buffer pool hit rate 956 / 1000, young-making rate 30 / 1000 not 605 / 1000</span><br><span class="line">Pages read ahead 0.00/s, evicted without access 0.00/s, Random read ahead 0.00/s</span><br><span class="line">LRU len: 710576, unzip_LRU len: 118</span><br><span class="line">I/O sum[134264]:cur[144], unzip sum[16]:cur[0]</span><br><span class="line">--------------</span><br><span class="line">(...省略后边的许多状态)</span><br><span class="line"></span><br><span class="line">mysql&gt;</span><br></pre></td></tr></table></figure>
+
+
+<p>我们来详细看一下这里边的每个值都代表什么意思：</p>
+<ul>
+<li> <code>Total memory allocated</code>：代表<code>Buffer Pool</code>向操作系统申请的连续内存空间大小，包括全部控制块、缓存页、以及碎片的大小。 </li>
+<li> <code>Dictionary memory allocated</code>：为数据字典信息分配的内存空间大小，注意这个内存空间和<code>Buffer Pool</code>没啥关系，不包括在<code>Total memory allocated</code>中。 </li>
+<li> <code>Buffer pool size</code>：代表该<code>Buffer Pool</code>可以容纳多少缓存<code>页</code>，注意，单位是<code>页</code>！ </li>
+<li> <code>Free buffers</code>：代表当前<code>Buffer Pool</code>还有多少空闲缓存页，也就是<code>free链表</code>中还有多少个节点。 </li>
+<li> <code>Database pages</code>：代表<code>LRU</code>链表中的页的数量，包含<code>young</code>和<code>old</code>两个区域的节点数量。 </li>
+<li> <code>Old database pages</code>：代表<code>LRU</code>链表<code>old</code>区域的节点数量。 </li>
+<li> <code>Modified db pages</code>：代表脏页数量，也就是<code>flush链表</code>中节点的数量。 </li>
+<li> <code>Pending reads</code>：正在等待从磁盘上加载到<code>Buffer Pool</code>中的页面数量。<br>当准备从磁盘中加载某个页面时，会先为这个页面在<code>Buffer Pool</code>中分配一个缓存页以及它对应的控制块，然后把这个控制块添加到<code>LRU</code>的<code>old</code>区域的头部，但是这个时候真正的磁盘页并没有被加载进来，<code>Pending reads</code>的值会跟着加1。 </li>
+<li> <code>Pending writes LRU</code>：即将从<code>LRU</code>链表中刷新到磁盘中的页面数量。 </li>
+<li> <code>Pending writes flush list</code>：即将从<code>flush</code>链表中刷新到磁盘中的页面数量。 </li>
+<li> <code>Pending writes single page</code>：即将以单个页面的形式刷新到磁盘中的页面数量。 </li>
+<li> <code>Pages made young</code>：代表<code>LRU</code>链表中曾经从<code>old</code>区域移动到<code>young</code>区域头部的节点数量。<br>这里需要注意，一个节点每次只有从<code>old</code>区域移动到<code>young</code>区域头部时才会将<code>Pages made young</code>的值加1，也就是说如果该节点本来就在<code>young</code>区域，由于它符合在<code>young</code>区域1/4后边的要求，下一次访问这个页面时也会将它移动到<code>young</code>区域头部，但这个过程并不会导致<code>Pages made young</code>的值加1。 </li>
+<li> <code>Page made not young</code>：在将<code>innodb_old_blocks_time</code>设置的值大于0时，首次访问或者后续访问某个处在<code>old</code>区域的节点时由于不符合时间间隔的限制而不能将其移动到<code>young</code>区域头部时，<code>Page made not young</code>的值会加1。<br>这里需要注意，对于处在<code>young</code>区域的节点，如果由于它在<code>young</code>区域的1/4处而导致它没有被移动到<code>young</code>区域头部，这样的访问并不会将<code>Page made not young</code>的值加1。 </li>
+<li> <code>youngs/s</code>：代表每秒从<code>old</code>区域被移动到<code>young</code>区域头部的节点数量。 </li>
+<li> <code>non-youngs/s</code>：代表每秒由于不满足时间限制而不能从<code>old</code>区域移动到<code>young</code>区域头部的节点数量。 </li>
+<li> <code>Pages read</code>、<code>created</code>、<code>written</code>：代表读取，创建，写入了多少页。后边跟着读取、创建、写入的速率。 </li>
+<li> <code>Buffer pool hit rate</code>：表示在过去某段时间，平均访问1000次页面，有多少次该页面已经被缓存到<code>Buffer Pool</code>了。 </li>
+<li> <code>young-making rate</code>：表示在过去某段时间，平均访问1000次页面，有多少次访问使页面移动到<code>young</code>区域的头部了。</li>
+</ul>
+<p><strong>需要注意的一点是，这里统计的将页面移动到</strong><code>**young**</code><strong>区域的头部次数不仅仅包含从</strong><code>**old**</code><strong>区域移动到</strong><code>**young**</code><strong>区域头部的次数，还包括从</strong><code>**young**</code><strong>区域移动到</strong><code>**young**</code><strong>区域头部的次数（访问某个</strong><code>**young**</code><strong>区域的节点，只要该节点在</strong><code>**young**</code><strong>区域的1/4处往后，就会把它移动到</strong><code>**young**</code><strong>区域的头部）。</strong> </p>
+<ul>
+<li> <code>not (young-making rate)</code>：表示在过去某段时间，平均访问1000次页面，有多少次访问没有使页面移动到<code>young</code>区域的头部。</li>
+</ul>
+<p><strong>需要注意的一点是，这里统计的没有将页面移动到</strong><code>**young**</code><strong>区域的头部次数不仅仅包含因为设置了</strong><code>**innodb_old_blocks_time**</code><strong>系统变量而导致访问了</strong><code>**old**</code><strong>区域中的节点但没把它们移动到</strong><code>**young**</code><strong>区域的次数，还包含因为该节点在</strong><code>**young**</code><strong>区域的前1/4处而没有被移动到</strong><code>**young**</code><strong>区域头部的次数。</strong> </p>
+<ul>
+<li> <code>LRU len</code>：代表<code>LRU链表</code>中节点的数量。 </li>
+<li> <code>unzip_LRU</code>：代表<code>unzip_LRU链表</code>中节点的数量。 </li>
+<li> <code>I/O sum</code>：最近50s读取磁盘页的总数。 </li>
+<li> <code>I/O cur</code>：现在正在读取的磁盘页数量。 </li>
+<li> <code>I/O unzip sum</code>：最近50s解压的页面数量。 </li>
+<li> <code>I/O unzip cur</code>：正在解压的页面数量。 </li>
+</ul>
+<h1 id="三，总结"><a href="#三，总结" class="headerlink" title="三，总结"></a>三，总结</h1><ol>
+<li> 磁盘太慢，用内存作为缓存很有必要。 </li>
+<li> <code>Buffer Pool</code>本质上是<code>InnoDB</code>向操作系统申请的一段连续的内存空间，可以通过<code>innodb_buffer_pool_size</code>来调整它的大小。 </li>
+<li> <code>Buffer Pool</code>向操作系统申请的连续内存由控制块和缓存页组成，每个控制块和缓存页都是一一对应的，在填充足够多的控制块和缓存页的组合后，<code>Buffer Pool</code>剩余的空间可能产生不够填充一组控制块和缓存页，这部分空间不能被使用，也被称为<code>碎片</code>。 </li>
+<li> <code>InnoDB</code>使用了许多<code>链表</code>来管理<code>Buffer Pool</code>。 </li>
+<li> <code>free链表</code>中每一个节点都代表一个空闲的缓存页，在将磁盘中的页加载到<code>Buffer Pool</code>时，会从<code>free链表</code>中寻找空闲的缓存页。 </li>
+<li> 为了快速定位某个页是否被加载到<code>Buffer Pool</code>，使用<code>表空间号 + 页号</code>作为<code>key</code>，缓存页作为<code>value</code>，建立哈希表。 </li>
+<li> 在<code>Buffer Pool</code>中被修改的页称为<code>脏页</code>，脏页并不是立即刷新，而是被加入到<code>flush链表</code>中，待之后的某个时刻同步到磁盘上。 </li>
+<li> <code>LRU链表</code>分为<code>young</code>和<code>old</code>两个区域，可以通过<code>innodb_old_blocks_pct</code>来调节<code>old</code>区域所占的比例。首次从磁盘上加载到<code>Buffer Pool</code>的页会被放到<code>old</code>区域的头部，在<code>innodb_old_blocks_time</code>间隔时间内访问该页不会把它移动到<code>young</code>区域头部。在<code>Buffer Pool</code>没有可用的空闲缓存页时，会首先淘汰掉<code>old</code>区域的一些页。 </li>
+<li> 我们可以通过指定<code>innodb_buffer_pool_instances</code>来控制<code>Buffer Pool</code>实例的个数，每个<code>Buffer Pool</code>实例中都有各自独立的链表，互不干扰。 </li>
+<li> 自<code>MySQL 5.7.5</code>版本之后，可以在服务器运行过程中调整<code>Buffer Pool</code>大小。每个<code>Buffer Pool</code>实例由若干个<code>chunk</code>组成，每个<code>chunk</code>的大小可以在服务器启动时通过启动参数调整。 </li>
+<li> 可以用下边的命令查看<code>Buffer Pool</code>的状态信息：  <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SHOW ENGINE INNODB STATUS\G</span><br></pre></td></tr></table></figure></li>
+</ol>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">二十</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://yinhuidong.github.io/2022/01/11/MySQL/MySQL[%E5%8D%81%E4%BA%8C]InnoDB%E4%B9%8BBufferPool/">https://yinhuidong.github.io/2022/01/11/MySQL/MySQL[十二]InnoDB之BufferPool/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://yinhuidong.github.io" target="_blank">二十</a> 许可协议。转载请注明来自 <a href="https://yinhuidong.github.io" target="_blank">二十</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/MySQL/">MySQL</a></div><div class="post_share"><div class="social-share" data-image="/images/cover/mysql.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js" defer></script></div></div><div class="post-reward"><div class="reward-button button--animated"><i class="fas fa-qrcode"></i> 打赏</div><div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/img/wechat_pay.jpg" target="_blank"><img class="post-qr-code-img" src="/img/wechat_pay.jpg" alt="微信"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="/img/alipay.jpg" target="_blank"><img class="post-qr-code-img" src="/img/alipay.jpg" alt="支付宝"/></a><div class="post-qr-code-desc">支付宝</div></li></ul></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2022/01/11/MySQL/MySQL%5B%E5%8D%81%E4%B8%89%5D%E4%BA%8B%E5%8A%A1/"><img class="prev-cover" src="/images/cover/mysql.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">MySQL[十三]事务</div></div></a></div><div class="next-post pull-right"><a href="/2022/01/11/MySQL/MySQL%5B%E5%8D%81%E4%B8%80%5D%E9%AB%98%E6%80%A7%E8%83%BDMySQL%E8%B0%83%E4%BC%98%E5%AE%9E%E6%88%98/"><img class="next-cover" src="/images/cover/mysql.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">MySQL[十一]高性能MySQL调优实战</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2022/01/11/MySQL/MySQL%5B%E4%B8%89%5DInnoDB%E7%B4%A2%E5%BC%95%E7%BB%93%E6%9E%84/" title="MySQL[三]InnoDB索引结构"><img class="cover" src="/images/cover/mysql.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-11</div><div class="title">MySQL[三]InnoDB索引结构</div></div></a></div><div><a href="/2022/01/11/MySQL/MySQL%5B%E4%BA%94%5DInnoDb%E8%A1%A8%E7%A9%BA%E9%97%B4/" title="MySQL[五]InnoDb表空间"><img class="cover" src="/images/cover/mysql.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-11</div><div class="title">MySQL[五]InnoDb表空间</div></div></a></div><div><a href="/2022/01/11/MySQL/MySQL%5B%E4%B8%80%5D%E5%85%A5%E9%97%A8/" title="MySQL[一]入门"><img class="cover" src="/images/cover/mysql.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-11</div><div class="title">MySQL[一]入门</div></div></a></div><div><a href="/2022/01/10/MySQL/MySQL%5B%E4%BA%8C%5D%E6%A6%82%E8%BF%B0/" title="MySQL[二]概述"><img class="cover" src="/images/cover/mysql.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-10</div><div class="title">MySQL[二]概述</div></div></a></div><div><a href="/2022/01/11/MySQL/MySQL%5B%E4%B8%83%5D%E5%9F%BA%E4%BA%8E%E6%88%90%E6%9C%AC%E7%9A%84%E4%BC%98%E5%8C%96/" title="MySQL[七]基于成本的优化"><img class="cover" src="/images/cover/mysql.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-11</div><div class="title">MySQL[七]基于成本的优化</div></div></a></div><div><a href="/2022/01/11/MySQL/MySQL%5B%E5%85%AD%5D%E5%8D%95%E8%A1%A8%E6%9F%A5%E8%AF%A2&%E8%BF%9E%E6%8E%A5%E6%9F%A5%E8%AF%A2%E5%8E%9F%E7%90%86/" title="MySQL[六]单表查询&连接查询原理"><img class="cover" src="/images/cover/mysql.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-11</div><div class="title">MySQL[六]单表查询&连接查询原理</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/head.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">二十</div><div class="author-info__description">欢迎来到二十的博客卷....</div></div><div class="card-info-data"><div class="card-info-data-item is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">15</div></a></div><div class="card-info-data-item is-center"><a href="/tags/"><div class="headline">标签</div><div class="length-num">2</div></a></div><div class="card-info-data-item is-center"><a href="/categories/"><div class="headline">分类</div><div class="length-num">2</div></a></div></div><a class="button--animated" id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/yinhuidong"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/yinhuidong" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="mailto:1972039773@qq.com" target="_blank" title="Email"><i class="fas fa-envelope"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn card-announcement-animation"></i><span>公告</span></div><div class="announcement_content">欢迎来到二十的个人博客，对本站的文章和技术问题有疑问和建议请联系作者：VX：yinhuidong666</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%80%EF%BC%8C%E7%BC%93%E5%AD%98%E7%9A%84%E9%87%8D%E8%A6%81%E6%80%A7"><span class="toc-text">一，缓存的重要性</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%8C%EF%BC%8CInnoDB%E7%9A%84Buffer-Pool"><span class="toc-text">二，InnoDB的Buffer Pool</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E5%95%A5%E6%98%AF%E4%B8%AABuffer-Pool"><span class="toc-text">1.啥是个Buffer Pool</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-Buffer-Pool%E5%86%85%E9%83%A8%E7%BB%84%E6%88%90"><span class="toc-text">2.Buffer Pool内部组成</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-free%E9%93%BE%E8%A1%A8%E7%9A%84%E7%AE%A1%E7%90%86"><span class="toc-text">3.free链表的管理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-%E7%BC%93%E5%AD%98%E9%A1%B5%E7%9A%84%E5%93%88%E5%B8%8C%E5%A4%84%E7%90%86"><span class="toc-text">4.缓存页的哈希处理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-flush%E9%93%BE%E8%A1%A8%E7%9A%84%E7%AE%A1%E7%90%86"><span class="toc-text">5.flush链表的管理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-LRU%E9%93%BE%E8%A1%A8%E7%9A%84%E7%AE%A1%E7%90%86"><span class="toc-text">6.LRU链表的管理</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#6-1-%E7%BC%93%E5%AD%98%E4%B8%8D%E5%A4%9F%E7%9A%84%E7%AA%98%E5%A2%83"><span class="toc-text">6.1 缓存不够的窘境</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#6-2%E7%AE%80%E5%8D%95%E7%9A%84LRU%E9%93%BE%E8%A1%A8"><span class="toc-text">6.2简单的LRU链表</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#6-3%E5%88%92%E5%88%86%E5%8C%BA%E5%9F%9F%E7%9A%84LRU%E9%93%BE%E8%A1%A8"><span class="toc-text">6.3划分区域的LRU链表</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#6-4-%E6%9B%B4%E8%BF%9B%E4%B8%80%E6%AD%A5%E4%BC%98%E5%8C%96LRU%E9%93%BE%E8%A1%A8"><span class="toc-text">6.4 更进一步优化LRU链表</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-%E5%85%B6%E4%BB%96%E7%9A%84%E4%B8%80%E4%BA%9B%E9%93%BE%E8%A1%A8"><span class="toc-text">7.其他的一些链表</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-%E5%88%B7%E6%96%B0%E8%84%8F%E9%A1%B5%E5%88%B0%E7%A3%81%E7%9B%98"><span class="toc-text">8.刷新脏页到磁盘</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-%E5%A4%9A%E4%B8%AABuffer-Pool%E5%AE%9E%E4%BE%8B"><span class="toc-text">9.多个Buffer Pool实例</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-innodb-buffer-pool-chunk-size"><span class="toc-text">10.innodb_buffer_pool_chunk_size</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-%E9%85%8D%E7%BD%AEBuffer-Pool%E6%97%B6%E7%9A%84%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="toc-text">11.配置Buffer Pool时的注意事项</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-Buffer-Pool%E4%B8%AD%E5%AD%98%E5%82%A8%E7%9A%84%E5%85%B6%E5%AE%83%E4%BF%A1%E6%81%AF"><span class="toc-text">12.Buffer Pool中存储的其它信息</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#13-%E6%9F%A5%E7%9C%8BBuffer-Pool%E7%9A%84%E7%8A%B6%E6%80%81%E4%BF%A1%E6%81%AF"><span class="toc-text">13.查看Buffer Pool的状态信息</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%89%EF%BC%8C%E6%80%BB%E7%BB%93"><span class="toc-text">三，总结</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2022/01/11/MySQL/MySQL%5B%E5%8D%81%E5%9B%9B%5Dredo%E6%97%A5%E5%BF%97/" title="MySQL[十四]redo日志"><img src="/images/cover/mysql.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="MySQL[十四]redo日志"/></a><div class="content"><a class="title" href="/2022/01/11/MySQL/MySQL%5B%E5%8D%81%E5%9B%9B%5Dredo%E6%97%A5%E5%BF%97/" title="MySQL[十四]redo日志">MySQL[十四]redo日志</a><time datetime="2022-01-11T03:17:34.284Z" title="发表于 2022-01-11 11:17:34">2022-01-11</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/01/11/MySQL/MySQL%5B%E5%8D%81%E4%B8%89%5D%E4%BA%8B%E5%8A%A1/" title="MySQL[十三]事务"><img src="/images/cover/mysql.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="MySQL[十三]事务"/></a><div class="content"><a class="title" href="/2022/01/11/MySQL/MySQL%5B%E5%8D%81%E4%B8%89%5D%E4%BA%8B%E5%8A%A1/" title="MySQL[十三]事务">MySQL[十三]事务</a><time datetime="2022-01-11T03:17:20.893Z" title="发表于 2022-01-11 11:17:20">2022-01-11</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/01/11/MySQL/MySQL%5B%E5%8D%81%E4%BA%8C%5DInnoDB%E4%B9%8BBufferPool/" title="MySQL[十二]InnoDB之BufferPool"><img src="/images/cover/mysql.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="MySQL[十二]InnoDB之BufferPool"/></a><div class="content"><a class="title" href="/2022/01/11/MySQL/MySQL%5B%E5%8D%81%E4%BA%8C%5DInnoDB%E4%B9%8BBufferPool/" title="MySQL[十二]InnoDB之BufferPool">MySQL[十二]InnoDB之BufferPool</a><time datetime="2022-01-11T03:17:09.017Z" title="发表于 2022-01-11 11:17:09">2022-01-11</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/01/11/MySQL/MySQL%5B%E5%8D%81%E4%B8%80%5D%E9%AB%98%E6%80%A7%E8%83%BDMySQL%E8%B0%83%E4%BC%98%E5%AE%9E%E6%88%98/" title="MySQL[十一]高性能MySQL调优实战"><img src="/images/cover/mysql.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="MySQL[十一]高性能MySQL调优实战"/></a><div class="content"><a class="title" href="/2022/01/11/MySQL/MySQL%5B%E5%8D%81%E4%B8%80%5D%E9%AB%98%E6%80%A7%E8%83%BDMySQL%E8%B0%83%E4%BC%98%E5%AE%9E%E6%88%98/" title="MySQL[十一]高性能MySQL调优实战">MySQL[十一]高性能MySQL调优实战</a><time datetime="2022-01-11T03:16:57.298Z" title="发表于 2022-01-11 11:16:57">2022-01-11</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/01/11/MySQL/MySQL%5B%E5%8D%81%5DExplain&amp;optimizer%20trace/" title="MySQL[十]Explain&amp;optimizer trace"><img src="/images/cover/mysql.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="MySQL[十]Explain&amp;optimizer trace"/></a><div class="content"><a class="title" href="/2022/01/11/MySQL/MySQL%5B%E5%8D%81%5DExplain&amp;optimizer%20trace/" title="MySQL[十]Explain&amp;optimizer trace">MySQL[十]Explain&amp;optimizer trace</a><time datetime="2022-01-11T03:16:42.428Z" title="发表于 2022-01-11 11:16:42">2022-01-11</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('/images/cover/mysql.png')"><div id="footer-wrap"><div class="copyright">&copy;2021 - 2022 By 二十</div><div class="footer_custom_text">骑摩托车去酒吧，该省省，该花花。</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="font-plus" type="button" title="放大字体"><i class="fas fa-plus"></i></button><button id="font-minus" type="button" title="缩小字体"><i class="fas fa-minus"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div id="local-search"><div class="search-dialog"><div class="search-dialog__title" id="local-search-title">本地搜索</div><div id="local-input-panel"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div></div><hr/><div id="local-search-results"></div><span class="search-close-button"><i class="fas fa-times"></i></span></div><div id="search-mask"></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/search/local-search.js"></script><div class="js-pjax"></div><script src="https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js"></script><script src="/js/chocolate.js"></script><script defer="defer" id="fluttering_ribbon" mobile="true" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/canvas-fluttering-ribbon.min.js"></script><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="true" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/canvas-nest.min.js"></script><script id="click-show-text" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/click-show-text.min.js" data-mobile="false" data-text="二十,二十二十,二十二十二十,二十二十二十二十,二十二十二十二十二十,二十二十二十二十二十二十,二十二十二十二十二十二十二十,二十二十二十二十二十二十二十二十,二十二十二十二十二十二十二十二十二十,二十二十二十二十二十二十二十二十二十二十" data-fontsize="15px" data-random="true" async="async"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

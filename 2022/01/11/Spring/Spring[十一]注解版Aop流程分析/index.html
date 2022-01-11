@@ -1,0 +1,204 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Spring[十一]注解版Aop流程分析 | 二十</title><meta name="keywords" content="Spring"><meta name="author" content="二十"><meta name="copyright" content="二十"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="注解版Aop流程分析">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Spring[十一]注解版Aop流程分析">
+<meta property="og:url" content="https://yinhuidong.github.io/2022/01/11/Spring/Spring[%E5%8D%81%E4%B8%80]%E6%B3%A8%E8%A7%A3%E7%89%88Aop%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/index.html">
+<meta property="og:site_name" content="二十">
+<meta property="og:description" content="注解版Aop流程分析">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yinhuidong.github.io/images/cover/spring.png">
+<meta property="article:published_time" content="2022-01-11T06:13:44.508Z">
+<meta property="article:modified_time" content="2022-01-11T06:18:16.601Z">
+<meta property="article:author" content="二十">
+<meta property="article:tag" content="Spring">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://yinhuidong.github.io/images/cover/spring.png"><link rel="shortcut icon" href="/img/favicon.jpg"><link rel="canonical" href="https://yinhuidong.github.io/2022/01/11/Spring/Spring[%E5%8D%81%E4%B8%80]%E6%B3%A8%E8%A7%A3%E7%89%88Aop%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":800},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js',
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css'
+    },
+    fancybox: {
+      js: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isanchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Spring[十一]注解版Aop流程分析',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2022-01-11 14:18:16'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const fontSizeVal = saveToLocal.get('global-font-size')
+    if (fontSizeVal !== undefined) {
+      document.documentElement.style.setProperty('--global-font-size', fontSizeVal + 'px')
+    }
+    
+    const detectApple = () => {
+      if (GLOBAL_CONFIG_SITE.isHome && /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/custom.css"><meta name="referrer" content="no-referrer" /><meta name="generator" content="Hexo 5.4.0"></head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/head.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data"><div class="data-item is-center"><div class="data-item-link"><a href="/archives/"><div class="headline">文章</div><div class="length-num">33</div></a></div></div><div class="data-item is-center"><div class="data-item-link"><a href="/tags/"><div class="headline">标签</div><div class="length-num">3</div></a></div></div><div class="data-item is-center"><div class="data-item-link"><a href="/categories/"><div class="headline">分类</div><div class="length-num">3</div></a></div></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/images/cover/spring.png')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">二十</a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">Spring[十一]注解版Aop流程分析</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-01-11T06:13:44.508Z" title="发表于 2022-01-11 14:13:44">2022-01-11</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2022-01-11T06:18:16.601Z" title="更新于 2022-01-11 14:18:16">2022-01-11</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Spring/">Spring</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">788</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>3分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="Spring[十一]注解版Aop流程分析"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><blockquote>
+<p>上一篇介绍了实现AOP的两种方式，本篇我们通过分析源码流程，来看一下注解版AOP的实现。具体的源码细节，会在后面的篇章一行行翻译。</p>
+</blockquote>
+<h2 id="1-开启AOP的功能"><a href="#1-开启AOP的功能" class="headerlink" title="1.开启AOP的功能"></a>1.开启AOP的功能</h2><p>读源码需要找到入口或者抓手，AOP的源码我们如何入手呢？想要使用AOP的功能就需要在Spring的配置类上加上<code>**@EnableAspectJAutoProxy**</code>注解。<br>​</p>
+<p>先分析一下这个注解：<br> </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Target(ElementType.TYPE)</span></span><br><span class="line"><span class="meta">@Retention(RetentionPolicy.RUNTIME)</span></span><br><span class="line"><span class="meta">@Documented</span></span><br><span class="line"><span class="meta">@Import(AspectJAutoProxyRegistrar.class)</span></span><br><span class="line"><span class="keyword">public</span> <span class="meta">@interface</span> EnableAspectJAutoProxy &#123;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 是否要创建基于子类 (CGLIB) 的代理，而不是基于标准 Java 接口的代理。 默认值为false 。</span></span><br><span class="line"><span class="comment">	 * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="function"><span class="keyword">boolean</span> <span class="title">proxyTargetClass</span><span class="params">()</span> <span class="keyword">default</span> <span class="keyword">false</span></span>;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 代理应由 AOP 框架公开为ThreadLocal以通过AopContext类进行检索。</span></span><br><span class="line"><span class="comment">	 * 默认关闭，即不保证AopContext访问将起作用。</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="function"><span class="keyword">boolean</span> <span class="title">exposeProxy</span><span class="params">()</span> <span class="keyword">default</span> <span class="keyword">false</span></span>;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>可以看到这个注解的底层有一个<code>**@Import(AspectJAutoProxyRegistrar.class)**</code>，他往容器中导入了一个组件<code>**AspectJAutoProxyRegistrar**</code>。<br>​</p>
+<p>看一下这个组件：<br>​</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">AspectJAutoProxyRegistrar</span> <span class="keyword">implements</span> <span class="title">ImportBeanDefinitionRegistrar</span> </span>&#123;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">	<span class="meta">@Override</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">registerBeanDefinitions</span><span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">			AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry)</span> </span>&#123;</span><br><span class="line">		<span class="comment">/*导入组件到容器中 AnnotationAwareAspectJAutoProxyCreator*/</span></span><br><span class="line">		AopConfigUtils.registerAspectJAnnotationAutoProxyCreatorIfNecessary(registry);</span><br><span class="line"></span><br><span class="line">		AnnotationAttributes enableAspectJAutoProxy =</span><br><span class="line">				AnnotationConfigUtils.attributesFor(importingClassMetadata, EnableAspectJAutoProxy.class);</span><br><span class="line">		<span class="keyword">if</span> (enableAspectJAutoProxy != <span class="keyword">null</span>) &#123;</span><br><span class="line">			<span class="keyword">if</span> (enableAspectJAutoProxy.getBoolean(<span class="string">&quot;proxyTargetClass&quot;</span>)) &#123;</span><br><span class="line">				AopConfigUtils.forceAutoProxyCreatorToUseClassProxying(registry);</span><br><span class="line">			&#125;</span><br><span class="line">			<span class="keyword">if</span> (enableAspectJAutoProxy.getBoolean(<span class="string">&quot;exposeProxy&quot;</span>)) &#123;</span><br><span class="line">				AopConfigUtils.forceAutoProxyCreatorToExposeProxy(registry);</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Nullable</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> BeanDefinition <span class="title">registerAspectJAnnotationAutoProxyCreatorIfNecessary</span><span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">		BeanDefinitionRegistry registry, <span class="meta">@Nullable</span> Object source)</span> </span>&#123;</span><br><span class="line">	<span class="comment">/*</span></span><br><span class="line"><span class="comment">	* 参数一：固定类型</span></span><br><span class="line"><span class="comment">	* 参数二：spring容器</span></span><br><span class="line"><span class="comment">	* 参数三：标签</span></span><br><span class="line"><span class="comment">	* */</span></span><br><span class="line">	<span class="keyword">return</span> registerOrEscalateApcAsRequired(AnnotationAwareAspectJAutoProxyCreator.class, registry, source);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p> <br> <code>**AspectJAutoProxyRegistrar**</code> 实现了 <code>**ImportBeanDefinitionRegistrar**</code>接口，往容器中注册了一个bd信息。<code>**AnnotationAwareAspectJAutoProxyCreator**</code><br><strong>​</strong></p>
+<h2 id="2-加载时机"><a href="#2-加载时机" class="headerlink" title="2.加载时机"></a>2.加载时机</h2><p> <br>上一节我们分析到，在Spring的配置类上打一个注解，最后总会往容器中导入一个类：<code>**AnnotationAwareAspectJAutoProxyCreator**</code>。<br>​</p>
+<p>我们来分析一下这个类的继承关系：<br><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1639247064786-3c67a6a0-91eb-4ed4-b8cb-f267bc197711.png#clientId=u3af27937-b92a-4&from=paste&height=602&id=u3a1bbc61&margin=%5Bobject%20Object%5D&name=image.png&originHeight=1204&originWidth=3274&originalType=binary&ratio=1&size=237476&status=done&style=none&taskId=u6dd427ee-14ee-47e8-8b00-a15d364c7ba&width=1637" alt="image.png"><br>​</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1639140767570-e05eceaa-42a8-4f67-9300-0f2099ae852c.png#clientId=u1c4fa59c-afd3-4&from=paste&height=583&id=u8d009ebc&margin=%5Bobject%20Object%5D&name=image.png&originHeight=1166&originWidth=2248&originalType=binary&ratio=1&size=140509&status=done&style=none&taskId=u868a60a4-934f-4e1e-98d4-a54aea2c4ce&width=1124" alt="image.png"></p>
+<p>按照顺序分析一下这个类的加载时机和加载的时候，里面的 <code>**initBeanFactory()**</code> &amp; <code>**setBeanFactory()**</code> 是什么时候执行的。<br>​</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1639142241742-009d0bb3-cbeb-4416-bfc9-6a2fbb70b996.png#clientId=u1c4fa59c-afd3-4&from=paste&height=759&id=u1ca56da3&margin=%5Bobject%20Object%5D&name=image.png&originHeight=1518&originWidth=2738&originalType=binary&ratio=1&size=224303&status=done&style=none&taskId=u4ce6e06a-1ea6-4326-84ef-fe0200a9420&width=1369" alt="image.png"><br>​</p>
+<hr>
+<p> </p>
+<ol>
+<li>首先执行的是<code>**AbstractAdvisorAutoProxyCreator**</code>的<code>**setBeanFactory()**</code>。</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setBeanFactory</span><span class="params">(BeanFactory beanFactory)</span> </span>&#123;</span><br><span class="line">	<span class="keyword">super</span>.setBeanFactory(beanFactory);</span><br><span class="line">	<span class="keyword">if</span> (!(beanFactory <span class="keyword">instanceof</span> ConfigurableListableBeanFactory)) &#123;</span><br><span class="line">		<span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(</span><br><span class="line">				<span class="string">&quot;AdvisorAutoProxyCreator requires a ConfigurableListableBeanFactory: &quot;</span> + beanFactory);</span><br><span class="line">	&#125;</span><br><span class="line">	initBeanFactory((ConfigurableListableBeanFactory) beanFactory);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>接下来执行的是<code>**AbstractAutoProxyCreator**</code>的<code>**setBeanFactory()**</code>。</li>
+</ol>
+<p> </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setBeanFactory</span><span class="params">(BeanFactory beanFactory)</span> </span>&#123;</span><br><span class="line">	<span class="keyword">this</span>.beanFactory = beanFactory;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>​</p>
+<ol start="3">
+<li>然后执行的是<code>**AnnotationAwareAspectJAutoProxyCreator**</code>的<code>**initBeanFactory()**</code> 。</li>
+</ol>
+<p>​</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">initBeanFactory</span><span class="params">(ConfigurableListableBeanFactory beanFactory)</span> </span>&#123;</span><br><span class="line">	<span class="keyword">super</span>.initBeanFactory(beanFactory);</span><br><span class="line">	<span class="keyword">if</span> (<span class="keyword">this</span>.aspectJAdvisorFactory == <span class="keyword">null</span>) &#123;</span><br><span class="line">		<span class="keyword">this</span>.aspectJAdvisorFactory = <span class="keyword">new</span> ReflectiveAspectJAdvisorFactory(beanFactory);</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">this</span>.aspectJAdvisorsBuilder =</span><br><span class="line">			<span class="keyword">new</span> BeanFactoryAspectJAdvisorsBuilderAdapter(beanFactory, <span class="keyword">this</span>.aspectJAdvisorFactory);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<ol start="4">
+<li>最终执行的是<code>**AbstractAdvisorAutoProxyCreator**</code>的<code>**initBeanFactory()**</code>。</li>
+</ol>
+<p>​</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">initBeanFactory</span><span class="params">(ConfigurableListableBeanFactory beanFactory)</span> </span>&#123;</span><br><span class="line">	<span class="keyword">this</span>.advisorRetrievalHelper = <span class="keyword">new</span> BeanFactoryAdvisorRetrievalHelperAdapter(beanFactory);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>接下来分析<code>**AnnotationAwareAspectJAutoProxyCreator**</code>的执行时机。<br>​</p>
+<h2 id="3-创建代理对象"><a href="#3-创建代理对象" class="headerlink" title="3.创建代理对象"></a>3.创建代理对象</h2><p><img src="https://cdn.nlark.com/yuque/0/2021/jpeg/12610368/1639143173344-da0586bb-69f1-4238-9142-1194856c2201.jpeg#clientId=u1c4fa59c-afd3-4&from=ui&id=u88428415&margin=%5Bobject%20Object%5D&name=AOP%E7%9A%84%E5%8A%A0%E8%BD%BD%E6%97%B6%E6%9C%BA.jpg&originHeight=1081&originWidth=3694&originalType=binary&ratio=1&size=361513&status=done&style=none&taskId=u5686694b-9755-440b-a854-d2d98b599ff" alt="AOP的加载时机.jpg"></p>
+<h2 id="4-获取拦截器"><a href="#4-获取拦截器" class="headerlink" title="4.获取拦截器"></a>4.获取拦截器</h2><p><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1639144077347-e69c210a-3e88-4ecb-ae74-35147b27cb4e.png#clientId=u1c4fa59c-afd3-4&from=paste&height=744&id=uf38591f2&margin=%5Bobject%20Object%5D&name=image.png&originHeight=1488&originWidth=3168&originalType=binary&ratio=1&size=381332&status=done&style=none&taskId=u038dc2aa-14ef-4746-9d08-887bf1f0e83&width=1584" alt="image.png"></p>
+<h2 id="5-链式调用通知方法"><a href="#5-链式调用通知方法" class="headerlink" title="5.链式调用通知方法"></a>5.链式调用通知方法</h2><p><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1639145135270-7aac88b0-3c39-49d6-8fa7-abeba824d196.png#clientId=u1c4fa59c-afd3-4&from=paste&height=774&id=uf4afbe45&margin=%5Bobject%20Object%5D&name=image.png&originHeight=1548&originWidth=3330&originalType=binary&ratio=1&size=519662&status=done&style=none&taskId=ua64df5a7-3e0c-494b-9c00-2ec607cf5ca&width=1665" alt="image.png"></p>
+<h2 id="6-流程总结"><a href="#6-流程总结" class="headerlink" title="6.流程总结"></a>6.流程总结</h2><p><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1639145817319-0081b004-ff69-47c5-8611-f7f041cfd23d.png#clientId=u1c4fa59c-afd3-4&from=paste&height=654&id=u9fa7f442&margin=%5Bobject%20Object%5D&name=image.png&originHeight=1308&originWidth=3320&originalType=binary&ratio=1&size=324462&status=done&style=none&taskId=ua8ce0ad5-7cc8-4e03-a301-6bc734dc11f&width=1660" alt="image.png"></p>
+<blockquote>
+<p>AOP其实就是往容器中导入了一个组件，这个组件是一个后置处理器，他会在对象创建之前尝试返回一个代理对象，如果不能成功返回，会在对象创建之后，init方法执行前后去判断当前对象是否需要被代理，如果需要被代理则根据各种条件去选择代理方式，创建代理对象，同时会去判断哪些切面和方法需要增强代理对象里面的方法，生成一条拦截器链。<br> <br> 在代理对象执行目标方法前后，通过拦截器对目标方法进行拦截，执行增强逻辑。</p>
+</blockquote>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">二十</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://yinhuidong.github.io/2022/01/11/Spring/Spring[%E5%8D%81%E4%B8%80]%E6%B3%A8%E8%A7%A3%E7%89%88Aop%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/">https://yinhuidong.github.io/2022/01/11/Spring/Spring[十一]注解版Aop流程分析/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://yinhuidong.github.io" target="_blank">二十</a> 许可协议。转载请注明来自 <a href="https://yinhuidong.github.io" target="_blank">二十</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Spring/">Spring</a></div><div class="post_share"><div class="social-share" data-image="/images/cover/spring.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js" defer></script></div></div><div class="post-reward"><div class="reward-button button--animated"><i class="fas fa-qrcode"></i> 打赏</div><div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/img/wechat_pay.jpg" target="_blank"><img class="post-qr-code-img" src="/img/wechat_pay.jpg" alt="微信"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="/img/alipay.jpg" target="_blank"><img class="post-qr-code-img" src="/img/alipay.jpg" alt="支付宝"/></a><div class="post-qr-code-desc">支付宝</div></li></ul></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/2022/01/11/Spring/Spring%5B%E6%89%A9%E5%B1%95%5D%E6%A8%A1%E6%8B%9F%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86/"><img class="next-cover" src="/images/cover/spring.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">Spring[扩展]模拟核心原理</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2022/01/11/Spring/Spring%5B%E4%B8%83%5DinitializeBean()/" title="Spring[七]initializeBean()"><img class="cover" src="/images/cover/spring.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-11</div><div class="title">Spring[七]initializeBean()</div></div></a></div><div><a href="/2022/01/11/Spring/Spring%5B%E4%B9%9D%5D%E4%B8%89%E7%BA%A7%E7%BC%93%E5%AD%98&%E5%BE%AA%E7%8E%AF%E4%BE%9D%E8%B5%96/" title="Spring[九]三级缓存&循环依赖"><img class="cover" src="/images/cover/spring.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-11</div><div class="title">Spring[九]三级缓存&循环依赖</div></div></a></div><div><a href="/2022/01/11/Spring/Spring%5B%E4%B8%80%5D%E5%88%9D%E5%A7%8B%E5%8C%96Web%E4%B8%89%E5%A4%A7%E7%BB%84%E4%BB%B6/" title="Spring[一]初始化WEB组件"><img class="cover" src="/images/cover/spring.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-11</div><div class="title">Spring[一]初始化WEB组件</div></div></a></div><div><a href="/2022/01/11/Spring/Spring%5B%E4%B8%89%5D%E8%A7%A3%E6%9E%90%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6/" title="Spring[三]解析配置文件"><img class="cover" src="/images/cover/spring.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-11</div><div class="title">Spring[三]解析配置文件</div></div></a></div><div><a href="/2022/01/11/Spring/Spring%5B%E5%85%AD%5DpopulateBean()/" title="Spring[六]populateBean()"><img class="cover" src="/images/cover/spring.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-11</div><div class="title">Spring[六]populateBean()</div></div></a></div><div><a href="/2022/01/11/Spring/Spring%5B%E5%8D%81%5DAop%E7%9A%84%E4%B8%A4%E7%A7%8D%E5%AE%9E%E7%8E%B0%E6%96%B9%E5%BC%8F/" title="Spring[十]Aop的两种实现方式"><img class="cover" src="/images/cover/spring.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-11</div><div class="title">Spring[十]Aop的两种实现方式</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/head.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">二十</div><div class="author-info__description">欢迎来到二十的博客卷....</div></div><div class="card-info-data"><div class="card-info-data-item is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">33</div></a></div><div class="card-info-data-item is-center"><a href="/tags/"><div class="headline">标签</div><div class="length-num">3</div></a></div><div class="card-info-data-item is-center"><a href="/categories/"><div class="headline">分类</div><div class="length-num">3</div></a></div></div><a class="button--animated" id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/yinhuidong"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/yinhuidong" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="mailto:1972039773@qq.com" target="_blank" title="Email"><i class="fas fa-envelope"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn card-announcement-animation"></i><span>公告</span></div><div class="announcement_content">欢迎来到二十的个人博客，对本站的文章和技术问题有疑问和建议请联系作者：VX：yinhuidong666</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%BC%80%E5%90%AFAOP%E7%9A%84%E5%8A%9F%E8%83%BD"><span class="toc-text">1.开启AOP的功能</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E5%8A%A0%E8%BD%BD%E6%97%B6%E6%9C%BA"><span class="toc-text">2.加载时机</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%88%9B%E5%BB%BA%E4%BB%A3%E7%90%86%E5%AF%B9%E8%B1%A1"><span class="toc-text">3.创建代理对象</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E8%8E%B7%E5%8F%96%E6%8B%A6%E6%88%AA%E5%99%A8"><span class="toc-text">4.获取拦截器</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E9%93%BE%E5%BC%8F%E8%B0%83%E7%94%A8%E9%80%9A%E7%9F%A5%E6%96%B9%E6%B3%95"><span class="toc-text">5.链式调用通知方法</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-%E6%B5%81%E7%A8%8B%E6%80%BB%E7%BB%93"><span class="toc-text">6.流程总结</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2022/01/11/Spring/Spring%5B%E5%8D%81%E4%B8%80%5D%E6%B3%A8%E8%A7%A3%E7%89%88Aop%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/" title="Spring[十一]注解版Aop流程分析"><img src="/images/cover/spring.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Spring[十一]注解版Aop流程分析"/></a><div class="content"><a class="title" href="/2022/01/11/Spring/Spring%5B%E5%8D%81%E4%B8%80%5D%E6%B3%A8%E8%A7%A3%E7%89%88Aop%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/" title="Spring[十一]注解版Aop流程分析">Spring[十一]注解版Aop流程分析</a><time datetime="2022-01-11T06:13:44.508Z" title="发表于 2022-01-11 14:13:44">2022-01-11</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/01/11/Spring/Spring%5B%E6%89%A9%E5%B1%95%5D%E6%A8%A1%E6%8B%9F%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86/" title="Spring[扩展]模拟核心原理"><img src="/images/cover/spring.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Spring[扩展]模拟核心原理"/></a><div class="content"><a class="title" href="/2022/01/11/Spring/Spring%5B%E6%89%A9%E5%B1%95%5D%E6%A8%A1%E6%8B%9F%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86/" title="Spring[扩展]模拟核心原理">Spring[扩展]模拟核心原理</a><time datetime="2022-01-11T06:11:42.407Z" title="发表于 2022-01-11 14:11:42">2022-01-11</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/01/11/Spring/Spring%5B%E6%89%A9%E5%B1%95%5DMVC%E4%BD%BF%E7%94%A8%E7%AF%87/" title="Spring[扩展]MVC使用篇"><img src="/images/cover/spring.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Spring[扩展]MVC使用篇"/></a><div class="content"><a class="title" href="/2022/01/11/Spring/Spring%5B%E6%89%A9%E5%B1%95%5DMVC%E4%BD%BF%E7%94%A8%E7%AF%87/" title="Spring[扩展]MVC使用篇">Spring[扩展]MVC使用篇</a><time datetime="2022-01-11T06:11:34.427Z" title="发表于 2022-01-11 14:11:34">2022-01-11</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/01/11/Spring/Spring%5B%E6%89%A9%E5%B1%95%5D%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8%E7%AF%87/" title="Spring[扩展]基本使用篇"><img src="/images/cover/spring.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Spring[扩展]基本使用篇"/></a><div class="content"><a class="title" href="/2022/01/11/Spring/Spring%5B%E6%89%A9%E5%B1%95%5D%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8%E7%AF%87/" title="Spring[扩展]基本使用篇">Spring[扩展]基本使用篇</a><time datetime="2022-01-11T06:11:20.219Z" title="发表于 2022-01-11 14:11:20">2022-01-11</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/01/11/Spring/Spring%5B%E5%8D%81%E4%BA%94%5D%E4%BA%8B%E5%8A%A1%E5%A2%9E%E5%BC%BA%E5%99%A8%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" title="Spring[十五]事务增强器源码分析"><img src="/images/cover/spring.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Spring[十五]事务增强器源码分析"/></a><div class="content"><a class="title" href="/2022/01/11/Spring/Spring%5B%E5%8D%81%E4%BA%94%5D%E4%BA%8B%E5%8A%A1%E5%A2%9E%E5%BC%BA%E5%99%A8%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" title="Spring[十五]事务增强器源码分析">Spring[十五]事务增强器源码分析</a><time datetime="2022-01-11T06:11:10.808Z" title="发表于 2022-01-11 14:11:10">2022-01-11</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('/images/cover/spring.png')"><div id="footer-wrap"><div class="copyright">&copy;2021 - 2022 By 二十</div><div class="footer_custom_text">骑摩托车去酒吧，该省省，该花花。</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="font-plus" type="button" title="放大字体"><i class="fas fa-plus"></i></button><button id="font-minus" type="button" title="缩小字体"><i class="fas fa-minus"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div id="local-search"><div class="search-dialog"><div class="search-dialog__title" id="local-search-title">本地搜索</div><div id="local-input-panel"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div></div><hr/><div id="local-search-results"></div><span class="search-close-button"><i class="fas fa-times"></i></span></div><div id="search-mask"></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/search/local-search.js"></script><div class="js-pjax"></div><script src="https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js"></script><script src="/js/chocolate.js"></script><script defer="defer" id="fluttering_ribbon" mobile="true" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/canvas-fluttering-ribbon.min.js"></script><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="true" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/canvas-nest.min.js"></script><script id="click-show-text" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/click-show-text.min.js" data-mobile="false" data-text="二十,二十二十,二十二十二十,二十二十二十二十,二十二十二十二十二十,二十二十二十二十二十二十,二十二十二十二十二十二十二十,二十二十二十二十二十二十二十二十,二十二十二十二十二十二十二十二十二十,二十二十二十二十二十二十二十二十二十二十" data-fontsize="15px" data-random="true" async="async"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

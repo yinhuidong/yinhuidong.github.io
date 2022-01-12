@@ -1,0 +1,367 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MongoDB集群篇 | 二十</title><meta name="keywords" content="MongoDB"><meta name="author" content="二十"><meta name="copyright" content="二十"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="MongoDB集群篇">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MongoDB集群篇">
+<meta property="og:url" content="https://yinhuidong.github.io/2022/01/12/MongoDB/Mongo%E9%9B%86%E7%BE%A4/index.html">
+<meta property="og:site_name" content="二十">
+<meta property="og:description" content="MongoDB集群篇">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yinhuidong.github.io/images/cover/MongoDB.png">
+<meta property="article:published_time" content="2022-01-12T00:19:55.250Z">
+<meta property="article:modified_time" content="2022-01-12T00:19:55.250Z">
+<meta property="article:author" content="二十">
+<meta property="article:tag" content="MongoDB">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://yinhuidong.github.io/images/cover/MongoDB.png"><link rel="shortcut icon" href="/img/favicon.jpg"><link rel="canonical" href="https://yinhuidong.github.io/2022/01/12/MongoDB/Mongo%E9%9B%86%E7%BE%A4/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":800},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js',
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css'
+    },
+    fancybox: {
+      js: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isanchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'MongoDB集群篇',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2022-01-12 08:19:55'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const fontSizeVal = saveToLocal.get('global-font-size')
+    if (fontSizeVal !== undefined) {
+      document.documentElement.style.setProperty('--global-font-size', fontSizeVal + 'px')
+    }
+    
+    const detectApple = () => {
+      if (GLOBAL_CONFIG_SITE.isHome && /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/custom.css"><meta name="referrer" content="no-referrer" /><meta name="generator" content="Hexo 5.4.0"></head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/head.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data"><div class="data-item is-center"><div class="data-item-link"><a href="/archives/"><div class="headline">文章</div><div class="length-num">118</div></a></div></div><div class="data-item is-center"><div class="data-item-link"><a href="/tags/"><div class="headline">标签</div><div class="length-num">14</div></a></div></div><div class="data-item is-center"><div class="data-item-link"><a href="/categories/"><div class="headline">分类</div><div class="length-num">13</div></a></div></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/%E5%85%B3%E4%BA%8E%E6%88%91/"><i class="fa-fw fas fa-user"></i><span> 关于我</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/images/cover/MongoDB.png')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">二十</a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/%E5%85%B3%E4%BA%8E%E6%88%91/"><i class="fa-fw fas fa-user"></i><span> 关于我</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">MongoDB集群篇</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-01-12T00:19:55.250Z" title="发表于 2022-01-12 08:19:55">2022-01-12</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2022-01-12T00:19:55.250Z" title="更新于 2022-01-12 08:19:55">2022-01-12</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/MongoDB/">MongoDB</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">3.1k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>9分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="MongoDB集群篇"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="一，MongoDB集群之复制集"><a href="#一，MongoDB集群之复制集" class="headerlink" title="一，MongoDB集群之复制集"></a>一，MongoDB集群之复制集</h1><h2 id="1-简介"><a href="#1-简介" class="headerlink" title="1.简介"></a>1.简介</h2><p>一组Mongodb复制集,就是一组mongod进程,这些进程维护同一个数据集合。复制集提供了数据冗余和高等级的可靠性,这是生产部署的基础。<br><strong>目的</strong></p>
+<ul>
+<li>保证数据在生产部署时的冗余和可靠性,通过在不同的机器上保存副本来保证数据不会因为单点损坏而丢失。能够随时应对数据丢失、机器损坏带来的风险。</li>
+<li>还能提高读取能力,用户的读取服务器和写入服务器在不同的地方,而且,由不同的服务器为不同的用户提供服务,提高整个系统的负载。</li>
+</ul>
+<p>​</p>
+<p><strong>机制</strong>​</p>
+<ul>
+<li>一组复制集就是一组mongod实例掌管同一个数据集,实例可以在不同的机器上面。实例中包含一个主导(Primary),接受客户端所有的写入操作,其他都是副本实例(Secondary),从主服务器上获得数据并保持</li>
+</ul>
+<p>同步。</p>
+<ul>
+<li>主服务器很重要,包含了所有的改变操作(写)的日志。但是副本服务器集群包含有所有的主服务器数据,因此当主服务器挂掉了,就会在副本服务器上重新选取一个成为主服务器。</li>
+<li>每个复制集还有一个仲裁者(Arbiter),仲裁者不存储数据,只是负责通过心跳包来确认集群中集合的数量,并在主服务器选举的时候作为仲裁决定结果。<h2 id="2-架构"><a href="#2-架构" class="headerlink" title="2.架构"></a>2.架构</h2></li>
+</ul>
+<p>基本的架构由3台服务器组成,一个三成员的复制集,由三个有数据,或者两个有数据,一个作为仲裁者。</p>
+<h3 id="1）三个存储数据的复制集"><a href="#1）三个存储数据的复制集" class="headerlink" title="1）三个存储数据的复制集"></a>1）三个存储数据的复制集</h3><p>一个主,两个从库组成,主库宕机时,这两个从库都可以被选为主库。<br><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1620998689756-a54928ae-a4fd-4756-9e87-edfe4e2384f1.png#clientId=uc5b164e5-9e30-4&from=ui&id=ua78012b1&margin=%5Bobject%20Object%5D&name=1.png&originHeight=439&originWidth=1127&originalType=binary&size=106840&status=done&style=none&taskId=u2a2eb85e-cc68-4e1d-ab07-e5bb2579b66" alt="1.png"><br>当主库宕机后,两个从库都会进行竞选,其中一个变为主库,当原主库恢复后,作为从库加入当前的复制集群即可。<br><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1620998784123-d1202ce5-9c99-4601-a428-ef467ae79c51.png#clientId=uc5b164e5-9e30-4&from=ui&id=ua4eff79c&margin=%5Bobject%20Object%5D&name=%E6%B7%B1%E5%BA%A6%E6%88%AA%E5%9B%BE_%E9%80%89%E6%8B%A9%E5%8C%BA%E5%9F%9F_20210514212533.png&originHeight=819&originWidth=1106&originalType=binary&size=244102&status=done&style=none&taskId=uce3468ca-4e46-406a-84c1-c1f760a364c" alt="深度截图_选择区域_20210514212533.png"></p>
+<h3 id="2）存在arbiter节点的复制集"><a href="#2）存在arbiter节点的复制集" class="headerlink" title="2）存在arbiter节点的复制集"></a>2）存在arbiter节点的复制集</h3><p>一个主库,一个从库,可以在选举中成为主库,一个arbiter节点,在选举中,只进行投票,不能成为主库。<br><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1620998886846-6f36c450-6eb5-4ff7-9e86-c14d9f05b7ee.png#clientId=uc5b164e5-9e30-4&from=ui&id=u790ebd6b&margin=%5Bobject%20Object%5D&name=2.png&originHeight=417&originWidth=1103&originalType=binary&size=84442&status=done&style=none&taskId=u66e7e1ba-6480-401d-ab66-d5fb2951169" alt="2.png"></p>
+<ul>
+<li>说明:由于arbiter节点没有复制数据,因此这个架构中仅提供一个完整的数据副本。arbiter节点只需要更少的资源,代价是更有限的冗余和容错。</li>
+</ul>
+<p>当主库宕机时,将会选择从库成为主,主库修复后,将其加入到现有的复制集群中即可。<br><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1621000229876-c2ca1e22-28be-47e8-af4e-1ce9a4e5b6e8.png#clientId=uc5b164e5-9e30-4&from=ui&id=u61d57507&margin=%5Bobject%20Object%5D&name=3.png&originHeight=812&originWidth=1095&originalType=binary&size=214202&status=done&style=none&taskId=ua9b74f53-6566-4a3e-b139-0644c0d703c" alt="3.png"></p>
+<h2 id="3-Primary选举"><a href="#3-Primary选举" class="headerlink" title="3.Primary选举"></a>3.Primary选举</h2><p>复制集通过replSetInitiate命令(或mongo shell的rs.initiate())进行初始化,初始化后各个成员间开始发送心跳消息,并发起Priamry选举操作,获得『大多数』成员投票支持的节点,会成为Primary,其余节点成为Secondary。<br><strong>『大多数』的定义</strong><br>假设复制集内投票成员数量为N,则大多数为 N/2 + 1,当复制集内存活成员数量不足大多数时,整个复制集将无法选举出Primary,复制集将无法提供写服务,处于只读状态。</p>
+<h2 id="4-成员说明"><a href="#4-成员说明" class="headerlink" title="4.成员说明"></a>4.成员说明</h2><table>
+<thead>
+<tr>
+<th>成员</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Primary</td>
+<td>Priamry的作用是接收用户的写入操作,将自己的数据同步给其他的Secondary。</td>
+</tr>
+<tr>
+<td>Secondary</td>
+<td>正常情况下,复制集的Seconary会参与Primary选举(自身也可能会被选为Primary),并从Primary同步最新写入的数据,以保证与Primary存储相同的数据。Secondary可以提供读服</td>
+</tr>
+<tr>
+<td>务,增加Secondary节点可以提供复制集的读服务能力,同时提升复制集的可用性。另外,</td>
+<td></td>
+</tr>
+<tr>
+<td>Mongodb支持对复制集的Secondary节点进行灵活的配置,以适应多种场景的需求。</td>
+<td></td>
+</tr>
+<tr>
+<td>​</td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Arbiter</td>
+<td>Arbiter节点只参与投票,不能被选为Primary,并且不从Primary同步数据。比如你部署了一个2个节点的复制集,1个Primary,1个Secondary,任一节点宕机,复制集将不能提供服务了</td>
+</tr>
+<tr>
+<td>(无法选出Primary),这时可以给复制集添加一个Arbiter节点,即使有节点宕机,仍能选出</td>
+<td></td>
+</tr>
+<tr>
+<td>Primary。Arbiter本身不存储数据,是非常轻量级的服务,当复制集成员为偶数时,最好加入</td>
+<td></td>
+</tr>
+<tr>
+<td>一个Arbiter节点,以提升复制集可用性。</td>
+<td></td>
+</tr>
+<tr>
+<td>​</td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Priority0</td>
+<td>Priority0节点的选举优先级为0,不会被选举为Primary。比如你跨机房A、B部署了一个复制集,并且想指定Primary必须在A机房,这时可以将B机房的复制集成员Priority设置为0,这样</td>
+</tr>
+<tr>
+<td>Primary就一定会是A机房的成员。(注意:如果这样部署,最好将『大多数』节点部署在A机</td>
+<td></td>
+</tr>
+<tr>
+<td>房,否则网络分区时可能无法选出Primary)</td>
+<td></td>
+</tr>
+<tr>
+<td>​</td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Vote0</td>
+<td>Mongodb 3.0里,复制集成员最多50个,参与Primary选举投票的成员最多7个,其他成员(Vote0)的vote属性必须设置为0,即不参与投票。</td>
+</tr>
+<tr>
+<td>​</td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Hidden</td>
+<td>Hidden节点不能被选为主(Priority为0),并且对Driver不可见。因Hidden节点不会接受Driver的请求,可使用Hidden节点做一些数据备份、离线计算的任务,不会影响复制集的服</td>
+</tr>
+<tr>
+<td>务。</td>
+<td></td>
+</tr>
+<tr>
+<td>​</td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Delayed</td>
+<td>Delayed节点必须是Hidden节点,并且其数据落后与Primary一段时间(可配置,比如1个小时)。因Delayed节点的数据比Primary落后一段时间,当错误或者无效的数据写入Primary</td>
+</tr>
+<tr>
+<td>时,可通过Delayed节点的数据来恢复到之前的时间点。</td>
+<td></td>
+</tr>
+<tr>
+<td>​</td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+</tr>
+</tbody></table>
+<h2 id="5-故障转移"><a href="#5-故障转移" class="headerlink" title="5.故障转移"></a>5.故障转移</h2><p><code>从节点宕机</code>：集群依然可以正常使用,可以读写操作。<br><code>主节点宕机</code>：选举出新的主节点继续提供服务。<br><code>停止集群中的两个节点</code>：当前集群无法选举出Priamry,无法提供写操作,只能进行读操作。</p>
+<h2 id="6-增加arbiter节点"><a href="#6-增加arbiter节点" class="headerlink" title="6.增加arbiter节点"></a>6.增加arbiter节点</h2><p>当集群中的节点数为偶数时,如一主一从情况下,任意一节点宕机都无法选举出Priamry,无法提供写操作,加入arbiter节点后即可解决该问题。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">docker create --name mongo04</span><br><span class="line"> -p 27020:27017 -v mongo-data-04:/data/db mongo:4.0.3 -- replSet &quot;rs0&quot; --bind_ip_all</span><br><span class="line"></span><br><span class="line">docker start mongo04</span><br><span class="line"></span><br><span class="line"> #在主节点执行</span><br><span class="line">rs0:PRIMARY&gt; rs.addArb(&quot;172.16.55.185:27020&quot;)</span><br><span class="line">&#123;</span><br><span class="line">	&quot;ok&quot; : 1,</span><br><span class="line">	&quot;operationTime&quot; : Timestamp(1551627454, 1),</span><br><span class="line">  &quot;$clusterTime&quot; :&#123;</span><br><span class="line">  	&quot;clusterTime&quot; : Timestamp(1551627454, 1),</span><br><span class="line">		&quot;signature&quot; :&#123;</span><br><span class="line">    	&quot;hash&quot; : BinData(0,&quot;AAAAAAAAAAAAAAAAAAAAAAAAAAA=&quot;),</span><br><span class="line">			&quot;keyId&quot; : NumberLong(0)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">#查询集群状态</span><br><span class="line">rs.status()</span><br></pre></td></tr></table></figure>
+<p>通过测试,添加arbiter节点后,如果集群节点数不满足N/2+1时,arbiter节点可作为“凑数”节点,可以选出主节点,继续提供服务。</p>
+<h1 id="二-MongoDB集群之分片集群"><a href="#二-MongoDB集群之分片集群" class="headerlink" title="二,MongoDB集群之分片集群"></a>二,MongoDB集群之分片集群</h1><p>分片(sharding)是MongoDB用来将大型集合分割到不同服务器(或者说一个集群)上所采用的方法。尽管分片起源于关系型数据库分区,但MongoDB分片完全又是另一回事。<br>和MySQL分区方案相比,MongoDB的最大区别在于它几乎能自动完成所有事情,只要告诉MongoDB要分配数据,<br>它就能自动维护数据在不同服务器之间的均衡。</p>
+<h2 id="1-简介-1"><a href="#1-简介-1" class="headerlink" title="1.简介"></a>1.简介</h2><p>高数据量和吞吐量的数据库应用会对单机的性能造成较大压力,大的查询量会将单机的CPU耗尽,大的数据量对单机的存储压力较大,最终会耗尽系统的内存而将压力转移到磁盘IO上。<br>​</p>
+<p>为了解决这些问题,有两个基本的方法: 垂直扩展和水平扩展。</p>
+<ul>
+<li>垂直扩展:增加更多的CPU和存储资源来扩展容量。</li>
+<li>水平扩展:将数据集分布在多个服务器上。水平扩展即分片。</li>
+</ul>
+<p>分片为应对高吞吐量与大数据量提供了方法。使用分片减少了每个分片需要处理的请求数,因此,通过水平扩展,集<br>群可以提高自己的存储容量和吞吐量。举例来说,当插入一条数据时,应用只需要访问存储这条数据的分片.<br>​</p>
+<p>使用分片减少了每个分片存储的数据。例如,如果数据库1tb的数据集,并有4个分片,然后每个分片可能仅持有256<br>GB的数据。如果有40个分片,那么每个切分可能只有25GB的数据。<br><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1621225838206-51e50d01-0d56-4d99-ac5a-6b9db0eac556.png#clientId=ue1a8dc37-aa90-4&from=ui&id=u3b5a389e&margin=%5Bobject%20Object%5D&name=1.png&originHeight=673&originWidth=1123&originalType=binary&size=178965&status=done&style=none&taskId=u1042e589-2cc4-42d8-b944-174aa540582" alt="1.png"></p>
+<h2 id="2-优势"><a href="#2-优势" class="headerlink" title="2.优势"></a>2.优势</h2><ul>
+<li>对集群进行抽象,让集群“不可见”</li>
+</ul>
+<p>MongoDB自带了一个叫做mongos的专有路由进程。mongos就是掌握统一路口的路由器,其会将客户端发来的请求准确无误的路由到集群中的一个或者一组服务器上,同时会把接收到的响应拼装起来发回到客户端。</p>
+<ul>
+<li>保证集群总是可读写</li>
+</ul>
+<p>MongoDB通过多种途径来确保集群的可用性和可靠性。<br>将MongoDB的分片和复制功能结合使用,在确保数据分片到多台服务器的同时,也确保了每分数据都有相应的备份,这样就可以确保有服务器换掉时,其他的从库可以立即接替坏掉的部分继续工作。</p>
+<ul>
+<li>使集群易于扩展</li>
+</ul>
+<p>当系统需要更多的空间和资源的时候,MongoDB使我们可以按需方便的扩充系统容量。</p>
+<h2 id="3-架构"><a href="#3-架构" class="headerlink" title="3.架构"></a>3.架构</h2><table>
+<thead>
+<tr>
+<th>组件</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>ConfigServer</td>
+<td>存储集群所有节点、分片数据路由信息。默认需要配置3个Config Server节点。</td>
+</tr>
+<tr>
+<td>Mongos</td>
+<td>提供对外应用访问,所有操作均通过mongos执行。一般有多个mongos节点。数据迁移和数据自动平衡。</td>
+</tr>
+<tr>
+<td>Mongod</td>
+<td>存储应用数据记录。一般有多个Mongod节点,达到数据分片目的。</td>
+</tr>
+</tbody></table>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1621239825954-e5551b71-23a9-4d29-9c59-8dc7c4e03b5e.png#clientId=ue1a8dc37-aa90-4&from=ui&id=uea3cb3d8&margin=%5Bobject%20Object%5D&name=2.png&originHeight=796&originWidth=1098&originalType=binary&size=203126&status=done&style=none&taskId=u214869cd-4887-47a2-a35d-1c6faaa8117" alt="2.png"><br>Mongos本身并不持久化数据,Sharded cluster所有的元数据都会存储到Config Server,而用户的数据会分散存储到各个shard。Mongos启动后,会从配置服务器加载元数据,开始提供服务,将用户的请求正确路由到对应的分片。<br>当数据写入时,MongoDB Cluster根据分片键设计写入数据。当外部语句发起数据查询时,MongoDB根据数据分布自动路由至指定节点返回数据。</p>
+<h2 id="4-集群中的数据分布"><a href="#4-集群中的数据分布" class="headerlink" title="4.集群中的数据分布"></a>4.集群中的数据分布</h2><p>在一个shard server内部,MongoDB会把数据分为chunks,每个chunk代表这个shard server内部一部分数据。chunk的产生,会有以下两个用途:</p>
+<ul>
+<li><strong>Splitting</strong>:当一个chunk的大小超过配置中的chunk size时,MongoDB的后台进程会把这个chunk切分成更小的chunk,从而避免chunk过大的情况</li>
+<li><strong>Balancing</strong>:在MongoDB中,balancer是一个后台进程,负责chunk的迁移,从而均衡各个shard server的负载,系统初始1个chunk,chunk size默认值64M,生产库上选择适合业务的chunk size是最好的。mongoDB会自动拆分和迁移chunks。</li>
+</ul>
+<p>​</p>
+<h3 id="1）chunk分裂及迁移"><a href="#1）chunk分裂及迁移" class="headerlink" title="1）chunk分裂及迁移"></a>1）chunk分裂及迁移</h3><p>随着数据的增长,其中的数据大小超过了配置的chunk长会让chunk分裂得越来越多。<br><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1621240106354-7056361a-ea2e-45ac-bff8-a260daf4072b.png#clientId=ue1a8dc37-aa90-4&from=ui&id=u857f8bce&margin=%5Bobject%20Object%5D&name=3.png&originHeight=488&originWidth=664&originalType=binary&size=78207&status=done&style=none&taskId=u663de4f5-af49-46d2-ba09-9e81b1dd1aa" alt="3.png"><br>这时候,各个shard 上的chunk数量就会不平衡。mongos中的一个组件balancer 就会执行自动平衡。把chunk从chunk数量最多的shard节点挪动到数量最少的节点。<br><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1621240145405-879cbd4b-9cb1-4343-a3e7-e7ca5337eae1.png#clientId=ue1a8dc37-aa90-4&from=ui&id=u02435a5a&margin=%5Bobject%20Object%5D&name=4.png&originHeight=402&originWidth=1100&originalType=binary&size=88834&status=done&style=none&taskId=ubfe31e84-53c7-4cdb-954c-d040404eeb2" alt="4.png"></p>
+<h3 id="2）chunksize"><a href="#2）chunksize" class="headerlink" title="2）chunksize"></a>2）chunksize</h3><p>chunk的分裂和迁移非常消耗IO资源;chunk分裂的时机:在插入和更新,读数据不会分裂。</p>
+<ul>
+<li>小的chunksize:数据均衡是迁移速度快,数据分布更均匀。数据分裂频繁,路由节点消耗更多资源。</li>
+<li>大的chunksize:数据分裂少。数据块移动集中消耗IO资源。</li>
+</ul>
+<p>适合业务的chunksize是最好的。<br><strong>chunkSize 对分裂及迁移的影响</strong></p>
+<ul>
+<li>MongoDB 默认的 chunkSize 为64MB,如无特殊需求,建议保持默认值;chunkSize 会直接影响到 chunk 分裂、迁移的行为。</li>
+<li>chunkSize 越小,chunk 分裂及迁移越多,数据分布越均衡;反之,chunkSize 越大,chunk 分裂及迁移会更少,但可能导致数据分布不均。</li>
+<li>chunk 自动分裂只会在数据写入时触发,所以如果将 chunkSize 改小,系统需要一定的时间来将 chunk 分裂到指定的大小。</li>
+<li>chunk 只会分裂,不会合并,所以即使将 chunkSize 改大,现有的 chunk 数量不会减少,但 chunk 大小会随着写入不断增长,直到达到目标大小。</li>
+</ul>
+<p>​</p>
+<p>​</p>
+<p>​</p>
+<p>​</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">二十</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://yinhuidong.github.io/2022/01/12/MongoDB/Mongo%E9%9B%86%E7%BE%A4/">https://yinhuidong.github.io/2022/01/12/MongoDB/Mongo集群/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://yinhuidong.github.io" target="_blank">二十</a> 许可协议。转载请注明来自 <a href="https://yinhuidong.github.io" target="_blank">二十</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/MongoDB/">MongoDB</a></div><div class="post_share"><div class="social-share" data-image="/images/cover/MongoDB.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js" defer></script></div></div><div class="post-reward"><div class="reward-button button--animated"><i class="fas fa-qrcode"></i> 打赏</div><div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/img/wechat_pay.jpg" target="_blank"><img class="post-qr-code-img" src="/img/wechat_pay.jpg" alt="微信"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="/img/alipay.jpg" target="_blank"><img class="post-qr-code-img" src="/img/alipay.jpg" alt="支付宝"/></a><div class="post-qr-code-desc">支付宝</div></li></ul></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2022/01/12/%E4%BA%91%E8%AE%A1%E7%AE%97/Jenkins/"><img class="prev-cover" src="/images/cover/%E4%BA%91%E8%AE%A1%E7%AE%97.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">Jenkins</div></div></a></div><div class="next-post pull-right"><a href="/2022/01/12/%E4%BA%91%E8%AE%A1%E7%AE%97/DevOps/"><img class="next-cover" src="/images/cover/%E4%BA%91%E8%AE%A1%E7%AE%97.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">DevOps</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2022/01/12/MongoDB/Mongo%E5%9F%BA%E6%93%8D/" title="Mongo使用篇"><img class="cover" src="/images/cover/MongoDB.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-12</div><div class="title">Mongo使用篇</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/head.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">二十</div><div class="author-info__description">欢迎来到二十的博客....</div></div><div class="card-info-data"><div class="card-info-data-item is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">118</div></a></div><div class="card-info-data-item is-center"><a href="/tags/"><div class="headline">标签</div><div class="length-num">14</div></a></div><div class="card-info-data-item is-center"><a href="/categories/"><div class="headline">分类</div><div class="length-num">13</div></a></div></div><a class="button--animated" id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/yinhuidong"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/yinhuidong" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="mailto:1972039773@qq.com" target="_blank" title="Email"><i class="fas fa-envelope"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn card-announcement-animation"></i><span>公告</span></div><div class="announcement_content">欢迎来到二十的个人博客，联系作者：VX：yinhuidong666</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%80%EF%BC%8CMongoDB%E9%9B%86%E7%BE%A4%E4%B9%8B%E5%A4%8D%E5%88%B6%E9%9B%86"><span class="toc-text">一，MongoDB集群之复制集</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E7%AE%80%E4%BB%8B"><span class="toc-text">1.简介</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E6%9E%B6%E6%9E%84"><span class="toc-text">2.架构</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1%EF%BC%89%E4%B8%89%E4%B8%AA%E5%AD%98%E5%82%A8%E6%95%B0%E6%8D%AE%E7%9A%84%E5%A4%8D%E5%88%B6%E9%9B%86"><span class="toc-text">1）三个存储数据的复制集</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2%EF%BC%89%E5%AD%98%E5%9C%A8arbiter%E8%8A%82%E7%82%B9%E7%9A%84%E5%A4%8D%E5%88%B6%E9%9B%86"><span class="toc-text">2）存在arbiter节点的复制集</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-Primary%E9%80%89%E4%B8%BE"><span class="toc-text">3.Primary选举</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E6%88%90%E5%91%98%E8%AF%B4%E6%98%8E"><span class="toc-text">4.成员说明</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E6%95%85%E9%9A%9C%E8%BD%AC%E7%A7%BB"><span class="toc-text">5.故障转移</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-%E5%A2%9E%E5%8A%A0arbiter%E8%8A%82%E7%82%B9"><span class="toc-text">6.增加arbiter节点</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%8C-MongoDB%E9%9B%86%E7%BE%A4%E4%B9%8B%E5%88%86%E7%89%87%E9%9B%86%E7%BE%A4"><span class="toc-text">二,MongoDB集群之分片集群</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E7%AE%80%E4%BB%8B-1"><span class="toc-text">1.简介</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E4%BC%98%E5%8A%BF"><span class="toc-text">2.优势</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E6%9E%B6%E6%9E%84"><span class="toc-text">3.架构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E9%9B%86%E7%BE%A4%E4%B8%AD%E7%9A%84%E6%95%B0%E6%8D%AE%E5%88%86%E5%B8%83"><span class="toc-text">4.集群中的数据分布</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1%EF%BC%89chunk%E5%88%86%E8%A3%82%E5%8F%8A%E8%BF%81%E7%A7%BB"><span class="toc-text">1）chunk分裂及迁移</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2%EF%BC%89chunksize"><span class="toc-text">2）chunksize</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2022/01/12/%E9%A2%86%E5%9F%9F%E9%A9%B1%E5%8A%A8%E8%AE%BE%E8%AE%A1/DDD%E4%B9%8B%E9%A2%86%E5%9F%9F%E5%B1%82%E8%AE%BE%E8%AE%A1%E8%A7%84%E8%8C%83/" title="DDD之领域层设计规范"><img src="/images/cover/DDD.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="DDD之领域层设计规范"/></a><div class="content"><a class="title" href="/2022/01/12/%E9%A2%86%E5%9F%9F%E9%A9%B1%E5%8A%A8%E8%AE%BE%E8%AE%A1/DDD%E4%B9%8B%E9%A2%86%E5%9F%9F%E5%B1%82%E8%AE%BE%E8%AE%A1%E8%A7%84%E8%8C%83/" title="DDD之领域层设计规范">DDD之领域层设计规范</a><time datetime="2022-01-12T00:19:55.254Z" title="发表于 2022-01-12 08:19:55">2022-01-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/01/12/%E9%A2%86%E5%9F%9F%E9%A9%B1%E5%8A%A8%E8%AE%BE%E8%AE%A1/%E6%B5%85%E8%B0%88%E9%A2%86%E5%9F%9F%E6%A8%A1%E5%9E%8B%E8%AE%BE%E8%AE%A1/" title="浅谈领域模型设计"><img src="/images/cover/DDD.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="浅谈领域模型设计"/></a><div class="content"><a class="title" href="/2022/01/12/%E9%A2%86%E5%9F%9F%E9%A9%B1%E5%8A%A8%E8%AE%BE%E8%AE%A1/%E6%B5%85%E8%B0%88%E9%A2%86%E5%9F%9F%E6%A8%A1%E5%9E%8B%E8%AE%BE%E8%AE%A1/" title="浅谈领域模型设计">浅谈领域模型设计</a><time datetime="2022-01-12T00:19:55.254Z" title="发表于 2022-01-12 08:19:55">2022-01-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/01/12/%E9%A2%86%E5%9F%9F%E9%A9%B1%E5%8A%A8%E8%AE%BE%E8%AE%A1/DDD%E4%B9%8BDP/" title="DDD之DP"><img src="/images/cover/DDD.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="DDD之DP"/></a><div class="content"><a class="title" href="/2022/01/12/%E9%A2%86%E5%9F%9F%E9%A9%B1%E5%8A%A8%E8%AE%BE%E8%AE%A1/DDD%E4%B9%8BDP/" title="DDD之DP">DDD之DP</a><time datetime="2022-01-12T00:19:55.253Z" title="发表于 2022-01-12 08:19:55">2022-01-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/01/12/%E9%A2%86%E5%9F%9F%E9%A9%B1%E5%8A%A8%E8%AE%BE%E8%AE%A1/DDD%E4%B9%8BRepository%E6%A8%A1%E5%BC%8F/" title="DDD之Repository模式"><img src="/images/cover/DDD.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="DDD之Repository模式"/></a><div class="content"><a class="title" href="/2022/01/12/%E9%A2%86%E5%9F%9F%E9%A9%B1%E5%8A%A8%E8%AE%BE%E8%AE%A1/DDD%E4%B9%8BRepository%E6%A8%A1%E5%BC%8F/" title="DDD之Repository模式">DDD之Repository模式</a><time datetime="2022-01-12T00:19:55.253Z" title="发表于 2022-01-12 08:19:55">2022-01-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/01/12/%E9%A2%86%E5%9F%9F%E9%A9%B1%E5%8A%A8%E8%AE%BE%E8%AE%A1/DDD%E4%B9%8B%E5%BA%94%E7%94%A8%E6%9E%B6%E6%9E%84/" title="DDD之应用架构"><img src="/images/cover/DDD.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="DDD之应用架构"/></a><div class="content"><a class="title" href="/2022/01/12/%E9%A2%86%E5%9F%9F%E9%A9%B1%E5%8A%A8%E8%AE%BE%E8%AE%A1/DDD%E4%B9%8B%E5%BA%94%E7%94%A8%E6%9E%B6%E6%9E%84/" title="DDD之应用架构">DDD之应用架构</a><time datetime="2022-01-12T00:19:55.253Z" title="发表于 2022-01-12 08:19:55">2022-01-12</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('/images/cover/MongoDB.png')"><div id="footer-wrap"><div class="copyright">&copy;2021 - 2022 By 二十</div><div class="footer_custom_text">树是生活，埋的是我。看花就好，别看我落魄。</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="font-plus" type="button" title="放大字体"><i class="fas fa-plus"></i></button><button id="font-minus" type="button" title="缩小字体"><i class="fas fa-minus"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div id="local-search"><div class="search-dialog"><div class="search-dialog__title" id="local-search-title">本地搜索</div><div id="local-input-panel"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div></div><hr/><div id="local-search-results"></div><span class="search-close-button"><i class="fas fa-times"></i></span></div><div id="search-mask"></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/search/local-search.js"></script><div class="js-pjax"></div><script src="https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js"></script><script src="/js/chocolate.js"></script><script defer="defer" id="fluttering_ribbon" mobile="true" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/canvas-fluttering-ribbon.min.js"></script><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="true" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/canvas-nest.min.js"></script><script id="click-show-text" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/click-show-text.min.js" data-mobile="false" data-text="二十,二十二十,二十二十二十,二十二十二十二十,二十二十二十二十二十" data-fontsize="15px" data-random="true" async="async"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

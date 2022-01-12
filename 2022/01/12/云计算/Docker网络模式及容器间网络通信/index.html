@@ -1,0 +1,331 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Docker网络模式及容器间网络通信 | 二十</title><meta name="keywords" content="云计算"><meta name="author" content="二十"><meta name="copyright" content="二十"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Docker网络模式及容器间网络通信">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Docker网络模式及容器间网络通信">
+<meta property="og:url" content="https://yinhuidong.github.io/2022/01/12/%E4%BA%91%E8%AE%A1%E7%AE%97/Docker%E7%BD%91%E7%BB%9C%E6%A8%A1%E5%BC%8F%E5%8F%8A%E5%AE%B9%E5%99%A8%E9%97%B4%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1/index.html">
+<meta property="og:site_name" content="二十">
+<meta property="og:description" content="Docker网络模式及容器间网络通信">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yinhuidong.github.io/images/cover/%E4%BA%91%E8%AE%A1%E7%AE%97.png">
+<meta property="article:published_time" content="2022-01-12T00:19:55.251Z">
+<meta property="article:modified_time" content="2022-01-12T00:19:55.251Z">
+<meta property="article:author" content="二十">
+<meta property="article:tag" content="云计算">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://yinhuidong.github.io/images/cover/%E4%BA%91%E8%AE%A1%E7%AE%97.png"><link rel="shortcut icon" href="/img/favicon.jpg"><link rel="canonical" href="https://yinhuidong.github.io/2022/01/12/%E4%BA%91%E8%AE%A1%E7%AE%97/Docker%E7%BD%91%E7%BB%9C%E6%A8%A1%E5%BC%8F%E5%8F%8A%E5%AE%B9%E5%99%A8%E9%97%B4%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":800},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js',
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css'
+    },
+    fancybox: {
+      js: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isanchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Docker网络模式及容器间网络通信',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2022-01-12 08:19:55'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const fontSizeVal = saveToLocal.get('global-font-size')
+    if (fontSizeVal !== undefined) {
+      document.documentElement.style.setProperty('--global-font-size', fontSizeVal + 'px')
+    }
+    
+    const detectApple = () => {
+      if (GLOBAL_CONFIG_SITE.isHome && /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/custom.css"><meta name="referrer" content="no-referrer" /><meta name="generator" content="Hexo 5.4.0"></head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/head.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data"><div class="data-item is-center"><div class="data-item-link"><a href="/archives/"><div class="headline">文章</div><div class="length-num">118</div></a></div></div><div class="data-item is-center"><div class="data-item-link"><a href="/tags/"><div class="headline">标签</div><div class="length-num">14</div></a></div></div><div class="data-item is-center"><div class="data-item-link"><a href="/categories/"><div class="headline">分类</div><div class="length-num">13</div></a></div></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/%E5%85%B3%E4%BA%8E%E6%88%91/"><i class="fa-fw fas fa-user"></i><span> 关于我</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/images/cover/%E4%BA%91%E8%AE%A1%E7%AE%97.png')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">二十</a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/%E5%85%B3%E4%BA%8E%E6%88%91/"><i class="fa-fw fas fa-user"></i><span> 关于我</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">Docker网络模式及容器间网络通信</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-01-12T00:19:55.251Z" title="发表于 2022-01-12 08:19:55">2022-01-12</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2022-01-12T00:19:55.251Z" title="更新于 2022-01-12 08:19:55">2022-01-12</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E4%BA%91%E8%AE%A1%E7%AE%97/">云计算</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">3.3k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>11分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="Docker网络模式及容器间网络通信"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h2 id="1-默认网络"><a href="#1-默认网络" class="headerlink" title="1.默认网络"></a>1.默认网络</h2><p>安装 Docker 以后，会默认创建三种网络，可以通过 <code>docker network ls</code> 查看。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[root@localhost ~]# docker network ls</span><br><span class="line">NETWORK ID          NAME                DRIVER              SCOPE</span><br><span class="line">688d1970f72e        bridge              bridge              local</span><br><span class="line">885da101da7d        host                host                local</span><br><span class="line">f4f1b3cf1b7f        none                null                local</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+<p>在学习 Docker 网络之前，有必要先来了解一下这几种网络模式都是什么意思。</p>
+<table>
+<thead>
+<tr>
+<th>网络模式</th>
+<th>简介</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>bridge</td>
+<td>为每一个容器分配、设置 IP 等，并将容器连接到一个 <code>docker0</code></td>
+</tr>
+<tr>
+<td>虚拟网桥，默认为该模式。</td>
+<td></td>
+</tr>
+<tr>
+<td>host</td>
+<td>容器将不会虚拟出自己的网卡，配置自己的 IP 等，而是使用宿主机的 IP 和端口。</td>
+</tr>
+<tr>
+<td>none</td>
+<td>容器有独立的 Network namespace，但并没有对其进行任何网络设置，如分配 veth pair 和网桥连接，IP 等。</td>
+</tr>
+<tr>
+<td>container</td>
+<td>新创建的容器不会创建自己的网卡和配置自己的 IP，而是和一个指定的容器共享 IP、端口范围等。</td>
+</tr>
+</tbody></table>
+<h3 id="1-bridge网络协议"><a href="#1-bridge网络协议" class="headerlink" title="1)bridge网络协议"></a>1)bridge网络协议</h3><p>在该模式中，Docker 守护进程创建了一个虚拟以太网桥 <code>docker0</code>，新建的容器会自动桥接到这个接口，附加在其上的任何网卡之间都能自动转发数据包。</p>
+<p>默认情况下，守护进程会创建一对对等虚拟设备接口 <code>veth pair</code>，将其中一个接口设置为容器的 <code>eth0</code> 接口（容器的网卡），另一个接口放置在宿主机的命名空间中，以类似 <code>vethxxx</code> 这样的名字命名，从而将宿主机上的所有容器都连接到这个内部网络上。</p>
+<p>比如运行一个基于 <code>busybox</code> 镜像构建的容器 <code>bbox01</code>，查看 <code>ip addr</code>：</p>
+<blockquote>
+<p>busybox 被称为嵌入式 Linux 的瑞士军刀，整合了很多小的 unix 下的通用功能到一个小的可执行文件中。</p>
+</blockquote>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1627223688086-2f4336c7-31ce-433c-8c1f-f300501aed6f.png#align=left&display=inline&height=297&id=ISR90&margin=%5Bobject%20Object%5D&originHeight=297&originWidth=872&size=0&status=done&style=none&width=872"></p>
+<p>然后宿主机通过 <code>ip addr</code> 查看信息如下：</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1627223688758-4ad8021f-e27c-4784-bef5-db5858216ddb.png#align=left&display=inline&height=587&id=B2DBM&margin=%5Bobject%20Object%5D&originHeight=587&originWidth=1288&size=0&status=done&style=none&width=1288"></p>
+<p>通过以上的比较可以发现，证实了之前所说的：守护进程会创建一对对等虚拟设备接口 <code>veth pair</code>，将其中一个接口设置为容器的 <code>eth0</code> 接口（容器的网卡），另一个接口放置在宿主机的命名空间中，以类似 <code>vethxxx</code> 这样的名字命名。</p>
+<p>同时，守护进程还会从网桥 <code>docker0</code> 的私有地址空间中分配一个 IP 地址和子网给该容器，并设置 docker0 的 IP 地址为容器的默认网关。也可以安装 <code>yum install -y bridge-utils</code> 以后，通过 <code>brctl show</code> 命令查看网桥信息。</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1627223688067-5a0f7218-2f96-470b-ad84-925a7a5a8078.png#align=left&display=inline&height=677&id=uZQnZ&margin=%5Bobject%20Object%5D&originHeight=677&originWidth=1289&size=0&status=done&style=none&width=1289"></p>
+<p>对于每个容器的 IP 地址和 Gateway 信息，可以通过 <code>docker inspect 容器名称|ID</code> 进行查看，在 <code>NetworkSettings</code> 节点中可以看到详细信息。</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1627223688066-f9f94817-b641-42dc-9e99-c3de945445ae.png#align=left&display=inline&height=784&id=jaSIz&margin=%5Bobject%20Object%5D&originHeight=784&originWidth=866&size=0&status=done&style=none&width=866"></p>
+<p>可以通过 <code>docker network inspect bridge</code> 查看所有 <code>bridge</code> 网络模式下的容器，在 <code>Containers</code> 节点中可以看到容器名称。</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1627223688089-e5d0d74f-436c-4c82-bb70-96a673f2cd14.png#align=left&display=inline&height=826&id=J7LYn&margin=%5Bobject%20Object%5D&originHeight=826&originWidth=807&size=0&status=done&style=none&width=807"></p>
+<blockquote>
+<p>关于 <code>bridge</code> 网络模式的使用，只需要在创建容器时通过参数 <code>--net bridge</code> 或者 <code>--network bridge</code> 指定即可，当然这也是创建容器默认使用的网络模式，也就是说这个参数是可以省略的。</p>
+</blockquote>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1627223693403-51de2154-688f-432e-991a-16c017bda237.png#align=left&display=inline&height=505&id=ZKDr7&margin=%5Bobject%20Object%5D&originHeight=505&originWidth=1013&size=0&status=done&style=none&width=1013"></p>
+<p>Bridge 桥接模式的实现步骤主要如下：</p>
+<ul>
+<li>Docker Daemon 利用 veth pair 技术，在宿主机上创建一对对等虚拟网络接口设备，假设为 veth0 和 veth1。而<br>veth pair 技术的特性可以保证无论哪一个 veth 接收到网络报文，都会将报文传输给另一方。</li>
+<li>Docker Daemon 将 veth0 附加到 Docker Daemon 创建的 docker0 网桥上。保证宿主机的网络报文可以发往 veth0；</li>
+<li>Docker Daemon 将 veth1 添加到 Docker Container 所属的 namespace 下，并被改名为  eth0。如此一来，宿主机的网络报文若发往 veth0，则立即会被 Container 的 eth0 接收，实现宿主机到 Docker  Container 网络的联通性；同时，也保证 Docker Container 单独使用 eth0，实现容器网络环境的隔离性。</li>
+</ul>
+<h3 id="2-Host网络"><a href="#2-Host网络" class="headerlink" title="2)Host网络"></a>2)Host网络</h3><ul>
+<li>host 网络模式需要在创建容器时通过参数 <code>--net host</code> 或者 <code>--network host</code> 指定；</li>
+<li>采用 host 网络模式的 Docker Container，可以直接使用宿主机的 IP 地址与外界进行通信，若宿主机的 eth0 是一个公有 IP，那么容器也拥有这个公有 IP。同时容器内服务的端口也可以使用宿主机的端口，无需额外进行 NAT 转换；</li>
+<li>host 网络模式可以让容器共享宿主机网络栈，这样的好处是外部主机与容器直接通信，但是容器的网络缺少隔离性。</li>
+</ul>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1627223687928-8bbdd853-8bda-413a-a6a3-cc959d4137c2.png#align=left&display=inline&height=466&id=WISDf&margin=%5Bobject%20Object%5D&originHeight=466&originWidth=965&size=0&status=done&style=none&width=965"></p>
+<p>比如基于 <code>host</code> 网络模式创建了一个基于 <code>busybox</code> 镜像构建的容器 <code>bbox02</code>，查看 <code>ip addr</code>：</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1627223688057-5a2d0249-1be1-4aaa-84d7-694c7320b6cf.png#align=left&display=inline&height=537&id=VkxF2&margin=%5Bobject%20Object%5D&originHeight=537&originWidth=904&size=0&status=done&style=none&width=904"></p>
+<p>然后宿主机通过 <code>ip addr</code> 查看信息如下：</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1627223690540-be1c7e37-6ab3-4b29-8999-47090d35b5fa.png#align=left&display=inline&height=488&id=MtTWD&margin=%5Bobject%20Object%5D&originHeight=488&originWidth=1155&size=0&status=done&style=none&width=1155"></p>
+<p>返回信息一模一样，可以通过 <code>docker network inspect host</code> 查看所有 <code>host</code> 网络模式下的容器，在 <code>Containers</code> 节点中可以看到容器名称。</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1627223688134-5c813525-86d3-4c1e-9164-6c756d227816.png#align=left&display=inline&height=812&id=yxZe7&margin=%5Bobject%20Object%5D&originHeight=812&originWidth=1002&size=0&status=done&style=none&width=1002"></p>
+<h3 id="3-none网络模式"><a href="#3-none网络模式" class="headerlink" title="3)none网络模式"></a>3)none网络模式</h3><ul>
+<li>none 网络模式是指禁用网络功能，只有 lo 接口 local 的简写，代表 127.0.0.1，即 localhost 本地环回接口。在创建容器时通过参数 <code>--net none</code> 或者 <code>--network none</code> 指定；</li>
+<li>none 网络模式即不为 Docker Container 创建任何的网络环境，容器内部就只能使用 loopback  网络设备，不会再有其他的网络资源。可以说 none 模式为 Docke Container  做了极少的网络设定，但是俗话说得好“少即是多”，在没有网络配置的情况下，作为 Docker  开发者，才能在这基础做其他无限多可能的网络定制开发。这也恰巧体现了 Docker 设计理念的开放。</li>
+</ul>
+<p>比如基于 <code>none</code> 网络模式创建了一个基于 <code>busybox</code> 镜像构建的容器 <code>bbox03</code>，查看 <code>ip addr</code>：</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1627223688023-37986c81-7c27-47df-bf71-8e36d39bf9b8.png#align=left&display=inline&height=201&id=MSCYn&margin=%5Bobject%20Object%5D&originHeight=201&originWidth=770&size=0&status=done&style=none&width=770"></p>
+<p>可以通过 <code>docker network inspect none</code> 查看所有 <code>none</code> 网络模式下的容器，在 <code>Containers</code> 节点中可以看到容器名称。</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1627223688089-bdddaacf-de9a-4429-9692-ae6c2c6cf707.png#align=left&display=inline&height=811&id=MXgf0&margin=%5Bobject%20Object%5D&originHeight=811&originWidth=1001&size=0&status=done&style=none&width=1001"></p>
+<h3 id="4-container网络模式"><a href="#4-container网络模式" class="headerlink" title="4)container网络模式"></a>4)container网络模式</h3><ul>
+<li>Container 网络模式是 Docker 中一种较为特别的网络的模式。在创建容器时通过参数 <code>--net container:已运行的容器名称|ID</code> 或者 <code>--network container:已运行的容器名称|ID</code> 指定；</li>
+<li>处于这个模式下的 Docker 容器会共享一个网络栈，这样两个容器之间可以使用 localhost 高效快速通信。</li>
+</ul>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1627223690063-5b7b37a5-b8da-4c6c-a083-a42825f3cf3c.png#align=left&display=inline&height=473&id=QfDbK&margin=%5Bobject%20Object%5D&originHeight=473&originWidth=891&size=0&status=done&style=none&width=891"></p>
+<p><strong>Container 网络模式即新创建的容器不会创建自己的网卡，配置自己的 IP，而是和一个指定的容器共享 IP、端口范围等</strong>。同样两个容器除了网络方面相同之外，其他的如文件系统、进程列表等还是隔离的。</p>
+<p>比如基于容器 <code>bbox01</code> 创建了 <code>container</code> 网络模式的容器 <code>bbox04</code>，查看 <code>ip addr</code>：</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1627223688630-01414ad7-4df1-4176-a9ae-4a2009573cf1.png#align=left&display=inline&height=294&id=mc6YT&margin=%5Bobject%20Object%5D&originHeight=294&originWidth=903&size=0&status=done&style=none&width=903"></p>
+<p>容器 <code>bbox01</code> 的 <code>ip addr</code> 信息如下：</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1627223688033-fe70b985-3097-4657-95f1-ffa740aab9d1.png#align=left&display=inline&height=247&id=MgoAv&margin=%5Bobject%20Object%5D&originHeight=247&originWidth=869&size=0&status=done&style=none&width=869"></p>
+<p>宿主机的 <code>ip addr</code> 信息如下：</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1627223687982-66f97790-1c9f-4475-8e2f-1b4084708692.png#align=left&display=inline&height=579&id=j6EzV&margin=%5Bobject%20Object%5D&originHeight=579&originWidth=1289&size=0&status=done&style=none&width=1289"></p>
+<p>通过以上测试可以发现，Docker 守护进程只创建了一对对等虚拟设备接口用于连接 bbox01 容器和宿主机，而 bbox04 容器则直接使用了 bbox01 容器的网卡信息。</p>
+<p>这个时候如果将 bbox01 容器停止，会发现 bbox04 容器就只剩下 lo 接口了。</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1627223688048-8700bb02-4b04-4df0-91d9-dfc7c114d598.png#align=left&display=inline&height=173&id=jA7oR&margin=%5Bobject%20Object%5D&originHeight=173&originWidth=727&size=0&status=done&style=none&width=727"></p>
+<p>然后 bbox01 容器重启以后，bbox04 容器也重启一下，就又可以获取到网卡信息了。</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1627223688150-20e69a5e-9817-4db4-94c3-cb48ec67c5c3.png#align=left&display=inline&height=292&id=p20L1&margin=%5Bobject%20Object%5D&originHeight=292&originWidth=893&size=0&status=done&style=none&width=893"></p>
+<h2 id="2-自定义网络"><a href="#2-自定义网络" class="headerlink" title="2.自定义网络"></a>2.自定义网络</h2><p>虽然 Docker 提供的默认网络使用比较简单，但是为了保证各容器中应用的安全性，在实际开发中更推荐使用自定义的网络进行容器管理，以及启用容器名称到 IP 地址的自动 DNS 解析。</p>
+<blockquote>
+<p>从 Docker 1.10 版本开始，docker daemon 实现了一个内嵌的 DNS server，使容器可以直接通过容器名称通信。方法很简单，只要在创建容器时使用 <code>--name</code> 为容器命名即可。<br>但是使用 Docker DNS 有个限制：<strong>只能在 user-defined 网络中使用</strong>。也就是说，默认的 bridge 网络是无法使用 DNS 的，所以就需要自定义网络。</p>
+</blockquote>
+<h3 id="1-创建网络"><a href="#1-创建网络" class="headerlink" title="1)创建网络"></a>1)创建网络</h3><p>通过 <code>docker network create</code> 命令可以创建自定义网络模式，命令提示如下：</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1627223688149-ababf1e9-c8e1-4afb-8d4f-ea0c171574f9.png#align=left&display=inline&height=412&id=MwmuK&margin=%5Bobject%20Object%5D&originHeight=412&originWidth=802&size=0&status=done&style=none&width=802"></p>
+<p>进一步查看 <code>docker network create</code> 命令使用详情，发现可以通过 <code>--driver</code> 指定网络模式且默认是 <code>bridge</code> 网络模式，提示如下：</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1627223688629-cd32ceb2-6ae8-4403-ba51-7bbbcfc48125.png#align=left&display=inline&height=583&id=VGY9L&margin=%5Bobject%20Object%5D&originHeight=583&originWidth=1134&size=0&status=done&style=none&width=1134"></p>
+<p>创建一个基于 <code>bridge</code> 网络模式的自定义网络模式 <code>custom_network</code>，完整命令如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker network create custom_network</span><br></pre></td></tr></table></figure>
+
+
+<p>通过 <code>docker network ls</code> 查看网络模式：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">[root@localhost ~]# docker network ls</span><br><span class="line">NETWORK ID          NAME                DRIVER              SCOPE</span><br><span class="line">b3634bbd8943        bridge              bridge              local</span><br><span class="line">062082493d3a        custom_network      bridge              local</span><br><span class="line">885da101da7d        host                host                local</span><br><span class="line">f4f1b3cf1b7f        none                null                local</span><br></pre></td></tr></table></figure>
+
+
+<p>通过自定义网络模式 <code>custom_network</code> 创建容器：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker run -di --name bbox05 --net custom_network busybox</span><br></pre></td></tr></table></figure>
+
+
+<p>通过 <code>docker inspect 容器名称|ID</code> 查看容器的网络信息，在 <code>NetworkSettings</code> 节点中可以看到详细信息。</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1627223688039-ee7dd511-28da-41f6-bcb9-066300c2307b.png#align=left&display=inline&height=830&id=bC3td&margin=%5Bobject%20Object%5D&originHeight=830&originWidth=868&size=0&status=done&style=none&width=868"></p>
+<h3 id="2-连接网络"><a href="#2-连接网络" class="headerlink" title="2)连接网络"></a>2)连接网络</h3><p>通过 <code>docker network connect 网络名称 容器名称</code> 为容器连接新的网络模式。</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1627223689019-8d3c7551-26d2-4451-a435-97b55ea5037a.png#align=left&display=inline&height=344&id=IP7kH&margin=%5Bobject%20Object%5D&originHeight=344&originWidth=853&size=0&status=done&style=none&width=853"></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker network connect bridge bbox05</span><br></pre></td></tr></table></figure>
+
+
+<p>通过 <code>docker inspect 容器名称|ID</code> 再次查看容器的网络信息，多增加了默认的 <code>bridge</code>。</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1627223688092-d07eda8d-ea1b-4768-b5a7-3c6055a68200.png#align=left&display=inline&height=810&id=fnWtd&margin=%5Bobject%20Object%5D&originHeight=810&originWidth=922&size=0&status=done&style=none&width=922"></p>
+<h3 id="3-断开网络"><a href="#3-断开网络" class="headerlink" title="3)断开网络"></a>3)断开网络</h3><p>通过 <code>docker network disconnect 网络名称 容器名称</code> 命令断开网络。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker network disconnect custom_network bbox05</span><br></pre></td></tr></table></figure>
+
+
+<p>通过 <code>docker inspect 容器名称|ID</code> 再次查看容器的网络信息，发现只剩下默认的 <code>bridge</code>。</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1627223688063-9d20ef15-e961-48ba-bb15-cf0952ce4d90.png#align=left&display=inline&height=421&id=HnTvC&margin=%5Bobject%20Object%5D&originHeight=421&originWidth=919&size=0&status=done&style=none&width=919"></p>
+<h3 id="4-移除网络"><a href="#4-移除网络" class="headerlink" title="4)移除网络"></a>4)移除网络</h3><p>可以通过 <code>docker network rm 网络名称</code> 命令移除自定义网络模式，网络模式移除成功会返回网络模式名称。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker network rm custom_network</span><br></pre></td></tr></table></figure>
+
+
+<blockquote>
+<p>注意：如果通过某个自定义网络模式创建了容器，则该网络模式无法删除。</p>
+</blockquote>
+<h2 id="3-容器间网络通信"><a href="#3-容器间网络通信" class="headerlink" title="3.容器间网络通信"></a>3.容器间网络通信</h2><p>接下来通过所学的知识实现容器间的网络通信。首先明确一点，容器之间要互相通信，必须要有属于同一个网络的网卡。</p>
+<p>先创建两个基于默认的 <code>bridge</code> 网络模式的容器。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">docker run -di --name default_bbox01 busybox</span><br><span class="line">docker run -di --name default_bbox02 busybox</span><br></pre></td></tr></table></figure>
+
+
+<p>通过 <code>docker network inspect bridge</code> 查看两容器的具体 IP 信息。</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1627223688030-4efbf7c3-3580-41b4-bf78-6daddd60912f.png#align=left&display=inline&height=414&id=HtsQG&margin=%5Bobject%20Object%5D&originHeight=414&originWidth=1013&size=0&status=done&style=none&width=1013"></p>
+<p>然后测试两容器间是否可以进行网络通信。</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1627223688074-bf5619af-3ca3-42bb-bb3a-8ddffb2a439e.png#align=left&display=inline&height=291&id=J1Gwb&margin=%5Bobject%20Object%5D&originHeight=291&originWidth=760&size=0&status=done&style=none&width=760"></p>
+<p>经过测试，从结果得知两个属于同一个网络的容器是可以进行网络通信的，但是 IP 地址可能是不固定的，有被更改的情况发生，那容器内所有通信的 IP 地址也需要进行更改，能否使用容器名称进行网络通信？继续测试。</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1627223688039-9b2a4557-ca01-4594-872b-bc2e0f8aa180.png#align=left&display=inline&height=73&id=jUjYX&margin=%5Bobject%20Object%5D&originHeight=73&originWidth=801&size=0&status=done&style=none&width=801"></p>
+<p>经过测试，从结果得知使用容器进行网络通信是不行的，那怎么实现这个功能呢？</p>
+<p>从 Docker 1.10 版本开始，docker daemon 实现了一个内嵌的 DNS server，使容器可以直接通过容器名称通信。方法很简单，只要在创建容器时使用 <code>--name</code> 为容器命名即可。</p>
+<p>但是使用 Docker DNS 有个限制：<strong>只能在 user-defined 网络中使用</strong>。也就是说，默认的 bridge 网络是无法使用 DNS 的，所以就需要自定义网络。</p>
+<p>先基于 <code>bridge</code> 网络模式创建自定义网络 <code>custom_network</code>，然后创建两个基于自定义网络模式的容器。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">docker run -di --name custom_bbox01 --net custom_network busybox</span><br><span class="line">docker run -di --name custom_bbox02 --net custom_network busybox</span><br></pre></td></tr></table></figure>
+
+
+<p>通过 <code>docker network inspect custom_network</code> 查看两容器的具体 IP 信息。</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1627223688084-0fcf7631-8fc2-4916-83f2-92f7bd7117ed.png#align=left&display=inline&height=409&id=Qb432&margin=%5Bobject%20Object%5D&originHeight=409&originWidth=1010&size=0&status=done&style=none&width=1010"></p>
+<p>然后测试两容器间是否可以进行网络通信，分别使用具体 IP 和容器名称进行网络通信。</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1627223688049-f536617a-5272-4335-a843-c548e70a3694.png#align=left&display=inline&height=558&id=nBO9S&margin=%5Bobject%20Object%5D&originHeight=558&originWidth=783&size=0&status=done&style=none&width=783"></p>
+<p>经过测试，从结果得知两个属于同一个自定义网络的容器是可以进行网络通信的，并且可以使用容器名称进行网络通信。</p>
+<p>那如果此时希望 <code>bridge</code> 网络下的容器可以和 <code>custom_network</code> 网络下的容器进行网络又该如何操作？其实答案也非常简单：让 <code>bridge</code> 网络下的容器连接至新的 <code>custom_network</code> 网络即可。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker network connect custom_network default_bbox01</span><br></pre></td></tr></table></figure>
+
+
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1627223688284-f5e59564-92c0-44ac-96c8-d80b0e99b980.png#align=left&display=inline&height=459&id=AjQhW&margin=%5Bobject%20Object%5D&originHeight=459&originWidth=826&size=0&status=done&style=none&width=826"></p>
+<h2 id="4-关于docker重启后ip变化的痛点"><a href="#4-关于docker重启后ip变化的痛点" class="headerlink" title="4.关于docker重启后ip变化的痛点"></a>4.关于docker重启后ip变化的痛点</h2><p><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1627398301848-b0237fed-e40f-4750-a028-24f7c8369d4d.png#align=left&display=inline&height=299&margin=%5Bobject%20Object%5D&name=image.png&originHeight=597&originWidth=786&size=72474&status=done&style=none&width=393" alt="image.png"><br>如上图这个依赖关系。在搭建集群的过程中遇到了一个痛点，比如nacos依赖mysql做持久化配置，seata直接依赖于mysql和nacos两个docker容器，一旦重启，ip变化，导致三个容器之间无法像之前一样通信。</p>
+<p>解决方案：</p>
+<p><strong>自定义网络</strong><br>**</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"># <span class="comment">--subnet 指定的是网段，随意指定，别占用宿主机就可，否则连不上外网（坑已经踩了，环境已经白搭过了）</span></span><br><span class="line">docker network <span class="keyword">create</span> <span class="comment">--subnet=192.18.0.1/16 ershi-network</span></span><br><span class="line"># 按照依赖关系，先安装MySQL ，指定上ip和连接的网络  ，宿主机访问直接通过localhost ，其他该自定义网络下的容器访问直接通过容器名（<span class="comment">--name ershi-mysql）即可</span></span><br><span class="line">docker run <span class="operator">-</span>p <span class="number">3316</span>:<span class="number">3306</span> <span class="comment">--name ershi-mysql -e MYSQL_ROOT_PASSWORD=root -d --net ershi-network --ip 192.18.0.2 mysql:5.7</span></span><br><span class="line"># 接下来安装nacos 并利用mysql 做持久化配置</span><br><span class="line">docker run <span class="operator">-</span>d <span class="operator">-</span>e MODE<span class="operator">=</span>standalone <span class="operator">-</span>e SPRING_DATASOURCE_PLATFORM<span class="operator">=</span>mysql <span class="operator">-</span>e MYSQL_SERVICE_HOST<span class="operator">=</span>ershi<span class="operator">-</span>mysql <span class="operator">-</span>e MYSQL_SERVICE_PORT<span class="operator">=</span><span class="number">3306</span> <span class="operator">-</span>e MYSQL_SERVICE_USER<span class="operator">=</span>root <span class="operator">-</span>e MYSQL_SERVICE_PASSWORD<span class="operator">=</span>root <span class="operator">-</span>e MYSQL_SERVICE_DB_NAME<span class="operator">=</span>nacos_test <span class="operator">-</span>p <span class="number">8848</span>:<span class="number">8848</span> <span class="comment">--restart=always --name nacos --net ershi-network --ip 192.18.0.3 nacos/nacos-server</span></span><br><span class="line"># 最后安装seata</span><br><span class="line">docker run <span class="operator">-</span>d <span class="comment">--name seata-server  -p 8091:8091 --net ershi-network --ip 192.18.0.4 seataio/seata-server:1.2.0</span></span><br><span class="line">#安装完之后进入容器</span><br><span class="line">docker <span class="keyword">exec</span> <span class="operator">-</span>it 容器ID sh</span><br><span class="line">cd resources </span><br><span class="line">vi file.conf </span><br><span class="line">选择 db的方式，然后配置url ： jdbc:mysql:<span class="operator">/</span><span class="operator">/</span>ershi<span class="operator">-</span>mysql:<span class="number">3306</span><span class="operator">/</span>seata</span><br><span class="line">:wq<span class="operator">!</span></span><br><span class="line">vi registry.conf</span><br><span class="line">选择nacos的方式</span><br><span class="line">然后nacos的address 改成 nacos (对应前面两个容器的名字)</span><br><span class="line">:wq<span class="operator">!</span></span><br><span class="line">ctrl <span class="operator">+</span> p <span class="operator">+</span>q</span><br><span class="line">docker restart 容器ID</span><br><span class="line">docker logs <span class="operator">-</span>f 容器ID</span><br><span class="line">#看日志没得问题</span><br><span class="line">访问localhost:<span class="number">8848</span><span class="operator">/</span>nacos</span><br><span class="line"># 服务列表里面 seata已经成功注册上了</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">二十</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://yinhuidong.github.io/2022/01/12/%E4%BA%91%E8%AE%A1%E7%AE%97/Docker%E7%BD%91%E7%BB%9C%E6%A8%A1%E5%BC%8F%E5%8F%8A%E5%AE%B9%E5%99%A8%E9%97%B4%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1/">https://yinhuidong.github.io/2022/01/12/云计算/Docker网络模式及容器间网络通信/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://yinhuidong.github.io" target="_blank">二十</a> 许可协议。转载请注明来自 <a href="https://yinhuidong.github.io" target="_blank">二十</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E4%BA%91%E8%AE%A1%E7%AE%97/">云计算</a></div><div class="post_share"><div class="social-share" data-image="/images/cover/%E4%BA%91%E8%AE%A1%E7%AE%97.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js" defer></script></div></div><div class="post-reward"><div class="reward-button button--animated"><i class="fas fa-qrcode"></i> 打赏</div><div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/img/wechat_pay.jpg" target="_blank"><img class="post-qr-code-img" src="/img/wechat_pay.jpg" alt="微信"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="/img/alipay.jpg" target="_blank"><img class="post-qr-code-img" src="/img/alipay.jpg" alt="支付宝"/></a><div class="post-qr-code-desc">支付宝</div></li></ul></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2022/01/12/%E4%BA%91%E8%AE%A1%E7%AE%97/Docker%E5%AE%9E%E6%88%98/"><img class="prev-cover" src="/images/cover/%E4%BA%91%E8%AE%A1%E7%AE%97.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">Docker实战</div></div></a></div><div class="next-post pull-right"><a href="/2022/01/12/%E4%BA%91%E8%AE%A1%E7%AE%97/Docker%E6%A6%82%E5%BF%B5%E4%B8%8E%E5%91%BD%E4%BB%A4/"><img class="next-cover" src="/images/cover/%E4%BA%91%E8%AE%A1%E7%AE%97.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">Docker概念与命令</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2022/01/12/%E4%BA%91%E8%AE%A1%E7%AE%97/DevOps/" title="DevOps"><img class="cover" src="/images/cover/%E4%BA%91%E8%AE%A1%E7%AE%97.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-12</div><div class="title">DevOps</div></div></a></div><div><a href="/2022/01/12/%E4%BA%91%E8%AE%A1%E7%AE%97/Docker%E5%AD%98%E5%82%A8%E5%8E%9F%E7%90%86/" title="Docker存储原理"><img class="cover" src="/images/cover/%E4%BA%91%E8%AE%A1%E7%AE%97.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-12</div><div class="title">Docker存储原理</div></div></a></div><div><a href="/2022/01/12/%E4%BA%91%E8%AE%A1%E7%AE%97/Docker%E5%AE%9E%E6%88%98/" title="Docker实战"><img class="cover" src="/images/cover/%E4%BA%91%E8%AE%A1%E7%AE%97.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-12</div><div class="title">Docker实战</div></div></a></div><div><a href="/2022/01/12/%E4%BA%91%E8%AE%A1%E7%AE%97/Docker%E6%A6%82%E5%BF%B5%E4%B8%8E%E5%91%BD%E4%BB%A4/" title="Docker概念与命令"><img class="cover" src="/images/cover/%E4%BA%91%E8%AE%A1%E7%AE%97.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-12</div><div class="title">Docker概念与命令</div></div></a></div><div><a href="/2022/01/12/%E4%BA%91%E8%AE%A1%E7%AE%97/Jenkins/" title="Jenkins"><img class="cover" src="/images/cover/%E4%BA%91%E8%AE%A1%E7%AE%97.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-12</div><div class="title">Jenkins</div></div></a></div><div><a href="/2022/01/12/%E4%BA%91%E8%AE%A1%E7%AE%97/Kubernetes%E5%9F%BA%E7%A1%80%E5%85%A5%E9%97%A8/" title="Kubernetes基础入门"><img class="cover" src="/images/cover/%E4%BA%91%E8%AE%A1%E7%AE%97.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-12</div><div class="title">Kubernetes基础入门</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/head.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">二十</div><div class="author-info__description">欢迎来到二十的博客....</div></div><div class="card-info-data"><div class="card-info-data-item is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">118</div></a></div><div class="card-info-data-item is-center"><a href="/tags/"><div class="headline">标签</div><div class="length-num">14</div></a></div><div class="card-info-data-item is-center"><a href="/categories/"><div class="headline">分类</div><div class="length-num">13</div></a></div></div><a class="button--animated" id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/yinhuidong"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/yinhuidong" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="mailto:1972039773@qq.com" target="_blank" title="Email"><i class="fas fa-envelope"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn card-announcement-animation"></i><span>公告</span></div><div class="announcement_content">欢迎来到二十的个人博客，联系作者：VX：yinhuidong666</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E9%BB%98%E8%AE%A4%E7%BD%91%E7%BB%9C"><span class="toc-text">1.默认网络</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-bridge%E7%BD%91%E7%BB%9C%E5%8D%8F%E8%AE%AE"><span class="toc-text">1)bridge网络协议</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-Host%E7%BD%91%E7%BB%9C"><span class="toc-text">2)Host网络</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-none%E7%BD%91%E7%BB%9C%E6%A8%A1%E5%BC%8F"><span class="toc-text">3)none网络模式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-container%E7%BD%91%E7%BB%9C%E6%A8%A1%E5%BC%8F"><span class="toc-text">4)container网络模式</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E8%87%AA%E5%AE%9A%E4%B9%89%E7%BD%91%E7%BB%9C"><span class="toc-text">2.自定义网络</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E5%88%9B%E5%BB%BA%E7%BD%91%E7%BB%9C"><span class="toc-text">1)创建网络</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E8%BF%9E%E6%8E%A5%E7%BD%91%E7%BB%9C"><span class="toc-text">2)连接网络</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E6%96%AD%E5%BC%80%E7%BD%91%E7%BB%9C"><span class="toc-text">3)断开网络</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-%E7%A7%BB%E9%99%A4%E7%BD%91%E7%BB%9C"><span class="toc-text">4)移除网络</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%AE%B9%E5%99%A8%E9%97%B4%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1"><span class="toc-text">3.容器间网络通信</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E5%85%B3%E4%BA%8Edocker%E9%87%8D%E5%90%AF%E5%90%8Eip%E5%8F%98%E5%8C%96%E7%9A%84%E7%97%9B%E7%82%B9"><span class="toc-text">4.关于docker重启后ip变化的痛点</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2022/01/12/%E9%A2%86%E5%9F%9F%E9%A9%B1%E5%8A%A8%E8%AE%BE%E8%AE%A1/DDD%E4%B9%8B%E9%A2%86%E5%9F%9F%E5%B1%82%E8%AE%BE%E8%AE%A1%E8%A7%84%E8%8C%83/" title="DDD之领域层设计规范"><img src="/images/cover/DDD.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="DDD之领域层设计规范"/></a><div class="content"><a class="title" href="/2022/01/12/%E9%A2%86%E5%9F%9F%E9%A9%B1%E5%8A%A8%E8%AE%BE%E8%AE%A1/DDD%E4%B9%8B%E9%A2%86%E5%9F%9F%E5%B1%82%E8%AE%BE%E8%AE%A1%E8%A7%84%E8%8C%83/" title="DDD之领域层设计规范">DDD之领域层设计规范</a><time datetime="2022-01-12T00:19:55.254Z" title="发表于 2022-01-12 08:19:55">2022-01-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/01/12/%E9%A2%86%E5%9F%9F%E9%A9%B1%E5%8A%A8%E8%AE%BE%E8%AE%A1/%E6%B5%85%E8%B0%88%E9%A2%86%E5%9F%9F%E6%A8%A1%E5%9E%8B%E8%AE%BE%E8%AE%A1/" title="浅谈领域模型设计"><img src="/images/cover/DDD.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="浅谈领域模型设计"/></a><div class="content"><a class="title" href="/2022/01/12/%E9%A2%86%E5%9F%9F%E9%A9%B1%E5%8A%A8%E8%AE%BE%E8%AE%A1/%E6%B5%85%E8%B0%88%E9%A2%86%E5%9F%9F%E6%A8%A1%E5%9E%8B%E8%AE%BE%E8%AE%A1/" title="浅谈领域模型设计">浅谈领域模型设计</a><time datetime="2022-01-12T00:19:55.254Z" title="发表于 2022-01-12 08:19:55">2022-01-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/01/12/%E9%A2%86%E5%9F%9F%E9%A9%B1%E5%8A%A8%E8%AE%BE%E8%AE%A1/DDD%E4%B9%8BDP/" title="DDD之DP"><img src="/images/cover/DDD.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="DDD之DP"/></a><div class="content"><a class="title" href="/2022/01/12/%E9%A2%86%E5%9F%9F%E9%A9%B1%E5%8A%A8%E8%AE%BE%E8%AE%A1/DDD%E4%B9%8BDP/" title="DDD之DP">DDD之DP</a><time datetime="2022-01-12T00:19:55.253Z" title="发表于 2022-01-12 08:19:55">2022-01-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/01/12/%E9%A2%86%E5%9F%9F%E9%A9%B1%E5%8A%A8%E8%AE%BE%E8%AE%A1/DDD%E4%B9%8BRepository%E6%A8%A1%E5%BC%8F/" title="DDD之Repository模式"><img src="/images/cover/DDD.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="DDD之Repository模式"/></a><div class="content"><a class="title" href="/2022/01/12/%E9%A2%86%E5%9F%9F%E9%A9%B1%E5%8A%A8%E8%AE%BE%E8%AE%A1/DDD%E4%B9%8BRepository%E6%A8%A1%E5%BC%8F/" title="DDD之Repository模式">DDD之Repository模式</a><time datetime="2022-01-12T00:19:55.253Z" title="发表于 2022-01-12 08:19:55">2022-01-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/01/12/%E9%A2%86%E5%9F%9F%E9%A9%B1%E5%8A%A8%E8%AE%BE%E8%AE%A1/DDD%E4%B9%8B%E5%BA%94%E7%94%A8%E6%9E%B6%E6%9E%84/" title="DDD之应用架构"><img src="/images/cover/DDD.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="DDD之应用架构"/></a><div class="content"><a class="title" href="/2022/01/12/%E9%A2%86%E5%9F%9F%E9%A9%B1%E5%8A%A8%E8%AE%BE%E8%AE%A1/DDD%E4%B9%8B%E5%BA%94%E7%94%A8%E6%9E%B6%E6%9E%84/" title="DDD之应用架构">DDD之应用架构</a><time datetime="2022-01-12T00:19:55.253Z" title="发表于 2022-01-12 08:19:55">2022-01-12</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('/images/cover/%E4%BA%91%E8%AE%A1%E7%AE%97.png')"><div id="footer-wrap"><div class="copyright">&copy;2021 - 2022 By 二十</div><div class="footer_custom_text">树是生活，埋的是我。看花就好，别看我落魄。</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="font-plus" type="button" title="放大字体"><i class="fas fa-plus"></i></button><button id="font-minus" type="button" title="缩小字体"><i class="fas fa-minus"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div id="local-search"><div class="search-dialog"><div class="search-dialog__title" id="local-search-title">本地搜索</div><div id="local-input-panel"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div></div><hr/><div id="local-search-results"></div><span class="search-close-button"><i class="fas fa-times"></i></span></div><div id="search-mask"></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/search/local-search.js"></script><div class="js-pjax"></div><script src="https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js"></script><script src="/js/chocolate.js"></script><script defer="defer" id="fluttering_ribbon" mobile="true" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/canvas-fluttering-ribbon.min.js"></script><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="true" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/canvas-nest.min.js"></script><script id="click-show-text" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/click-show-text.min.js" data-mobile="false" data-text="二十,二十二十,二十二十二十,二十二十二十二十,二十二十二十二十二十" data-fontsize="15px" data-random="true" async="async"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

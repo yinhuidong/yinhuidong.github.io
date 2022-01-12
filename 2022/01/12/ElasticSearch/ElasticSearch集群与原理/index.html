@@ -1,0 +1,618 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Elasticsearch集群&amp;原理 | 二十</title><meta name="keywords" content="Elasticsearch"><meta name="author" content="二十"><meta name="copyright" content="二十"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Elasticsearch集群&amp;原理">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Elasticsearch集群&amp;原理">
+<meta property="og:url" content="https://yinhuidong.github.io/2022/01/12/ElasticSearch/ElasticSearch%E9%9B%86%E7%BE%A4%E4%B8%8E%E5%8E%9F%E7%90%86/index.html">
+<meta property="og:site_name" content="二十">
+<meta property="og:description" content="Elasticsearch集群&amp;原理">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yinhuidong.github.io/images/cover/Elasticsearch.png">
+<meta property="article:published_time" content="2022-01-12T00:19:55.240Z">
+<meta property="article:modified_time" content="2022-01-12T00:19:55.241Z">
+<meta property="article:author" content="二十">
+<meta property="article:tag" content="Elasticsearch">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://yinhuidong.github.io/images/cover/Elasticsearch.png"><link rel="shortcut icon" href="/img/favicon.jpg"><link rel="canonical" href="https://yinhuidong.github.io/2022/01/12/ElasticSearch/ElasticSearch%E9%9B%86%E7%BE%A4%E4%B8%8E%E5%8E%9F%E7%90%86/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":800},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js',
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css'
+    },
+    fancybox: {
+      js: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isanchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Elasticsearch集群&原理',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2022-01-12 08:19:55'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const fontSizeVal = saveToLocal.get('global-font-size')
+    if (fontSizeVal !== undefined) {
+      document.documentElement.style.setProperty('--global-font-size', fontSizeVal + 'px')
+    }
+    
+    const detectApple = () => {
+      if (GLOBAL_CONFIG_SITE.isHome && /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/custom.css"><meta name="referrer" content="no-referrer" /><meta name="generator" content="Hexo 5.4.0"></head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/head.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data"><div class="data-item is-center"><div class="data-item-link"><a href="/archives/"><div class="headline">文章</div><div class="length-num">118</div></a></div></div><div class="data-item is-center"><div class="data-item-link"><a href="/tags/"><div class="headline">标签</div><div class="length-num">14</div></a></div></div><div class="data-item is-center"><div class="data-item-link"><a href="/categories/"><div class="headline">分类</div><div class="length-num">13</div></a></div></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/%E5%85%B3%E4%BA%8E%E6%88%91/"><i class="fa-fw fas fa-user"></i><span> 关于我</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/images/cover/Elasticsearch.png')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">二十</a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/%E5%85%B3%E4%BA%8E%E6%88%91/"><i class="fa-fw fas fa-user"></i><span> 关于我</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">Elasticsearch集群&amp;原理</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-01-12T00:19:55.240Z" title="发表于 2022-01-12 08:19:55">2022-01-12</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2022-01-12T00:19:55.241Z" title="更新于 2022-01-12 08:19:55">2022-01-12</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Elasticsearch/">Elasticsearch</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">16.7k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>57分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="Elasticsearch集群&amp;原理"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="第一章-Elasticsearch-环境"><a href="#第一章-Elasticsearch-环境" class="headerlink" title="第一章 Elasticsearch 环境"></a>第一章 Elasticsearch 环境</h1><h2 id="1-1-相关概念"><a href="#1-1-相关概念" class="headerlink" title="1.1 相关概念"></a>1.1 相关概念</h2><h3 id="1-1-1-单机和集群"><a href="#1-1-1-单机和集群" class="headerlink" title="1.1.1 单机和集群"></a>1.1.1 单机和集群</h3><p>单台 Elasticsearch 服务器提供服务,往往都有最大的负载能力,超过这个阈值,服务器性能就会大大降低甚至不可用,所以生产环境中,一般都是运行在指定服务器集群中。<br>​</p>
+<p>除了负载能力,单点服务器也存在其他问题:<br>​</p>
+<ul>
+<li>单台机器存储容量有限</li>
+<li>单服务器容易出现单点故障,无法实现高可用</li>
+<li>单服务的并发处理能力有限</li>
+</ul>
+<p>​</p>
+<p>配置服务器集群时,集群中节点数量没有限制,大于等于 2 个节点就可以看做是集群了。一般出于高性能及高可用方面来考虑集群中节点数量都是 3 个以上。<br>​</p>
+<h3 id="1-1-2-集群Cluster"><a href="#1-1-2-集群Cluster" class="headerlink" title="1.1.2 集群Cluster"></a>1.1.2 集群Cluster</h3><p>一个集群就是由一个或多个服务器节点组织在一起,共同持有整个的数据,并一起提供索 引 和 搜 索 功 能 。 一 个 Elasticsearch 集 群 有 一 个 唯 一 的 名 字 标 识 , 这 个 名 字 默 认 就是”elasticsearch”。这个名字是重要的,因为一个节点只能通过指定某个集群的名字,来加入这个集群。</p>
+<h3 id="1-1-3-节点-Node"><a href="#1-1-3-节点-Node" class="headerlink" title="1.1.3 节点 Node"></a>1.1.3 节点 Node</h3><p>集群中包含很多服务器,一个节点就是其中的一个服务器。作为集群的一部分,它存储数据,参与集群的索引和搜索功能。<br>​</p>
+<p>一个节点也是由一个名字来标识的,默认情况下,这个名字是一个随机的漫威漫画角色的名字,这个名字会在启动的时候赋予节点。这个名字对于管理工作来说挺重要的,因为在这个管理过程中,你会去确定网络中的哪些服务器对应于 Elasticsearch 集群中的哪些节点。<br>​</p>
+<p>一个节点可以通过配置集群名称的方式来加入一个指定的集群。默认情况下,每个节点都会被安排加入到一个叫做“elasticsearch”的集群中,这意味着,如果你在你的网络中启动了若干个节点,并假定它们能够相互发现彼此,它们将会自动地形成并加入到一个叫做“elasticsearch”的集群中。<br>​</p>
+<p>在一个集群里,只要你想,可以拥有任意多个节点。而且,如果当前你的网络中没有运行任何 Elasticsearch 节点,这时启动一个节点,会默认创建并加入一个叫做“elasticsearch”的集群。</p>
+<h2 id="1-2-Linux单机"><a href="#1-2-Linux单机" class="headerlink" title="1.2 Linux单机"></a>1.2 Linux单机</h2><h3 id="1-2-1-软件下载"><a href="#1-2-1-软件下载" class="headerlink" title="1.2.1 软件下载"></a>1.2.1 软件下载</h3><p><a target="_blank" rel="noopener" href="https://www.elastic.co/cn/downloads/past-releases/elasticsearch-7-8-0">软件下载地址</a></p>
+<h3 id="1-2-2-软件安装"><a href="#1-2-2-软件安装" class="headerlink" title="1.2.2 软件安装"></a>1.2.2 软件安装</h3><h4 id="1）解压软件"><a href="#1）解压软件" class="headerlink" title="1）解压软件"></a>1）解压软件</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"># 解压缩</span><br><span class="line">tar -zxvf elasticsearch-<span class="number">7.8</span><span class="number">.0</span>-linux-x86_64.tar.gz -C /opt/<span class="keyword">module</span></span><br><span class="line"># 改名</span><br><span class="line">mv elasticsearch-<span class="number">7.8</span><span class="number">.0</span> es</span><br></pre></td></tr></table></figure>
+<h4 id="2）创建用户"><a href="#2）创建用户" class="headerlink" title="2）创建用户"></a>2）创建用户</h4><p>因为安全问题,Elasticsearch 不允许 root 用户直接运行,所以要创建新用户,在 root中创建新用户。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">useradd es #新增 es 用户</span><br><span class="line">passwd es #为 es 用户设置密码</span><br><span class="line">userdel -r es #如果错了,可以删除再加</span><br><span class="line">chown -R es:es /opt/<span class="keyword">module</span>/es #文件夹所有者</span><br></pre></td></tr></table></figure>
+<h4 id="3）修改配置文件"><a href="#3）修改配置文件" class="headerlink" title="3）修改配置文件"></a>3）修改配置文件</h4><p>修改<code>/opt/module/es/config/elasticsearch.yml </code>文件<br>​</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"># 加入如下配置</span><br><span class="line">cluster.name: elasticsearch</span><br><span class="line">node.name: node-<span class="number">1</span></span><br><span class="line">network.host: <span class="number">0.0</span><span class="number">.0</span><span class="number">.0</span></span><br><span class="line">http.port: <span class="number">9200</span></span><br><span class="line">cluster.initial_master_nodes:[<span class="string">&quot;node-1&quot;</span>]</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>修改<code>/etc/security/limits.conf</code></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"># 在文件末尾中增加下面内容</span><br><span class="line"># 每个进程可以打开的文件数的限制</span><br><span class="line">es soft nofile <span class="number">65536</span></span><br><span class="line">es hard nofile <span class="number">65536</span></span><br></pre></td></tr></table></figure>
+<p>修改<code>/etc/security/limits.d/20-nproc.conf</code></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"># 在文件末尾中增加下面内容</span><br><span class="line"># 每个进程可以打开的文件数的限制</span><br><span class="line">es soft nofile <span class="number">65536</span></span><br><span class="line">es hard nofile <span class="number">65536</span></span><br><span class="line"># 操作系统级别对每个用户创建的进程数的限制</span><br><span class="line">* hard nproc <span class="number">4096</span></span><br><span class="line"># 注:* 带表 Linux 所有用户名称</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>修改<code>/etc/sysctl.conf</code></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"># 在文件中增加下面内容</span><br><span class="line"># 一个进程可以拥有的 VMA(虚拟内存区域)的数量,默认值为 <span class="number">65536</span></span><br><span class="line">vm.max_map_count=<span class="number">655360</span></span><br></pre></td></tr></table></figure>
+<p>重新加载</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sysctl -p</span><br></pre></td></tr></table></figure>
+<h3 id="1-2-3-启动软件"><a href="#1-2-3-启动软件" class="headerlink" title="1.2.3 启动软件"></a>1.2.3 启动软件</h3><p>使用 ES 用户启动</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">cd /opt/<span class="keyword">module</span>/es/</span><br><span class="line">#启动</span><br><span class="line">bin/elasticsearch</span><br><span class="line">#后台启动</span><br><span class="line">bin/elasticsearch -d</span><br></pre></td></tr></table></figure>
+<p>启动时,会动态生成文件,如果文件所属用户不匹配,会发生错误,需要重新进行修改用户和用户组。</p>
+<h2 id="1-3-Linux集群"><a href="#1-3-Linux集群" class="headerlink" title="1.3 Linux集群"></a>1.3 Linux集群</h2><p>修改<code>/opt/module/es/config/elasticsearch.yml </code>文件,分发文件</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"># 加入如下配置</span><br><span class="line">#集群名称</span><br><span class="line">cluster.name: cluster-es</span><br><span class="line">#节点名称,每个节点的名称不能重复</span><br><span class="line">node.name: node-<span class="number">1</span></span><br><span class="line">#ip 地址,每个节点的地址不能重复</span><br><span class="line">network.host: linux1</span><br><span class="line">#是不是有资格主节点</span><br><span class="line">node.master: <span class="keyword">true</span></span><br><span class="line">node.data: <span class="keyword">true</span></span><br><span class="line">http.port: <span class="number">9200</span></span><br><span class="line"># head 插件需要这打开这两个配置</span><br><span class="line">http.cors.allow-origin: <span class="string">&quot;*&quot;</span></span><br><span class="line">http.cors.enabled: <span class="keyword">true</span></span><br><span class="line">http.max_content_length: 200mb</span><br><span class="line">#es7.x 之后新增的配置,初始化一个新的集群时需要此配置来选举 master</span><br><span class="line">cluster.initial_master_nodes: [<span class="string">&quot;node-1&quot;</span>]</span><br><span class="line">#es7.x 之后新增的配置,节点发现</span><br><span class="line">discovery.seed_hosts: [<span class="string">&quot;linux1:9300&quot;</span>,<span class="string">&quot;linux2:9300&quot;</span>,<span class="string">&quot;linux3:9300&quot;</span>]</span><br><span class="line">gateway.recover_after_nodes: <span class="number">2</span></span><br><span class="line">network.tcp.keep_alive: <span class="keyword">true</span></span><br><span class="line">network.tcp.no_delay: <span class="keyword">true</span></span><br><span class="line">transport.tcp.compress: <span class="keyword">true</span></span><br><span class="line">#集群内同时启动的数据任务个数,默认是 <span class="number">2</span> 个</span><br><span class="line">cluster.routing.allocation.cluster_concurrent_rebalance: <span class="number">16</span></span><br><span class="line">#添加或删除节点及负载均衡时并发恢复的线程个数,默认 <span class="number">4</span> 个</span><br><span class="line">cluster.routing.allocation.node_concurrent_recoveries: <span class="number">16</span></span><br><span class="line">#初始化数据恢复时,并发恢复线程的个数,默认 <span class="number">4</span> 个</span><br><span class="line">cluster.routing.allocation.node_initial_primaries_recoveries: <span class="number">16</span></span><br></pre></td></tr></table></figure>
+<p><strong>其余修改同单机版</strong></p>
+<h1 id="第二章-Elasticsearch-原理"><a href="#第二章-Elasticsearch-原理" class="headerlink" title="第二章 Elasticsearch 原理"></a>第二章 Elasticsearch 原理</h1><h2 id="2-1-核心概念"><a href="#2-1-核心概念" class="headerlink" title="2.1 核心概念"></a>2.1 核心概念</h2><h3 id="2-1-1-索引-index"><a href="#2-1-1-索引-index" class="headerlink" title="2.1.1 索引-index"></a>2.1.1 索引-index</h3><p>一个索引就是一个拥有几分相似特征的文档的集合。比如说,你可以有一个客户数据的索引,另一个产品目录的索引,还有一个订单数据的索引。一个索引由一个名字来标识(必须全部是小写字母),并且当我们要对这个索引中的文档进行索引、搜索、更新和删除的时候,都要使用到这个名字。在一个集群中,可以定义任意多的索引。<br>​</p>
+<p>能搜索的数据必须索引,这样的好处是可以提高查询速度,比如:新华字典前面的目录就是索引的意思,目录可以提高查询速度。<br>​</p>
+<p><strong>Elasticsearch 索引的精髓:一切设计都是为了提高搜索的性能。</strong><br><strong>​</strong></p>
+<h3 id="2-1-2-类型-type"><a href="#2-1-2-类型-type" class="headerlink" title="2.1.2 类型-type"></a>2.1.2 类型-type</h3><p>在一个索引中,你可以定义一种或多种类型。<br>​</p>
+<p>一个类型是你的索引的一个逻辑上的分类/分区,其语义完全由你来定。通常,会为具有一组共同字段的文档定义一个类型。不同的版本,类型发生了不同的变化</p>
+<table>
+<thead>
+<tr>
+<th>版本</th>
+<th>Type</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>5.x</td>
+<td>支持多种 type</td>
+</tr>
+<tr>
+<td>6.x</td>
+<td>只能有一种 type</td>
+</tr>
+<tr>
+<td>7.x</td>
+<td>默认不再支持自定义索引类型(默认类型为:_doc)</td>
+</tr>
+</tbody></table>
+<h3 id="2-1-3-文档-document"><a href="#2-1-3-文档-document" class="headerlink" title="2.1.3 文档-document"></a>2.1.3 文档-document</h3><p>一个文档是一个可被索引的基础信息单元,也就是一条数据。<br>​</p>
+<p>比如:你可以拥有某一个客户的文档,某一个产品的一个文档,当然,也可以拥有某个订单的一个文档。文档以 JSON(Javascript Object Notation)格式来表示,而 JSON 是一个到处存在的互联网数据交互格式。<br>​</p>
+<p>在一个 index/type 里面,你可以存储任意多的文档。</p>
+<h3 id="2-1-4-字段-field"><a href="#2-1-4-字段-field" class="headerlink" title="2.1.4 字段-field"></a>2.1.4 字段-field</h3><p>相当于是数据表的字段,对文档数据根据不同属性进行的分类标识。<br>​</p>
+<h3 id="2-1-5-映射-mapping"><a href="#2-1-5-映射-mapping" class="headerlink" title="2.1.5 映射-mapping"></a>2.1.5 映射-mapping</h3><p>mapping 是处理数据的方式和规则方面做一些限制,如:某个字段的数据类型、默认值、分析器、是否被索引等等。这些都是映射里面可以设置的,其它就是处理 ES 里面数据的一些使用规则设置也叫做映射,按着最优规则处理数据对性能提高很大,因此才需要建立映射,并且需要思考如何建立映射才能对性能更好。<br>​</p>
+<h3 id="2-1-6-分片-shards"><a href="#2-1-6-分片-shards" class="headerlink" title="2.1.6 分片-shards"></a>2.1.6 分片-shards</h3><p>​</p>
+<p>一个索引可以存储超出单个节点硬件限制的大量数据。比如,一个具有 10 亿文档数据的索引占据 1TB 的磁盘空间,而任一节点都可能没有这样大的磁盘空间。或者单个节点处理搜索请求,响应太慢。为了解决这个问题,Elasticsearch 提供了将索引划分成多份的能力,每一份就称之为分片。当你创建一个索引的时候,你可以指定你想要的分片的数量。每个分片本身也是一个功能完善并且独立的“索引”,这个“索引”可以被放置到集群中的任何节点上。<br>​</p>
+<p>分片很重要,主要有两方面的原因:<br>​</p>
+<p>1)允许你水平分割 / 扩展你的内容容量。<br>​</p>
+<p>2)允许你在分片之上进行分布式的、并行的操作,进而提高性能/吞吐量。<br>​</p>
+<p>至于一个分片怎样分布,它的文档怎样聚合和搜索请求,是完全由 Elasticsearch 管理的,对于作为用户的你来说,这些都是透明的,无需过分关心。<br>​</p>
+<p><strong>一个 Lucene 索引 我们在 Elasticsearch 称作 分片 。 一个Elasticsearch 索引 是分片的集合。 当 Elasticsearch 在索引中搜索的时候, 他发送查询到每一个属于索引的分片(Lucene 索引),然后合并每个分片的结果到一个全局的结果集。</strong><br>​</p>
+<h3 id="2-1-7-副本-replicas"><a href="#2-1-7-副本-replicas" class="headerlink" title="2.1.7 副本-replicas"></a>2.1.7 副本-replicas</h3><p>在一个网络 / 云的环境里,失败随时都可能发生,在某个分片/节点不知怎么的就处于离线状态,或者由于任何原因消失了,这种情况下,有一个故障转移机制是非常有用并且是强烈推荐的。为此目的,Elasticsearch 允许你创建分片的一份或多份拷贝,这些拷贝叫做复制分片(副本)。<br>​</p>
+<p>复制分片之所以重要,有两个主要原因:<br>​</p>
+<ul>
+<li>在分片/节点失败的情况下,提供了高可用性。因为这个原因,注意到复制分片从不与原/主要(original/primary)分片置于同一节点上是非常重要的。</li>
+</ul>
+<p>​</p>
+<ul>
+<li>扩展你的搜索量/吞吐量,因为搜索可以在所有的副本上并行运行。</li>
+</ul>
+<p>​</p>
+<p>​</p>
+<p>总之,每个索引可以被分成多个分片。一个索引也可以被复制 0 次(意思是没有复制)或多次。一旦复制了,每个索引就有了主分片(作为复制源的原来的分片)和复制分片(主分片的拷贝)之别。分片和复制的数量可以在索引创建的时候指定。在索引创建之后,你可以在任何时候动态地改变复制的数量,但是你事后不能改变分片的数量。默认情况下,Elasticsearch 中的每个索引被分片 1 个主分片和 1 个复制,这意味着,如果你的集群中至少有两个节点,你的索引将会有 1 个主分片和另外 1 个复制分片(1 个完全拷贝),这样的话每个索引总共就有 2 个分片,我们需要根据索引需要确定分片个数。<br>​</p>
+<h3 id="2-1-8-分配-allocation"><a href="#2-1-8-分配-allocation" class="headerlink" title="2.1.8 分配-allocation"></a>2.1.8 分配-allocation</h3><p>​</p>
+<p>将分片分配给某个节点的过程,包括分配主分片或者副本。如果是副本,还包含从主分片复制数据的过程。这个过程是由 master 节点完成的。<br>​</p>
+<h2 id="2-2-系统架构"><a href="#2-2-系统架构" class="headerlink" title="2.2 系统架构"></a>2.2 系统架构</h2><pre><code>                 ![图片.png](https://cdn.nlark.com/yuque/0/2021/png/12610368/1622993459664-996a2783-008b-46cc-bfd1-7ea646850fc4.png#clientId=u4f593c09-99e9-4&amp;from=paste&amp;height=334&amp;id=ua5111f41&amp;margin=%5Bobject%20Object%5D&amp;name=%E5%9B%BE%E7%89%87.png&amp;originHeight=357&amp;originWidth=520&amp;originalType=binary&amp;ratio=2&amp;size=67183&amp;status=done&amp;style=none&amp;taskId=u373e9bd6-fac5-4d98-b672-818743d1a70&amp;width=486)
+</code></pre>
+<p>一个运行中的 Elasticsearch 实例称为一个节点,而集群是由一个或者多个拥有相同cluster.name 配置的节点组成, 它们共同承担数据和负载的压力。当有节点加入集群中或者从集群中移除节点时,集群将会重新平均分布所有的数据。<br>​</p>
+<p>当一个节点被选举成为主节点时, 它将负责管理集群范围内的所有变更,例如增加、删除索引,或者增加、删除节点等。 而主节点并不需要涉及到文档级别的变更和搜索等操作,所以当集群只拥有一个主节点的情况下,即使流量的增加它也不会成为瓶颈。 任何节点都可以成为主节点。<br>​</p>
+<p>作为用户,我们可以将请求发送到集群中的任何节点 ,包括主节点。 每个节点都知道任意文档所处的位置,并且能够将我们的请求直接转发到存储我们所需文档的节点。 无论我们将请求发送到哪个节点,它都能负责从各个包含我们所需文档的节点收集回数据,并将最终结果返回給客户端。 Elasticsearch 对这一切的管理都是透明的。<br>​</p>
+<h2 id="2-3-分布式集群"><a href="#2-3-分布式集群" class="headerlink" title="2.3 分布式集群"></a>2.3 分布式集群</h2><h3 id="2-3-1-单节点集群"><a href="#2-3-1-单节点集群" class="headerlink" title="2.3.1 单节点集群"></a>2.3.1 单节点集群</h3><p>在包含一个空节点的集群内创建名为 users 的索引，分配 3个主分片和一份副本(每个主分片拥有一个副本分片)。<br>​</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="string">&quot;settings&quot;</span>: &#123;</span><br><span class="line">    <span class="string">&quot;number_of_shards&quot;</span>: <span class="number">3</span>,</span><br><span class="line">    <span class="string">&quot;number_of_replicas&quot;</span>: <span class="number">1</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1622993851146-45ef16b4-0d6c-4434-885d-260e0785d939.png#clientId=u4f593c09-99e9-4&from=ui&id=ua4fa6590&margin=%5Bobject%20Object%5D&name=1.png&originHeight=329&originWidth=729&originalType=binary&ratio=2&size=20072&status=done&style=none&taskId=uc1b99999-33ed-45c2-9d63-f5375ca8416" alt="1.png"><br>我们的集群现在是拥有一个索引的单节点集群。所有 3 个主分片都被分配在 node-1 。<br>​</p>
+<p>通过 elasticsearch-head 插件查看集群情况：<br>​</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1622993913967-925cfb36-6fe8-44ab-848c-505b0edb47ec.png#clientId=u4f593c09-99e9-4&from=ui&id=u5a725d7b&margin=%5Bobject%20Object%5D&name=1.png&originHeight=501&originWidth=970&originalType=binary&ratio=2&size=98296&status=done&style=none&taskId=u1014b6cc-2b5f-4012-93a1-6c8e6659255" alt="1.png">当前我们的集群是正常运行的,但是在硬件故障时有丢失数据的风险。</p>
+<h3 id="2-3-2-故障转移"><a href="#2-3-2-故障转移" class="headerlink" title="2.3.2 故障转移"></a>2.3.2 故障转移</h3><p>当集群中只有一个节点在运行时,意味着会有一个单点故障问题——没有冗余。 幸运的是,我们只需再启动一个节点即可防止数据丢失。当你在同一台机器上启动了第二个节点时,只要它和第一个节点有同样的 cluster.name 配置,它就会自动发现集群并加入到其中。但是在不同机器上启动节点的时候,为了加入到同一集群,你需要配置一个可连接到的单播主机列表。之所以配置为使用单播发现,以防止节点无意中加入集群。只有在同一台机器上运行的节点才会自动组成集群。<br>​</p>
+<p>如果启动了第二个节点,我们的集群将会拥有两个节点的集群 : 所有主分片和副本分片都已被分配。<br>​</p>
+<pre><code>                            ![1.png](https://cdn.nlark.com/yuque/0/2021/png/12610368/1622994042673-a59cc334-924d-45e9-b5ee-f6ce003d4ea5.png#clientId=u4f593c09-99e9-4&amp;from=ui&amp;id=u04da1742&amp;margin=%5Bobject%20Object%5D&amp;name=1.png&amp;originHeight=165&amp;originWidth=488&amp;originalType=binary&amp;ratio=2&amp;size=19549&amp;status=done&amp;style=none&amp;taskId=u5661fa35-6e0b-4b90-8ac6-f7622e7a44d)
+</code></pre>
+<p>通过 elasticsearch-head 插件查看集群情况：<br><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1622994089467-983ff89c-bd4d-4d04-b9b8-d6e0a096e7c4.png#clientId=u4f593c09-99e9-4&from=ui&height=394&id=u067b8859&margin=%5Bobject%20Object%5D&name=1.png&originHeight=499&originWidth=975&originalType=binary&ratio=2&size=120056&status=done&style=none&taskId=u342e27f8-5a17-458b-ae41-53b0f5f7b38&width=770.3333740234375" alt="1.png">​</p>
+<h3 id="2-3-3-水平扩容"><a href="#2-3-3-水平扩容" class="headerlink" title="2.3.3 水平扩容"></a>2.3.3 水平扩容</h3><p>怎样为我们的正在增长中的应用程序按需扩容呢?当启动了第三个节点,我们的集群将会拥有三个节点的集群 : 为了分散负载而对分片进行重新分配。<br><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1622994266573-124c244b-4fa0-4bec-84ca-f47ad4e238a1.png#clientId=u4f593c09-99e9-4&from=ui&id=ubfb4f72a&margin=%5Bobject%20Object%5D&name=1.png&originHeight=186&originWidth=703&originalType=binary&ratio=2&size=30844&status=done&style=none&taskId=u76557f9b-957a-4d17-a5db-c1015009953" alt="1.png"><br>通过 elasticsearch-head 插件查看集群情况：<br><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1622994302449-91d30d0f-7869-4bf2-9ca7-f173333882f5.png#clientId=u4f593c09-99e9-4&from=ui&id=udad0111a&margin=%5Bobject%20Object%5D&name=1.png&originHeight=789&originWidth=972&originalType=binary&ratio=2&size=143178&status=done&style=none&taskId=u6708e29e-506b-40d9-bca3-a3219f6a4dd" alt="1.png"><strong>但是如果我们想要扩容超过 6 个节点怎么办呢?</strong><br>​</p>
+<p>主分片的数目在索引创建时就已经确定了下来。实际上,这个数目定义了这个索引能够存储 的最大数据量。(实际大小取决于你的数据、硬件和使用场景。) 但是,读操作——搜索和返回数据——可以同时被主分片 或 副本分片所处理,所以当你拥有越多的副本分片时,也将拥有越高的吞吐量。<br>​</p>
+<p>在运行中的集群上是可以动态调整副本分片数目的,我们可以按需伸缩集群。把副本数从默认的 1 增加到 2</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="string">&quot;number_of_replicas&quot;</span> : <span class="number">2</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1622994525527-12a9c001-8235-46cf-967b-9e4181c3af65.png#clientId=u4f593c09-99e9-4&from=ui&id=u6583db33&margin=%5Bobject%20Object%5D&name=1.png&originHeight=267&originWidth=738&originalType=binary&ratio=2&size=18094&status=done&style=none&taskId=u27357070-3311-4d42-ad66-6fbb386eafb" alt="1.png"><br>users 索引现在拥有 9 个分片:3 个主分片和 6 个副本分片。 这意味着我们可以将集群扩容到 9 个节点,每个节点上一个分片。相比原来 3 个节点时,集群搜索性能可以提升 3 倍。<br><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1622994583081-1503af16-7db7-4120-afa9-47abaacf4a5f.png#clientId=u4f593c09-99e9-4&from=ui&id=ua3065889&margin=%5Bobject%20Object%5D&name=1.png&originHeight=169&originWidth=652&originalType=binary&ratio=2&size=27203&status=done&style=none&taskId=u36909e72-fa3c-4453-93fd-fb889bc6d22" alt="1.png"><br>通过 elasticsearch-head 插件查看集群情况:<br><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1622994616515-bf1e558a-24ad-49e8-824c-71ba8dbe9389.png#clientId=u4f593c09-99e9-4&from=ui&id=u6fe21524&margin=%5Bobject%20Object%5D&name=1.png&originHeight=238&originWidth=959&originalType=binary&ratio=2&size=33589&status=done&style=none&taskId=u3d0b3950-9d5f-46d6-8e4b-5a44161435e" alt="1.png">当然,如果只是在相同节点数目的集群上增加更多的副本分片并不能提高性能,因为每个分片从节点上获得的资源会变少。 你需要增加更多的硬件资源来提升吞吐量。<br>​</p>
+<p>但是更多的副本分片数提高了数据冗余量:按照上面的节点配置,我们可以在失去 2 个节点的情况下不丢失任何数据。</p>
+<h3 id="2-3-4-应对故障"><a href="#2-3-4-应对故障" class="headerlink" title="2.3.4 应对故障"></a>2.3.4 应对故障</h3><p>关闭第一个节点,这时集群的状态为:关闭了一个节点后的集群。<br>​</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1622994704632-b8151cd5-5ed3-4aec-ba6b-938ed3b7af75.png#clientId=u4f593c09-99e9-4&from=ui&id=ub779090e&margin=%5Bobject%20Object%5D&name=1.png&originHeight=277&originWidth=730&originalType=binary&ratio=2&size=96123&status=done&style=none&taskId=u74c0e390-419d-4e83-baaa-59cfef061ee" alt="1.png"><br>关闭的节点是一个主节点。而集群必须拥有一个主节点来保证正常工作,所以发生的第一件事情就是选举一个新的主节点: Node 2 。在我们关闭 Node 1 的同时也失去了主分片 1 和 2 ,并且在缺失主分片的时候索引也不能正常工作。 如果此时来检查集群的状况,我们看到的状态将会为 red :不是所有主分片都在正常工作。<br>​</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1622994832213-3d938404-e611-4e7a-a6cc-55fd0d74ced8.png#clientId=u4f593c09-99e9-4&from=ui&id=ufe02fab5&margin=%5Bobject%20Object%5D&name=1.png&originHeight=240&originWidth=958&originalType=binary&ratio=2&size=33642&status=done&style=none&taskId=u3a121e55-d830-4b26-b972-fd6db949f7f" alt="1.png">幸运的是,在其它节点上存在着这两个主分片的完整副本, 所以新的主节点立即将这些分片在 Node 2 和 Node 3 上对应的副本分片提升为主分片, 此时集群的状态将会为yellow。这个提升主分片的过程是瞬间发生的,如同按下一个开关一般。<br>​</p>
+<p><strong>为什么我们集群状态是 yellow 而不是 green 呢?</strong><br>​</p>
+<p>虽然我们拥有所有的三个主分片,但是同时设置了每个主分片需要对应 2 份副本分片,而此时只存在一份副本分片。 所以集群不能为 green 的状态,不过我们不必过于担心:如果我们同样关闭了 Node 2 ,我们的程序 依然 可以保持在不丢任何数据的情况下运行,因为Node 3 为每一个分片都保留着一份副本。<br>​</p>
+<p>如果我们重新启动 Node 1 ,集群可以将缺失的副本分片再次进行分配,那么集群的状态也将恢复成之前的状态。 如果 Node 1 依然拥有着之前的分片,它将尝试去重用它们,同时仅从主分片复制发生了修改的数据文件。和之前的集群相比,只是 Master 节点切换了。<br>​</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1622995003243-5a7b9a42-5cf7-446b-81fb-dc2152059ce0.png#clientId=u4f593c09-99e9-4&from=ui&id=ua1c90456&margin=%5Bobject%20Object%5D&name=1.png&originHeight=197&originWidth=960&originalType=binary&ratio=2&size=34751&status=done&style=none&taskId=u812aca96-40e6-495d-b13a-d902d9d2678" alt="1.png">​</p>
+<h2 id="2-4-路由计算"><a href="#2-4-路由计算" class="headerlink" title="2.4 路由计算"></a>2.4 路由计算</h2><p>当索引一个文档的时候,文档会被存储到一个主分片中。 Elasticsearch 如何知道一个文档应该存放到哪个分片中呢?当我们创建文档时,它如何决定这个文档应当被存储在分片1 还是分片 2 中呢?首先这肯定不会是随机的,否则将来要获取文档的时候我们就不知道从何处寻找了。实际上,这个过程是根据下面这个公式决定的:<br>​</p>
+<p><code>shard=hash(routing)%number_of_primary_shards</code><br>​</p>
+<p><code>routing</code> 是一个可变值,默认是文档的 <code>_id</code> ,也可以设置成一个自定义的值。 <code>routing</code> 通过<code>hash</code> 函数生成一个数字,然后这个数字再除以 <code>number_of_primary_shards</code> (主分片的数量)后得到余数 。这个分布在 0 到<code>number_of_primary_shards-1</code> 之间的余数,就是我们所寻求的文档所在分片的位置。<br>​</p>
+<p>这就解释了为什么我们要在创建索引的时候就确定好主分片的数量 并且永远不会改变这个数量:因为如果数量变化了,那么所有之前路由的值都会无效,文档也再也找不到了。<br>​</p>
+<p>所有的文档 <code>API( get 、 index 、 delete 、 bulk 、 update 以及 mget )</code>都接受一个叫做 routing 的路由参数 ,通过这个参数我们可以自定义文档到分片的映射。一个自定义的路由参数可以用来确保所有相关的文档——例如所有属于同一个用户的文档——都被存储到同一个分片中。<br>​</p>
+<h2 id="2-5-分片控制"><a href="#2-5-分片控制" class="headerlink" title="2.5 分片控制"></a>2.5 分片控制</h2><p>我们假设有一个集群由三个节点组成。 它包含一个叫 emps 的索引,有两个主分片,每个主分片有两个副本分片。相同分片的副本不会放在同一节点。<br><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1622995266087-ea53931a-73c3-44a7-b3b3-0b0a54a3a27d.png#clientId=u4f593c09-99e9-4&from=ui&id=u5513231d&margin=%5Bobject%20Object%5D&name=1.png&originHeight=257&originWidth=958&originalType=binary&ratio=2&size=39558&status=done&style=none&taskId=u0348ee9a-68e6-4f3a-98ea-1b998a82a0c" alt="1.png"><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1622995290225-19e2e3fc-a369-41ba-86a0-5ab4510aaefb.png#clientId=u4f593c09-99e9-4&from=ui&id=u574c23a6&margin=%5Bobject%20Object%5D&name=1.png&originHeight=140&originWidth=553&originalType=binary&ratio=2&size=16816&status=done&style=none&taskId=ua5b13cf9-f087-4c3b-923d-3bbd6316f13" alt="1.png"><br>通过 elasticsearch-head 插件查看集群情况,所以我们的集群是一个有三个节点和一个索引的集群。<br><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1622995320891-6e6acfa0-ad92-4793-8446-1186d2fd197d.png#clientId=u4f593c09-99e9-4&from=ui&id=ub98af5ee&margin=%5Bobject%20Object%5D&name=1.png&originHeight=237&originWidth=957&originalType=binary&ratio=2&size=32638&status=done&style=none&taskId=u45e32b74-62d7-4fe0-b3f6-4a85a3a7525" alt="1.png">我们可以发送请求到集群中的任一节点。 每个节点都有能力处理任意请求。 每个节点都知道集群中任一文档位置,所以可以直接将请求转发到需要的节点上。 在下面的例子中,将所有的请求发送到 Node 1,我们将其称为 协调节点(coordinating node) 。<br>​</p>
+<p><strong>当发送请求的时候, 为了扩展负载,更好的做法是轮询集群中所有的节点。</strong><br><strong>​</strong></p>
+<h3 id="2-5-1-写流程"><a href="#2-5-1-写流程" class="headerlink" title="2.5.1 写流程"></a>2.5.1 写流程</h3><p>新建、索引和删除 请求都是 写 操作, 必须在主分片上面完成之后才能被复制到相关的副本分片。<br>                     <img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1623024020009-17511bd4-c003-43ea-b44e-5d28977f47a5.png#clientId=ubda5c093-cc76-4&from=ui&id=ub432652e&margin=%5Bobject%20Object%5D&name=1.png&originHeight=239&originWidth=553&originalType=binary&ratio=2&size=35356&status=done&style=none&taskId=u8a69f2f7-592f-418a-9403-8cf9bff80b3" alt="1.png"><br><strong>新建,索引和删除文档所需要的步骤顺序:</strong></p>
+<ol>
+<li>客户端向 Node 1 发送新建、索引或者删除请求。</li>
+<li>节点使用文档的 _id 确定文档属于分片 0 。请求会被转发到 Node 3,因为分片 0 的主分片目前被分配在 Node 3 上。</li>
+<li>Node 3 在主分片上面执行请求。如果成功了,它将请求并行转发到 Node 1 和 Node 2的副本分片上。一旦所有的副本分片都报告成功, Node 3 将向协调节点报告成功,协调节点向客户端报告成功。</li>
+</ol>
+<p>​</p>
+<p>在客户端收到成功响应时,文档变更已经在主分片和所有副本分片执行完成,变更是安全的。有一些可选的请求参数允许您影响这个过程,可能以数据安全为代价提升性能。这些选项很少使用,因为 Elasticsearch 已经很快,但是为了完整起见,请参考下面表格:<br>​</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>consistency</td>
+<td>consistency,即一致性。在默认设置下,即使仅仅是在试图执行一个_写_操作之consistency前,主分片都会要求 必须要有 规定数量(quorum)(或者换种说法,也即必须要有大多数)的分片副本处于活跃可用状态,才会去执行_写_操作(其中分片副本可以是主分片或者副本分片)。这是为了避免在发生网络分区故障(network partition)的时候进行_写_操作,进而导致数据不一致。_规定数量_即:int( (primary + number_of_replicas) / 2 ) + 1 consistency 参数的值可以设为 one (只要主分片状态 ok 就允许执行_写_操作),all(必须要主分片和所有副本分片的状态没问题才允许执行_写_操作), 或quorum 。默认值为 quorum , 即大多数的分片副本状态没问题就允许执行_写_操作。</td>
+</tr>
+<tr>
+<td>注意,规定数量 的计算公式中 number_of_replicas 指的是在索引设置中的设定副本分片数,而不是指当前处理活动状态的副本分片数。如果你的索引设置中指定了当前索引拥有三个副本分片,那规定数量的计算结果即:int( (primary + 3 replicas) / 2 ) + 1 = 3 如果此时你只启动两个节点,那么处于活跃状态的分片副本数量就达不到规定数量,也因此您将无法索引和删除任何文档。</td>
+<td></td>
+</tr>
+<tr>
+<td>​</td>
+<td></td>
+</tr>
+</tbody></table>
+<p>​<br> |<br>| timeout | 如果没有足够的副本分片会发生什么? Elasticsearch 会等待,希望更多的分片出现。默认情况下,它最多等待 1 分钟。 如果你需要,你可以使用 timeout 参数使它更早终止: 100 100 毫秒,30s 是 30 秒。<br>​<br> |</p>
+<p>新索引默认有 1 个副本分片,这意味着为满足规定数量应该需要两个活动的分片副本。 但是,这些默认的设置会阻止我们在单一节点上做任何事情。为了避免这个问题,要求只有当 number_of_replicas 大于 1 的时候,规定数量才会执行。</p>
+<h3 id="2-5-5-读流程"><a href="#2-5-5-读流程" class="headerlink" title="2.5.5 读流程"></a>2.5.5 读流程</h3><p>我们可以从主分片或者从其它任意副本分片检索文档<br>             <img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1623024497045-761ab31f-2bcf-4032-b821-72f3e926ddb5.png#clientId=ubda5c093-cc76-4&from=ui&id=u3555a0f9&margin=%5Bobject%20Object%5D&name=1.png&originHeight=225&originWidth=648&originalType=binary&ratio=2&size=50238&status=done&style=none&taskId=u8dd7ba1a-4606-4cf5-a6f1-18968c6d6f8" alt="1.png"><br><strong>从主分片或者副本分片检索文档的步骤顺序:</strong></p>
+<ol>
+<li>客户端向 Node 1 发送获取请求。</li>
+<li>节点使用文档的 _id 来确定文档属于分片 0 。分片 0 的副本分片存在于所有的三个节点上。 在这种情况下,它将请求转发到 Node 2 。</li>
+<li>Node 2 将文档返回给 Node 1 ,然后将文档返回给客户端。</li>
+</ol>
+<p>​</p>
+<p>在处理读取请求时,协调结点在每次请求的时候都会通过轮询所有的副本分片来达到负载均衡。在文档被检索时,已经被索引的文档可能已经存在于主分片上但是还没有复制到副本分片。 在这种情况下,副本分片可能会报告文档不存在,但是主分片可能成功返回文档。 一旦索引请求成功返回给用户,文档在主分片和副本分片都是可用的。<br>​</p>
+<h3 id="2-5-3-更新流程"><a href="#2-5-3-更新流程" class="headerlink" title="2.5.3 更新流程"></a>2.5.3 更新流程</h3><p>部分更新一个文档结合了先前说明的读取和写入流程:<br>​</p>
+<pre><code>      ![1.png](https://cdn.nlark.com/yuque/0/2021/png/12610368/1623024623009-ca2242ca-ef00-4fb9-8e38-214aced99fbb.png#clientId=ubda5c093-cc76-4&amp;from=ui&amp;id=ubcbda964&amp;margin=%5Bobject%20Object%5D&amp;name=1.png&amp;originHeight=295&amp;originWidth=688&amp;originalType=binary&amp;ratio=2&amp;size=56178&amp;status=done&amp;style=none&amp;taskId=uefc2bf0c-99d1-45bb-a825-fe7bf923d19)
+</code></pre>
+<p><strong>部分更新一个文档的步骤如下:</strong></p>
+<ol>
+<li>客户端向 Node 1 发送更新请求。</li>
+<li>它将请求转发到主分片所在的 Node 3 。</li>
+<li>Node 3 从主分片检索文档,修改 _source 字段中的 JSON ,并且尝试重新索引主分片的文档。如果文档已经被另一个进程修改,它会重试步骤 3 ,超过 retry_on_conflict 次后放弃。</li>
+<li>如果 Node 3 成功地更新文档,它将新版本的文档并行转发到 Node 1 和 Node 2 上的副本分片,重新建立索引。一旦所有副本分片都返回成功, Node 3 向协调节点也返回成功,协调节点向客户端返回成功。</li>
+</ol>
+<p>​</p>
+<p>当主分片把更改转发到副本分片时, 它不会转发更新请求。 相反,它转发完整文档的新版本。请记住,这些更改将会异步转发到副本分片,并且不能保证它们以发送它们相同的顺序到达。 如果 Elasticsearch 仅转发更改请求,则可能以错误的顺序应用更改,导致得到损坏的文档。<br>​</p>
+<h3 id="2-5-4-多文档操作流程"><a href="#2-5-4-多文档操作流程" class="headerlink" title="2.5.4 多文档操作流程"></a>2.5.4 多文档操作流程</h3><p>mget 和 bulk API 的模式类似于单文档模式。区别在于协调节点知道每个文档存在于哪个分片中。它将整个多文档请求分解成 每个分片 的多文档请求,并且将这些请求并行转发到每个参与节点。<br>​</p>
+<p>协调节点一旦收到来自每个节点的应答,就将每个节点的响应收集整理成单个响应,返回给客户端。<br>​</p>
+<pre><code>   ![1.png](https://cdn.nlark.com/yuque/0/2021/png/12610368/1623024865729-26effe50-79f2-43f9-8e45-aed953fa51bc.png#clientId=ubda5c093-cc76-4&amp;from=ui&amp;id=ue0abbe02&amp;margin=%5Bobject%20Object%5D&amp;name=1.png&amp;originHeight=224&amp;originWidth=644&amp;originalType=binary&amp;ratio=2&amp;size=53325&amp;status=done&amp;style=none&amp;taskId=u93ed7c3a-2aa8-4bac-a35d-0cbb9b6d416)
+</code></pre>
+<p><strong>用单个 mget 请求取回多个文档所需的步骤顺序:</strong><br><strong>​</strong></p>
+<ol>
+<li>客户端向 Node 1 发送 mget 请求。</li>
+<li>Node 1 为每个分片构建多文档获取请求,然后并行转发这些请求到托管在每个所需的主分片或者副本分片的节点上。一旦收到所有答复, Node 1 构建响应并将其返回给客户端。</li>
+</ol>
+<p>​</p>
+<p>可以对 docs 数组中每个文档设置 routing 参数。<br>​</p>
+<p><strong>bulk API</strong>, 允许在单个批量请求中执行多个创建、索引、删除和更新请求。<br>​</p>
+<pre><code>                   ![1.png](https://cdn.nlark.com/yuque/0/2021/png/12610368/1623024954615-d04f5d7c-5a5b-4388-b04f-aafc82d4dd78.png#clientId=ubda5c093-cc76-4&amp;from=ui&amp;id=u9f023603&amp;margin=%5Bobject%20Object%5D&amp;name=1.png&amp;originHeight=250&amp;originWidth=547&amp;originalType=binary&amp;ratio=2&amp;size=42248&amp;status=done&amp;style=none&amp;taskId=ud39cf9c1-2196-4596-a720-f75d22a80b4)
+</code></pre>
+<p><strong>bulk API 按如下步骤顺序执行:</strong></p>
+<ol>
+<li>客户端向 Node 1 发送 bulk 请求。</li>
+<li>Node 1 为每个节点创建一个批量请求,并将这些请求并行转发到每个包含主分片的节点主机。</li>
+<li>主分片一个接一个按顺序执行每个操作。当每个操作成功时,主分片并行转发新文档(或删除)到副本分片,然后执行下一个操作。 一旦所有的副本分片报告所有操作成功,该节点将向协调节点报告成功,协调节点将这些响应收集整理并返回给客户端。<h2 id="2-6-分片原理"><a href="#2-6-分片原理" class="headerlink" title="2.6 分片原理"></a>2.6 分片原理</h2>分片是 Elasticsearch 最小的工作单元。但是究竟什么是一个分片,它是如何工作的?<br>​</li>
+</ol>
+<p>传统的数据库每个字段存储单个值,但这对全文检索并不够。文本字段中的每个单词需要被搜索,对数据库意味着需要单个字段有索引多值的能力。最好的支持是一个字段多个值需求的数据结构是倒排索引。<br>​</p>
+<h3 id="2-6-1-倒排索引"><a href="#2-6-1-倒排索引" class="headerlink" title="2.6.1 倒排索引"></a>2.6.1 倒排索引</h3><p>Elasticsearch 使用一种称为倒排索引的结构,它适用于快速的全文搜索。<br>​</p>
+<p>见其名,知其意,有倒排索引,肯定会对应有正向索引。正向索引(forward index),反向索引(inverted index)更熟悉的名字是倒排索引。<br>​</p>
+<p>所谓的正向索引,就是搜索引擎会将待搜索的文件都对应一个文件 ID,搜索时将这个ID 和搜索关键字进行对应,形成 K-V 对,然后对关键字进行统计计数。<br>​</p>
+<pre><code>                       ![1.png](https://cdn.nlark.com/yuque/0/2021/png/12610368/1623025212673-946ce42f-d197-45d0-b729-4a4fcd0c7521.png#clientId=ubda5c093-cc76-4&amp;from=ui&amp;id=u732e4e3a&amp;margin=%5Bobject%20Object%5D&amp;name=1.png&amp;originHeight=210&amp;originWidth=483&amp;originalType=binary&amp;ratio=2&amp;size=70661&amp;status=done&amp;style=none&amp;taskId=u1bfc4bd6-0109-48e9-96b2-78323f947dd)
+</code></pre>
+<p>​</p>
+<p>但是互联网上收录在搜索引擎中的文档的数目是个天文数字,这样的索引结构根本无法满足实时返回排名结果的要求。所以,搜索引擎会将正向索引重新构建为倒排索引,即把文件ID 对应到关键词的映射转换为关键词到文件 ID 的映射,每个关键词都对应着一系列的文件,这些文件中都出现这个关键词。<br>​</p>
+<pre><code>                       ![1.png](https://cdn.nlark.com/yuque/0/2021/png/12610368/1623025251544-d1171ecc-16cf-4669-9aab-22a0596d0836.png#clientId=ubda5c093-cc76-4&amp;from=ui&amp;id=u4d8a7ac1&amp;margin=%5Bobject%20Object%5D&amp;name=1.png&amp;originHeight=233&amp;originWidth=477&amp;originalType=binary&amp;ratio=2&amp;size=64846&amp;status=done&amp;style=none&amp;taskId=u8bd13f31-b65a-4284-8295-d9864474a22)
+</code></pre>
+<p>一个倒排索引由文档中所有不重复词的列表构成,对于其中每个词,有一个包含它的文档列表。例如,假设我们有两个文档,每个文档的 content 域包含如下内容:</p>
+<ul>
+<li>The quick brown fox jumped over the lazy dog</li>
+<li>Quick brown foxes leap over lazy dogs in summer</li>
+</ul>
+<p>​</p>
+<p>为了创建倒排索引,我们首先将每个文档的 content 域拆分成单独的 词(我们称它为 词条或 tokens ),创建一个包含所有不重复词条的排序列表,然后列出每个词条出现在哪个文档。结果如下所示:<br>                                                                 <img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1623025313435-d5f74be4-1c86-46ed-9f4a-5f89d27cf3fc.png#clientId=ubda5c093-cc76-4&from=ui&id=udda88ba8&margin=%5Bobject%20Object%5D&name=1.png&originHeight=327&originWidth=182&originalType=binary&ratio=2&size=9614&status=done&style=none&taskId=ue3f204c5-20eb-463c-b8dc-a11e027160b" alt="1.png"><br>现在,如果我们想搜索 <code>quick brown</code> ,我们只需要查找包含每个词条的文档:<br>                                                      <img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1623025366450-7fe1babe-22bb-4d5b-8b68-0fb5f823148d.png#clientId=ubda5c093-cc76-4&from=ui&id=u44879b33&margin=%5Bobject%20Object%5D&name=1.png&originHeight=163&originWidth=251&originalType=binary&ratio=2&size=8824&status=done&style=none&taskId=ueb6d2fc5-1da8-4a32-8c3b-ebec86dd8f0" alt="1.png"><br>两个文档都匹配,但是第一个文档比第二个匹配度更高。如果我们使用仅计算匹配词条数量的简单相似性算法,那么我们可以说,对于我们查询的相关性来讲,第一个文档比第二个文档更佳。<br>​</p>
+<p>目前的倒排索引有一些问题:</p>
+<ul>
+<li> Quick 和 quick 以独立的词条出现,然而用户可能认为它们是相同的词。</li>
+<li>fox 和 foxes 非常相似, 就像 dog 和 dogs ;他们有相同的词根。</li>
+<li> jumped 和 leap, 尽管没有相同的词根,但他们的意思很相近。他们是同义词。</li>
+</ul>
+<p>​</p>
+<p>使用前面的索引搜索 +Quick +fox 不会得到任何匹配文档。(记住,+ 前缀表明这个词必须存在。)只有同时出现 Quick 和 fox 的文档才满足这个查询条件,但是第一个文档包含quick fox ,第二个文档包含 Quick foxes 。<br>​</p>
+<p>我们的用户可以合理的期望两个文档与查询匹配。我们可以做的更好。<br>​</p>
+<p>如果我们将词条规范为标准模式,那么我们可以找到与用户搜索的词条不完全一致,但具有足够相关性的文档。例如:</p>
+<ul>
+<li>Quick 可以小写化为 quick 。</li>
+<li>foxes 可以 词干提取 –变为词根的格式– 为 fox 。类似的, dogs 可以为提取为 dog 。</li>
+<li>jumped 和 leap 是同义词,可以索引为相同的单词 jump 。</li>
+</ul>
+<p>​</p>
+<p>现在索引看上去像这样:<br>​</p>
+<pre><code>                                                         ![1.png](https://cdn.nlark.com/yuque/0/2021/png/12610368/1623025513378-ce974175-0824-4575-9866-0b8a271a9d14.png#clientId=ubda5c093-cc76-4&amp;from=ui&amp;id=u95b8303d&amp;margin=%5Bobject%20Object%5D&amp;name=1.png&amp;originHeight=305&amp;originWidth=225&amp;originalType=binary&amp;ratio=2&amp;size=6630&amp;status=done&amp;style=none&amp;taskId=u68d7fdc7-4195-4e3b-9134-b1e1c92aebb)
+</code></pre>
+<p>这还远远不够。我们搜索 +Quick +fox 仍然 会失败,因为在我们的索引中,已经没有 Quick了。但是,如果我们对搜索的字符串使用与 content 域相同的标准化规则,会变成查询+quick +fox,这样两个文档都会匹配!分词和标准化的过程称为<strong>分析。</strong></p>
+<p>这非常重要。你只能搜索在索引中出现的词条,所以索引文本和查询字符串必须标准化为相同的格式。</p>
+<h3 id="2-6-2-文档搜索"><a href="#2-6-2-文档搜索" class="headerlink" title="2.6.2 文档搜索"></a>2.6.2 文档搜索</h3><p>早期的全文检索会为整个文档集合建立一个很大的倒排索引并将其写入到磁盘。 一旦新的索引就绪,旧的就会被其替换,这样最近的变化便可以被检索到。<br>​</p>
+<p>倒排索引被写入磁盘后是 不可改变 的:它永远不会修改。<br>​</p>
+<p>不变性有重要的价值:<br>​</p>
+<ul>
+<li>不需要锁。如果你从来不更新索引,你就不需要担心多进程同时修改数据的问题。</li>
+<li> 一旦索引被读入内核的文件系统缓存,便会留在哪里,由于其不变性。只要文件系统缓存中还有足够的空间,那么大部分读请求会直接请求内存,而不会命中磁盘。这提供了很大的性能提升。</li>
+<li>其它缓存(像 filter 缓存),在索引的生命周期内始终有效。它们不需要在每次数据改变时被重建,因为数据不会变化。</li>
+<li>写入单个大的倒排索引允许数据被压缩,减少磁盘 I/O 和 需要被缓存到内存的索引的使用量。</li>
+</ul>
+<p>​</p>
+<p>当然,一个不变的索引也有不好的地方。主要事实是它是不可变的! 你不能修改它。如果你需要让一个新的文档 可被搜索,你需要重建整个索引。这要么对一个索引所能包含的数据量造成了很大的限制,要么对索引可被更新的频率造成了很大的限制。<br>​</p>
+<h3 id="2-6-3-动态更新索引"><a href="#2-6-3-动态更新索引" class="headerlink" title="2.6.3 动态更新索引"></a>2.6.3 动态更新索引</h3><p><strong>如何在保留不变性的前提下实现倒排索引的更新?</strong><br><strong>​</strong></p>
+<p>答案是: 用更多的索引。通过增加新的补充索引来反映新近的修改,而不是直接重写整个倒排索引。每一个倒排索引都会被轮流查询到,从最早的开始查询完后再对结果进行合并。<br>​</p>
+<p>Elasticsearch 基于 Lucene, 这个 java 库引入了按段搜索的概念。 每一 段 本身都是一个倒排索引, 但索引在 Lucene 中除表示所有段的集合外, 还增加了提交点的概念 — 一个列出了所有已知段的文件。<br>​</p>
+<pre><code>                        ![1.png](https://cdn.nlark.com/yuque/0/2021/png/12610368/1623025848474-77e1c696-944f-45b9-bb5e-4186784ce6c6.png#clientId=ubda5c093-cc76-4&amp;from=ui&amp;id=uf66ec04b&amp;margin=%5Bobject%20Object%5D&amp;name=1.png&amp;originHeight=290&amp;originWidth=493&amp;originalType=binary&amp;ratio=2&amp;size=50707&amp;status=done&amp;style=none&amp;taskId=u924da882-dda0-4689-924a-f630496a4c7)
+</code></pre>
+<p><strong>按段搜索</strong>会以如下流程执行:</p>
+<ol>
+<li><p>新文档被收集到内存索引缓存</p>
+<pre><code>                                 ![1.png](https://cdn.nlark.com/yuque/0/2021/png/12610368/1623025907767-dea7f0ca-574f-432b-b412-81c77d21a20f.png#clientId=ubda5c093-cc76-4&amp;from=ui&amp;id=uc7875160&amp;margin=%5Bobject%20Object%5D&amp;name=1.png&amp;originHeight=281&amp;originWidth=395&amp;originalType=binary&amp;ratio=2&amp;size=47524&amp;status=done&amp;style=none&amp;taskId=uabf22589-498a-4866-9fa4-7df353524ab)
+</code></pre>
+</li>
+<li><p>不时地, 缓存被 提交</p>
+</li>
+</ol>
+<p>1）一个新的段—一个追加的倒排索引—被写入磁盘。<br>2）一个新的包含新段名字的 提交点 被写入磁盘<br>3）磁盘进行 同步 — 所有在文件系统缓存中等待的写入都刷新到磁盘,以确保它们被写入物理文件</p>
+<ol start="3">
+<li><p>新的段被开启,让它包含的文档可见以被搜索</p>
+</li>
+<li><p>内存缓存被清空,等待接收新的文档</p>
+<pre><code>                          ![1.png](https://cdn.nlark.com/yuque/0/2021/png/12610368/1623026080861-100a1950-51c8-445b-9180-566270e523fd.png#clientId=ubda5c093-cc76-4&amp;from=ui&amp;id=ucefb597b&amp;margin=%5Bobject%20Object%5D&amp;name=1.png&amp;originHeight=377&amp;originWidth=443&amp;originalType=binary&amp;ratio=2&amp;size=76786&amp;status=done&amp;style=none&amp;taskId=uf1f6d4c3-789a-4e6a-92d1-74b6a112fab)
+</code></pre>
+<p>当一个查询被触发,所有已知的段按顺序被查询。词项统计会对所有段的结果进行聚合,以保证每个词和每个文档的关联都被准确计算。 这种方式可以用相对较低的成本将新文档添加到索引。<br>​</p>
+</li>
+</ol>
+<p>段是不可改变的,所以既不能从把文档从旧的段中移除,也不能修改旧的段来进行反映文档的更新。 取而代之的是,每个提交点会包含一个 .del 文件,文件中会列出这些被删除文档的段信息。<br>​</p>
+<p>当一个文档被 “删除” 时,它实际上只是在 .del 文件中被 标记 删除。一个被标记删除的文档仍然可以被查询匹配到, 但它会在最终结果被返回前从结果集中移除。文档更新也是类似的操作方式:当一个文档被更新时,旧版本文档被标记删除,文档的新版本被索引到一个新的段中。 可能两个版本的文档都会被一个查询匹配到,但被删除的那个<br>旧版本文档在结果集返回前就已经被移除。<br>​</p>
+<h3 id="2-6-4-近实时搜索"><a href="#2-6-4-近实时搜索" class="headerlink" title="2.6.4 近实时搜索"></a>2.6.4 近实时搜索</h3><p>随着按段(per-segment)搜索的发展,一个新的文档从索引到可被搜索的延迟显著降低了。新文档在几分钟之内即可被检索,但这样还是不够快。磁盘在这里成为了瓶颈。提交(Commiting)一个新的段到磁盘需要一个 <code>fsync</code> 来确保段被物理性地写入磁盘,这样在断电的时候就不会丢失数据。 但是 <code>fsync</code> 操作代价很大; 如果每次索引一个文档都去执行一次的话会造成很大的性能问题。<br>​</p>
+<p>我们需要的是一个更轻量的方式来使一个文档可被搜索,这意味着 <code>fsync</code> 要从整个过程中被移除。在Elasticsearch 和磁盘之间是文件系统缓存。 像之前描述的一样, 在内存索引缓冲区中的文档会被写入到一个新的段中。 但是这里新段会被先写入到文件系统缓存—这一步代价会比较低,稍后再被刷新到磁盘—这一步代价比较高。不过只要文件已经在缓存中,就可以像其它文件一样被打开和读取了。<br>​</p>
+<pre><code>                                            ![1.png](https://cdn.nlark.com/yuque/0/2021/png/12610368/1623026223455-6cd90d3d-fccb-4998-8eec-1cf20b28e79d.png#clientId=ubda5c093-cc76-4&amp;from=ui&amp;id=u9cdd96a0&amp;margin=%5Bobject%20Object%5D&amp;name=1.png&amp;originHeight=311&amp;originWidth=305&amp;originalType=binary&amp;ratio=2&amp;size=29985&amp;status=done&amp;style=none&amp;taskId=u9455fea8-0471-40c9-b10d-78952937383)
+</code></pre>
+<p><strong>Lucene</strong> 允许新段被写入和打开—使其包含的文档在未进行一次完整提交时便对搜索可见。这种方式比进行一次提交代价要小得多,并且在不影响性能的前提下可以被频繁地执行。<br><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1623026266953-e4823fc7-7543-40e0-8e63-0db5b65de962.png#clientId=ubda5c093-cc76-4&from=ui&id=u7f0a4c2f&margin=%5Bobject%20Object%5D&name=1.png&originHeight=348&originWidth=372&originalType=binary&ratio=2&size=33539&status=done&style=none&taskId=ub577d72b-9dcc-45a2-bcbb-c00fd5c27aa" alt="1.png"></p>
+<p>在 Elasticsearch 中,写入和打开一个新段的轻量的过程叫做 refresh 。 默认情况下每个分片会每秒自动刷新一次。这就是为什么我们说 Elasticsearch 是 近 实时搜索: 文档的变化并不是立即对搜索可见,但会在一秒之内变为可见。<br>​</p>
+<p>这些行为可能会对新用户造成困惑: 他们索引了一个文档然后尝试搜索它,但却没有搜到。这个问题的解决办法是用 <code>refresh API</code> 执行一次手动刷新: <code>/users/_refresh</code><br>​</p>
+<p>尽管刷新是比提交轻量很多的操作,它还是会有性能开销。当写测试的时候, 手动刷新很有用,但是不要在生产环境下每次索引一个文档都去手动刷新。 相反,你的应用需要意识到 Elasticsearch 的近实时的性质,并接受它的不足。<br>​</p>
+<p>并不是所有的情况都需要每秒刷新。可能你正在使用 <code>Elasticsearch</code> 索引大量的日志文件,你可能想优化索引速度而不是近实时搜索, 可以通过设置 <code>refresh_interval</code> , 降低每个索引的刷新频率。<br>​</p>
+<p>​</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="string">&quot;settings&quot;</span>: &#123;</span><br><span class="line">    <span class="string">&quot;refresh_interval&quot;</span>: <span class="string">&quot;30s&quot;</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>refresh_interval</code> 可以在既存索引上进行动态更新。 在生产环境中,当你正在建立一个大的新索引时,可以先关闭自动刷新,待开始使用该索引时,再把它们调回来。<br>​</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"># 关闭自动刷新</span><br><span class="line">PUT /users/_settings</span><br><span class="line">&#123; <span class="string">&quot;refresh_interval&quot;</span>: -<span class="number">1</span> &#125;</span><br><span class="line"># 每一秒刷新</span><br><span class="line">PUT /users/_settings</span><br><span class="line">&#123; <span class="string">&quot;refresh_interval&quot;</span>: <span class="string">&quot;1s&quot;</span> &#125;</span><br></pre></td></tr></table></figure>
+<h3 id="2-6-5-持久化变更"><a href="#2-6-5-持久化变更" class="headerlink" title="2.6.5 持久化变更"></a>2.6.5 持久化变更</h3><p>如果没有用 fsync 把数据从文件系统缓存刷(flush)到硬盘,我们不能保证数据在断电甚至是程序正常退出之后依然存在。为了保证 Elasticsearch 的可靠性,需要确保数据变化被持久化到磁盘。在 动态更新索引,我们说一次完整的提交会将段刷到磁盘,并写入一个包含所有段列表的提交点。 Elasticsearch 在启动或重新打开一个索引的过程中使用这个提交点来判断哪些段隶属于当前分片。<br>​</p>
+<p>即使通过每秒刷新(refresh)实现了近实时搜索,我们仍然需要经常进行完整提交来确保能从失败中恢复。但在两次提交之间发生变化的文档怎么办?我们也不希望丢失掉这些数据。Elasticsearch 增加了一个 translog ,或者叫事务日志,在每一次对 Elasticsearch 进行操作时均进行了日志记录。<br>​</p>
+<p>整个流程如下:</p>
+<ol>
+<li><p>一个文档被索引之后,就会被添加到内存缓冲区,并且追加到了 translog</p>
+<pre><code>                               ![1.png](https://cdn.nlark.com/yuque/0/2021/png/12610368/1623026691582-539f1980-35ea-4200-9431-7bf8fb562b10.png#clientId=ubda5c093-cc76-4&amp;from=ui&amp;id=u1d6c2983&amp;margin=%5Bobject%20Object%5D&amp;name=1.png&amp;originHeight=297&amp;originWidth=350&amp;originalType=binary&amp;ratio=2&amp;size=59367&amp;status=done&amp;style=none&amp;taskId=u7c9bc1cb-bcfc-4c2e-adde-d60f9beb21b)
+</code></pre>
+</li>
+<li><p>刷新(refresh)使分片每秒被刷新(refresh)一次:</p>
+</li>
+</ol>
+<ul>
+<li>这些在内存缓冲区的文档被写入到一个新的段中,且没有进行 fsync 操作。</li>
+<li>这个段被打开,使其可被搜索</li>
+<li>内存缓冲区被清空</li>
+</ul>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1623026777436-7e6bd8fc-3722-4e34-8141-fd392538099a.png#clientId=ubda5c093-cc76-4&from=ui&id=u07bcf6c0&margin=%5Bobject%20Object%5D&name=1.png&originHeight=331&originWidth=394&originalType=binary&ratio=2&size=68192&status=done&style=none&taskId=u12885c72-3297-4bac-9328-dd6eecc8403" alt="1.png"></p>
+<ol start="3">
+<li>这个进程继续工作,更多的文档被添加到内存缓冲区和追加到事务日志</li>
+</ol>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1623026946846-ea34caef-5f47-4e7b-b229-70507b8c4504.png#clientId=ubda5c093-cc76-4&from=ui&id=u8dcf7cd0&margin=%5Bobject%20Object%5D&name=1.png&originHeight=348&originWidth=409&originalType=binary&ratio=2&size=79131&status=done&style=none&taskId=u676565c2-be0b-4a35-a365-39dbc3e2c7c" alt="1.png"></p>
+<ol start="4">
+<li>每隔一段时间—例如 translog 变得越来越大—索引被刷新(flush);一个新的 translog被创建,并且一个全量提交被执行</li>
+</ol>
+<ul>
+<li>所有在内存缓冲区的文档都被写入一个新的段。</li>
+<li>缓冲区被清空。</li>
+<li>一个提交点被写入硬盘。</li>
+<li>文件系统缓存通过 fsync 被刷新(flush)。</li>
+<li>老的 translog 被删除。</li>
+</ul>
+<p>​</p>
+<p>translog 提供所有还没有被刷到磁盘的操作的一个持久化纪录。当 Elasticsearch 启动的时候, 它会从磁盘中使用最后一个提交点去恢复已知的段,并且会重放 translog 中所有在最后一次提交后发生的变更操作。<br>​</p>
+<p>translog 也被用来提供实时 CRUD 。当你试着通过 ID 查询、更新、删除一个文档,它会在尝试从相应的段中检索之前, 首先检查 translog 任何最近的变更。这意味着它总是能够实时地获取到文档的最新版本。<br>​</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1623027101920-085004de-45f8-423d-b9f7-0d1b808e108c.png#clientId=ubda5c093-cc76-4&from=ui&id=uc3c0f6da&margin=%5Bobject%20Object%5D&name=1.png&originHeight=400&originWidth=485&originalType=binary&ratio=2&size=100140&status=done&style=none&taskId=ue8959a12-9399-4c9c-b6d2-899357946ef" alt="1.png"><br>执行一个提交并且截断 translog 的行为在 Elasticsearch 被称作一次 flush<br>​</p>
+<p>分片每 30 分钟被自动刷新(flush),或者在 translog 太大的时候也会刷新<br>​</p>
+<p>你很少需要自己手动执行 flush 操作;通常情况下,自动刷新就足够了。这就是说,在重启节点或关闭索引之前执行 flush 有益于你的索引。当 Elasticsearch 尝试恢复或重新打<br>开一个索引, 它需要重放 translog 中所有的操作,所以如果日志越短,恢复越快。<br>​</p>
+<p>translog 的目的是保证操作不会丢失,在文件被 fsync 到磁盘前,被写入的文件在重启之后就会丢失。默认 translog 是每 5 秒被 fsync 刷新到硬盘, 或者在每次写请求完成之后执行(e.g. index, delete, update, bulk)。这个过程在主分片和复制分片都会发生。最终, 基本上,这意味着在整个请求被 fsync 到主分片和复制分片的 translog 之前,你的客户端不会得到一个 200 OK 响应。<br>​</p>
+<p>在每次请求后都执行一个 fsync 会带来一些性能损失,尽管实践表明这种损失相对较小(特别是 bulk 导入,它在一次请求中平摊了大量文档的开销)。<br>​</p>
+<p>但是对于一些大容量的偶尔丢失几秒数据问题也并不严重的集群,使用异步的 fsync还是比较有益的。比如,写入的数据被缓存到内存中,再每 5 秒执行一次 fsync 。如果你决定使用异步 translog 的话,你需要 保证 在发生 crash 时,丢失掉 sync_interval 时间段的数据也无所谓。请在决定前知晓这个特性。如果你不确定这个行为的后果,最好是使用默认的参数( “index.translog.durability”: “request” )来避免数据丢失。<br>​</p>
+<h3 id="2-6-6-段合并"><a href="#2-6-6-段合并" class="headerlink" title="2.6.6 段合并"></a>2.6.6 段合并</h3><p>由于自动刷新流程每秒会创建一个新的段 ,这样会导致短时间内的段数量暴增。而段数目太多会带来较大的麻烦。 每一个段都会消耗文件句柄、内存和 cpu 运行周期。更重要的是,每个搜索请求都必须轮流检查每个段;所以段越多,搜索也就越慢。<br>​</p>
+<p>段合并的时候会将那些旧的已删除文档从文件系统中清除。被删除的文档(或被更新文档的旧版本)不会被拷贝到新的大段中。<br>​</p>
+<p>启动段合并不需要你做任何事。进行索引和搜索时会自动进行。<br>​</p>
+<ol>
+<li>当索引的时候,刷新(refresh)操作会创建新的段并将段打开以供搜索使用。</li>
+<li>合并进程选择一小部分大小相似的段,并且在后台将它们合并到更大的段中。这并不会中断索引和搜索。</li>
+</ol>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1623027442408-6f9149db-fbe5-4e18-b74f-e57b9a5af72d.png#clientId=ubda5c093-cc76-4&from=ui&id=u7f8c74ec&margin=%5Bobject%20Object%5D&name=1.png&originHeight=250&originWidth=438&originalType=binary&ratio=2&size=31367&status=done&style=none&taskId=ue70bef5f-e03d-48a3-a7a4-0f6db3a2be3" alt="1.png"></p>
+<ol start="3">
+<li>一旦合并结束,老的段被删除</li>
+</ol>
+<ul>
+<li><p>新的段被刷新(flush)到了磁盘。 ** 写入一个包含新段且排除旧的和较小的段的新提交点。</p>
+</li>
+<li><p>新的段被打开用来搜索。</p>
+</li>
+<li><p>老的段被删除。</p>
+<pre><code>                       ![1.png](https://cdn.nlark.com/yuque/0/2021/png/12610368/1623027512182-ad0ff1b5-52a9-4de1-926b-cd6ad7aee0ae.png#clientId=ubda5c093-cc76-4&amp;from=ui&amp;id=u7eb054a3&amp;margin=%5Bobject%20Object%5D&amp;name=1.png&amp;originHeight=248&amp;originWidth=436&amp;originalType=binary&amp;ratio=2&amp;size=49791&amp;status=done&amp;style=none&amp;taskId=u212f955f-eab0-41d6-b331-5d3a2f2a0eb)
+</code></pre>
+<p>合并大的段需要消耗大量的 I/O 和 CPU 资源,如果任其发展会影响搜索性能。Elasticsearch在默认情况下会对合并流程进行资源限制,所以搜索仍然 有足够的资源很好地执行。</p>
+<h2 id="2-7-文档分析"><a href="#2-7-文档分析" class="headerlink" title="2.7 文档分析"></a>2.7 文档分析</h2><p>分析 包含下面的过程:</p>
+</li>
+<li><p>将一块文本分成适合于倒排索引的独立的 词条。</p>
+</li>
+<li><p>将这些词条统一化为标准格式以提高它们的“可搜索性”,或者 recall。</p>
+</li>
+</ul>
+<p>分析器执行上面的工作。分析器实际上是将三个功能封装到了一个包里:</p>
+<ul>
+<li>字符过滤器</li>
+</ul>
+<p>首先,字符串按顺序通过每个 字符过滤器 。他们的任务是在分词前整理字符串。一个字符过滤器可以用来去掉 HTML,或者将 &amp; 转化成 and。</p>
+<ul>
+<li>分词器</li>
+</ul>
+<p>其次,字符串被 分词器 分为单个的词条。一个简单的分词器遇到空格和标点的时候,可能会将文本拆分成词条。</p>
+<ul>
+<li>Token 过滤器</li>
+</ul>
+<p>最后,词条按顺序通过每个 token 过滤器 。这个过程可能会改变词条(例如,小写化Quick ),删除词条(例如, 像 a, and, the 等无用词),或者增加词条(例如,像 jump和 leap 这种同义词)。</p>
+<h3 id="2-7-1-内置分析器"><a href="#2-7-1-内置分析器" class="headerlink" title="2.7.1 内置分析器"></a>2.7.1 内置分析器</h3><p>Elasticsearch 还附带了可以直接使用的预包装的分析器。接下来我们会列出最重要的分析器。为了证明它们的差异,我们看看每个分析器会从下面的字符串得到哪些词条:<br>​</p>
+<p><code>&quot;Set the shape to semi-transparent by calling set_trans(5)&quot;</code><br>​</p>
+<ul>
+<li>标准分析器</li>
+</ul>
+<p>标准分析器是 Elasticsearch 默认使用的分析器。它是分析各种语言文本最常用的选择。它根据 Unicode 联盟 定义的 单词边界 划分文本。删除绝大部分标点。最后,将词条小写。它会产生:<br><code>set, the, shape, to, semi, transparent, by, calling, set_trans, 5</code></p>
+<ul>
+<li>简单分析器</li>
+</ul>
+<p>简单分析器在任何不是字母的地方分隔文本,将词条小写。它会产生:<br><code>set, the, shape, to, semi, transparent, by, calling, set, trans</code></p>
+<ul>
+<li>空格分析器</li>
+</ul>
+<p>空格分析器在空格的地方划分文本。它会产生:<br><code>Set, the, shape, to, semi-transparent, by, calling, set_trans(5)</code></p>
+<ul>
+<li>语言分析器</li>
+</ul>
+<p>特定语言分析器可用于 很多语言。它们可以考虑指定语言的特点。例如, 英语 分析器附带了一组英语无用词(常用单词,例如 and 或者 the ,它们对相关性没有多少影响),它们会被删除。 由于理解英语语法的规则,这个分词器可以提取英语单词的 词干 。<br>​</p>
+<p>英语 分词器会产生下面的词条:<br>​</p>
+<p><code>set, shape, semi, transpar, call, set_tran, 5</code><br>​</p>
+<p>注意看<code> transparent、 calling 和 set_trans</code> 已经变为词根格式。<br>​</p>
+<h3 id="2-7-2-分析器使用场景"><a href="#2-7-2-分析器使用场景" class="headerlink" title="2.7.2 分析器使用场景"></a>2.7.2 分析器使用场景</h3><p>当我们 索引 一个文档,它的全文域被分析成词条以用来创建倒排索引。 但是,当我们在全文域 搜索 的时候,我们需要将查询字符串通过 相同的分析过程 ,以保证我们搜索的词条格式与索引中的词条格式一致。<br>​</p>
+<p>全文查询,理解每个域是如何定义的,因此它们可以做正确的事:</p>
+<ul>
+<li>当你查询一个 全文 域时, 会对查询字符串应用相同的分析器,以产生正确的搜索词条列表。</li>
+<li>当你查询一个 精确值 域时,不会分析查询字符串,而是搜索你指定的精确值。</li>
+</ul>
+<p>​</p>
+<h3 id="2-7-3-测试分析器"><a href="#2-7-3-测试分析器" class="headerlink" title="2.7.3 测试分析器"></a>2.7.3 测试分析器</h3><p>有 些 时 候 很 难 理 解 分 词的 过 程 和 实 际 被 存 储 到索 引 中 的 词 条 , 特 别 是你 刚 接 触Elasticsearch。为了理解发生了什么,你可以使用 analyze API 来看文本是如何被分析的。在消息体里,指定分析器和要分析的文本。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">GET http:<span class="comment">//localhost:9200/_analyze</span></span><br><span class="line">&#123;</span><br><span class="line"><span class="string">&quot;analyzer&quot;</span>: <span class="string">&quot;standard&quot;</span>,</span><br><span class="line"><span class="string">&quot;text&quot;</span>: <span class="string">&quot;Text to analyze&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>结果中每个元素代表一个单独的词条:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="string">&quot;tokens&quot;</span>: [</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="string">&quot;token&quot;</span>: <span class="string">&quot;text&quot;</span>,</span><br><span class="line">      <span class="string">&quot;start_offset&quot;</span>: <span class="number">0</span>,</span><br><span class="line">      <span class="string">&quot;end_offset&quot;</span>: <span class="number">4</span>,</span><br><span class="line">      <span class="string">&quot;type&quot;</span>: <span class="string">&quot;&lt;ALPHANUM&gt;&quot;</span>,</span><br><span class="line">      <span class="string">&quot;position&quot;</span>: <span class="number">1</span></span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="string">&quot;token&quot;</span>: <span class="string">&quot;to&quot;</span>,</span><br><span class="line">      <span class="string">&quot;start_offset&quot;</span>: <span class="number">5</span>,</span><br><span class="line">      <span class="string">&quot;end_offset&quot;</span>: <span class="number">7</span>,</span><br><span class="line">      <span class="string">&quot;type&quot;</span>: <span class="string">&quot;&lt;ALPHANUM&gt;&quot;</span>,</span><br><span class="line">      <span class="string">&quot;position&quot;</span>: <span class="number">2</span></span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="string">&quot;token&quot;</span>: <span class="string">&quot;analyze&quot;</span>,</span><br><span class="line">      <span class="string">&quot;start_offset&quot;</span>: <span class="number">8</span>,</span><br><span class="line">      <span class="string">&quot;end_offset&quot;</span>: <span class="number">15</span>,</span><br><span class="line">      <span class="string">&quot;type&quot;</span>: <span class="string">&quot;&lt;ALPHANUM&gt;&quot;</span>,</span><br><span class="line">      <span class="string">&quot;position&quot;</span>: <span class="number">3</span></span><br><span class="line">    &#125;</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>​</p>
+<p>token 是 实 际 存 储 到 索 引 中 的 词 条 。 position 指 明 词 条 在 原 始 文 本 中 出 现 的 位 置 。start_offset 和 end_offset 指明字符在原始字符串中的位置。<br>​</p>
+<h3 id="2-7-4-指定分析器"><a href="#2-7-4-指定分析器" class="headerlink" title="2.7.4 指定分析器"></a>2.7.4 指定分析器</h3><p>当 Elasticsearch 在你的文档中检测到一个新的字符串域,它会自动设置其为一个全文 字符串 域,使用 标准 分析器对它进行分析。你不希望总是这样。可能你想使用一个不同的分析器,适用于你的数据使用的语言。有时候你想要一个字符串域就是一个字符串域—不使用分析,直接索引你传入的精确值,例如用户 ID 或者一个内部的状态域或标签。要做到这一点,我们必须手动指定这些域的映射。<br>​</p>
+<h3 id="2-7-5-IK分词器"><a href="#2-7-5-IK分词器" class="headerlink" title="2.7.5 IK分词器"></a>2.7.5 IK分词器</h3><p>首先我们通过 Postman 发送 <strong>GET</strong> 请求查询分词效果<br>​</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"># GET http:<span class="comment">//localhost:9200/_analyze</span></span><br><span class="line">&#123;</span><br><span class="line"><span class="string">&quot;text&quot;</span>:<span class="string">&quot;测试单词&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1623028280574-c934bd6e-f76b-4fa0-a391-f3e5ae26d294.png#clientId=ubda5c093-cc76-4&from=ui&id=u2a489fbc&margin=%5Bobject%20Object%5D&name=1.png&originHeight=216&originWidth=955&originalType=binary&ratio=2&size=33155&status=done&style=none&taskId=ud76aca60-5fc3-4a63-a074-e3350634237" alt="1.png">ES 的默认分词器无法识别中文中测试、单词这样的词汇,而是简单的将每个字拆完分为一个词</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">&quot;tokens&quot;</span>: [</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">&quot;token&quot;</span>: <span class="string">&quot;测&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;start_offset&quot;</span>: <span class="number">0</span>,</span><br><span class="line">      <span class="attr">&quot;end_offset&quot;</span>: <span class="number">1</span>,</span><br><span class="line">      <span class="attr">&quot;type&quot;</span>: <span class="string">&quot;&lt;IDEOGRAPHIC&gt;&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;position&quot;</span>: <span class="number">0</span></span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">&quot;token&quot;</span>: <span class="string">&quot;试&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;start_offset&quot;</span>: <span class="number">1</span>,</span><br><span class="line">      <span class="attr">&quot;end_offset&quot;</span>: <span class="number">2</span>,</span><br><span class="line">      <span class="attr">&quot;type&quot;</span>: <span class="string">&quot;&lt;IDEOGRAPHIC&gt;&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;position&quot;</span>: <span class="number">1</span></span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">&quot;token&quot;</span>: <span class="string">&quot;单&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;start_offset&quot;</span>: <span class="number">2</span>,</span><br><span class="line">      <span class="attr">&quot;end_offset&quot;</span>: <span class="number">3</span>,</span><br><span class="line">      <span class="attr">&quot;type&quot;</span>: <span class="string">&quot;&lt;IDEOGRAPHIC&gt;&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;position&quot;</span>: <span class="number">2</span></span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">&quot;token&quot;</span>: <span class="string">&quot;词&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;start_offset&quot;</span>: <span class="number">3</span>,</span><br><span class="line">      <span class="attr">&quot;end_offset&quot;</span>: <span class="number">4</span>,</span><br><span class="line">      <span class="attr">&quot;type&quot;</span>: <span class="string">&quot;&lt;IDEOGRAPHIC&gt;&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;position&quot;</span>: <span class="number">3</span></span><br><span class="line">    &#125;</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这样的结果显然不符合我们的使用要求,所以我们需要下载 ES 对应版本的中文分词器。<br>​</p>
+<p>我们这里采用 IK 中文分词器,下载地址为:<code>[https://github.com/medcl/elasticsearch-analysis-ik/releases/tag/v7.8.0](https://github.com/medcl/elasticsearch-analysis-ik/releases/tag/v7.8.0)​</code><br>​</p>
+<p>将解压后的后的文件夹放入 ES 根目录下的 plugins 目录下,重启 ES 即可使用。<br>​</p>
+<p>我们这次加入新的查询参数<code>&quot;analyzer&quot;:&quot;ik_max_word&quot;</code></p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"># GET http:<span class="comment">//localhost:9200/_analyze</span></span><br><span class="line">&#123;</span><br><span class="line"><span class="attr">&quot;text&quot;</span>:<span class="string">&quot;测试单词&quot;</span>,</span><br><span class="line"><span class="attr">&quot;analyzer&quot;</span>:<span class="string">&quot;ik_max_word&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li> ik_max_word:会将文本做最细粒度的拆分</li>
+<li> ik_smart:会将文本做最粗粒度的拆分</li>
+</ul>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1623028697825-48e60835-3ee3-477f-9d4c-73dbe34f66eb.png#clientId=ubda5c093-cc76-4&from=ui&id=u2f9b4d75&margin=%5Bobject%20Object%5D&name=1.png&originHeight=211&originWidth=959&originalType=binary&ratio=2&size=36057&status=done&style=none&taskId=u92953698-36b7-480b-aa0c-bd9a992e1c8" alt="1.png">使用中文分词后的结果为:</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">&quot;tokens&quot;</span>: [</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">&quot;token&quot;</span>: <span class="string">&quot;测试&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;start_offset&quot;</span>: <span class="number">0</span>,</span><br><span class="line">      <span class="attr">&quot;end_offset&quot;</span>: <span class="number">2</span>,</span><br><span class="line">      <span class="attr">&quot;type&quot;</span>: <span class="string">&quot;CN_WORD&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;position&quot;</span>: <span class="number">0</span></span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">&quot;token&quot;</span>: <span class="string">&quot;单词&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;start_offset&quot;</span>: <span class="number">2</span>,</span><br><span class="line">      <span class="attr">&quot;end_offset&quot;</span>: <span class="number">4</span>,</span><br><span class="line">      <span class="attr">&quot;type&quot;</span>: <span class="string">&quot;CN_WORD&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;position&quot;</span>: <span class="number">1</span></span><br><span class="line">    &#125;</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>ES 中也可以进行扩展词汇,首先查询</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"># GET http:<span class="comment">//localhost:9200/_analyze</span></span><br><span class="line">&#123;</span><br><span class="line"><span class="attr">&quot;text&quot;</span>:<span class="string">&quot;弗雷尔卓德&quot;</span>,</span><br><span class="line"><span class="attr">&quot;analyzer&quot;</span>:<span class="string">&quot;ik_max_word&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>仅仅可以得到每个字的分词结果,我们需要做的就是使分词器识别到弗雷尔卓德也是一个词语</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">&quot;tokens&quot;</span>: [</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">&quot;token&quot;</span>: <span class="string">&quot;弗&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;start_offset&quot;</span>: <span class="number">0</span>,</span><br><span class="line">      <span class="attr">&quot;end_offset&quot;</span>: <span class="number">1</span>,</span><br><span class="line">      <span class="attr">&quot;type&quot;</span>: <span class="string">&quot;CN_CHAR&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;position&quot;</span>: <span class="number">0</span></span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">&quot;token&quot;</span>: <span class="string">&quot;雷&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;start_offset&quot;</span>: <span class="number">1</span>,</span><br><span class="line">      <span class="attr">&quot;end_offset&quot;</span>: <span class="number">2</span>,</span><br><span class="line">      <span class="attr">&quot;type&quot;</span>: <span class="string">&quot;CN_CHAR&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;position&quot;</span>: <span class="number">1</span></span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">&quot;token&quot;</span>: <span class="string">&quot;尔&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;start_offset&quot;</span>: <span class="number">2</span>,</span><br><span class="line">      <span class="attr">&quot;end_offset&quot;</span>: <span class="number">3</span>,</span><br><span class="line">      <span class="attr">&quot;type&quot;</span>: <span class="string">&quot;CN_CHAR&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;position&quot;</span>: <span class="number">2</span></span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">&quot;token&quot;</span>: <span class="string">&quot;卓&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;start_offset&quot;</span>: <span class="number">3</span>,</span><br><span class="line">      <span class="attr">&quot;end_offset&quot;</span>: <span class="number">4</span>,</span><br><span class="line">      <span class="attr">&quot;type&quot;</span>: <span class="string">&quot;CN_CHAR&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;position&quot;</span>: <span class="number">3</span></span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">&quot;token&quot;</span>: <span class="string">&quot;德&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;start_offset&quot;</span>: <span class="number">4</span>,</span><br><span class="line">      <span class="attr">&quot;end_offset&quot;</span>: <span class="number">5</span>,</span><br><span class="line">      <span class="attr">&quot;type&quot;</span>: <span class="string">&quot;CN_CHAR&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;position&quot;</span>: <span class="number">4</span></span><br><span class="line">    &#125;</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>首先进入 ES 根目录中的 plugins 文件夹下的 ik 文件夹,进入 config 目录,创建 custom.dic文件,写入弗雷尔卓德。同时打开 IKAnalyzer.cfg.xml 文件,将新建的 custom.dic 配置其中,重启 ES 服务器。<br><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1623028894908-9019dc60-e2ca-4454-ae35-b18218667a3b.png#clientId=ubda5c093-cc76-4&from=ui&id=u7ebf0418&margin=%5Bobject%20Object%5D&name=1.png&originHeight=211&originWidth=670&originalType=binary&ratio=2&size=37108&status=done&style=none&taskId=ub8ff5bb2-d7d8-4389-bcb4-d9123ace821" alt="1.png"><br><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1623028918347-cfa4243c-a4b6-4f37-ab55-6cd744d3d461.png#clientId=ubda5c093-cc76-4&from=ui&id=u479b247b&margin=%5Bobject%20Object%5D&name=1.png&originHeight=376&originWidth=956&originalType=binary&ratio=2&size=70552&status=done&style=none&taskId=u80973299-0f58-4c51-b666-dee280dd17c" alt="1.png">​</p>
+<h3 id="2-7-6-自定义分析器"><a href="#2-7-6-自定义分析器" class="headerlink" title="2.7.6 自定义分析器"></a>2.7.6 自定义分析器</h3><p>虽然 Elasticsearch 带有一些现成的分析器,然而在分析器上 Elasticsearch 真正的强大之处在于,你可以通过在一个适合你的特定数据的设置之中组合字符过滤器、分词器、词汇单元过滤器来创建自定义的分析器。在 分析与分析器 我们说过,一个 分析器 就是在一个包里面组合了三种函数的一个包装器, 三种函数按照顺序被执行:</p>
+<ul>
+<li>字符过滤器</li>
+</ul>
+<p>字符过滤器 用来 整理 一个尚未被分词的字符串。例如,如果我们的文本是 HTML 格式的,它会包含像 <p> 或者 <div> 这样的 HTML 标签,这些标签是我们不想索引的。我们可以使用 html 清除 字符过滤器 来移除掉所有的 HTML 标签,并且像把 &Aacute; 转换为相对应的 Unicode 字符 Á 这样,转换 HTML 实体。一个分析器可能有 0 个或者多个字符过滤器。</p>
+<ul>
+<li>分词器</li>
+</ul>
+<p>一个分析器 必须 有一个唯一的分词器。 分词器把字符串分解成单个词条或者词汇单元。 标准 分析器里使用的 标准 分词器 把一个字符串根据单词边界分解成单个词条,并且移除掉大部分的标点符号,然而还有其他不同行为的分词器存在。<br>例如, 关键词 分词器 完整地输出 接收到的同样的字符串,并不做任何分词。 空格 分词器 只根据空格分割文本 。 正则 分词器 根据匹配正则表达式来分割文本 。</p>
+<ul>
+<li>词单元过滤器</li>
+</ul>
+<p>经过分词,作为结果的 词单元流 会按照指定的顺序通过指定的词单元过滤器 。词单元过滤器可以修改、添加或者移除词单元。我们已经提到过 lowercase 和 stop 词过滤器 ,但是在 Elasticsearch 里面还有很多可供选择的词单元过滤器。 词干过滤器 把单词 遏制 为 词干。 ascii_folding 过滤器移除变音符,把一个像 “très” 这样的词转换为 “tres” 。ngram 和 edge_ngram 词单元过滤器 可以产生 适合用于部分匹配或者自动补全的词单元。接下来,我们看看如何创建自定义的分析器:<br>​</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"># PUT http: <span class="comment">//localhost:9200/my_index</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="attr">&quot;settings&quot;</span>: &#123;</span><br><span class="line">    <span class="attr">&quot;analysis&quot;</span>: &#123;</span><br><span class="line">      <span class="attr">&quot;char_filter&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;&amp;_to_and&quot;</span>: &#123;</span><br><span class="line">          <span class="attr">&quot;type&quot;</span>: <span class="string">&quot;mapping&quot;</span>,</span><br><span class="line">          <span class="attr">&quot;mappings&quot;</span>: [</span><br><span class="line">            <span class="string">&quot;&amp;=&gt; and &quot;</span></span><br><span class="line">          ]</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;,</span><br><span class="line">      <span class="attr">&quot;filter&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;my_stopwords&quot;</span>: &#123;</span><br><span class="line">          <span class="attr">&quot;type&quot;</span>: <span class="string">&quot;stop&quot;</span>,</span><br><span class="line">          <span class="attr">&quot;stopwords&quot;</span>: [</span><br><span class="line">            <span class="string">&quot;the&quot;</span>,</span><br><span class="line">            <span class="string">&quot;a&quot;</span></span><br><span class="line">          ]</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;,</span><br><span class="line">      <span class="attr">&quot;analyzer&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;my_analyzer&quot;</span>: &#123;</span><br><span class="line">          <span class="attr">&quot;type&quot;</span>: <span class="string">&quot;custom&quot;</span>,</span><br><span class="line">          <span class="attr">&quot;char_filter&quot;</span>: [</span><br><span class="line">            <span class="string">&quot;html_strip&quot;</span>,</span><br><span class="line">            <span class="string">&quot;&amp;_to_and&quot;</span></span><br><span class="line">          ],</span><br><span class="line">          <span class="attr">&quot;tokenizer&quot;</span>: <span class="string">&quot;standard&quot;</span>,</span><br><span class="line">          <span class="attr">&quot;filter&quot;</span>: [</span><br><span class="line">            <span class="string">&quot;lowercase&quot;</span>,</span><br><span class="line">            <span class="string">&quot;my_stopwords&quot;</span></span><br><span class="line">          ]</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>索引被创建以后,使用 analyze API 来 测试这个新的分析器</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"># GET http:<span class="comment">//127.0.0.1:9200/my_index/_analyze</span></span><br><span class="line">&#123;</span><br><span class="line"><span class="attr">&quot;text&quot;</span>:<span class="string">&quot;The quick &amp; brown fox&quot;</span>,</span><br><span class="line"><span class="attr">&quot;analyzer&quot;</span>: <span class="string">&quot;my_analyzer&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1623029136828-69f8ba41-1518-4f13-a26d-0853417e255d.png#clientId=ubda5c093-cc76-4&from=ui&id=uf112397e&margin=%5Bobject%20Object%5D&name=1.png&originHeight=239&originWidth=958&originalType=binary&ratio=2&size=38398&status=done&style=none&taskId=ubf257e7c-ea21-4802-a7ee-4469ca94302" alt="1.png"><br>下面的缩略结果展示出我们的分析器正在正确地运行</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">&quot;tokens&quot;</span>: [</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">&quot;token&quot;</span>: <span class="string">&quot;quick&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;start_offset&quot;</span>: <span class="number">4</span>,</span><br><span class="line">      <span class="attr">&quot;end_offset&quot;</span>: <span class="number">9</span>,</span><br><span class="line">      <span class="attr">&quot;type&quot;</span>: <span class="string">&quot;&lt;ALPHANUM&gt;&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;position&quot;</span>: <span class="number">1</span></span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">&quot;token&quot;</span>: <span class="string">&quot;and&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;start_offset&quot;</span>: <span class="number">10</span>,</span><br><span class="line">      <span class="attr">&quot;end_offset&quot;</span>: <span class="number">11</span>,</span><br><span class="line">      <span class="attr">&quot;type&quot;</span>: <span class="string">&quot;&lt;ALPHANUM&gt;&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;position&quot;</span>: <span class="number">2</span></span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">&quot;token&quot;</span>: <span class="string">&quot;brown&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;start_offset&quot;</span>: <span class="number">12</span>,</span><br><span class="line">      <span class="attr">&quot;end_offset&quot;</span>: <span class="number">17</span>,</span><br><span class="line">      <span class="attr">&quot;type&quot;</span>: <span class="string">&quot;&lt;ALPHANUM&gt;&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;position&quot;</span>: <span class="number">3</span></span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">&quot;token&quot;</span>: <span class="string">&quot;fox&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;start_offset&quot;</span>: <span class="number">18</span>,</span><br><span class="line">      <span class="attr">&quot;end_offset&quot;</span>: <span class="number">21</span>,</span><br><span class="line">      <span class="attr">&quot;type&quot;</span>: <span class="string">&quot;&lt;ALPHANUM&gt;&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;position&quot;</span>: <span class="number">4</span></span><br><span class="line">    &#125;</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="2-8-文档冲突"><a href="#2-8-文档冲突" class="headerlink" title="2.8 文档冲突"></a>2.8 文档冲突</h2><h3 id="2-8-1-文档冲突"><a href="#2-8-1-文档冲突" class="headerlink" title="2.8.1 文档冲突"></a>2.8.1 文档冲突</h3><p>当我们使用 index API 更新文档 ,可以一次性读取原始文档,做我们的修改,然后重新索引 整个文档 。 最近的索引请求将获胜:无论最后哪一个文档被索引,都将被唯一存储在 Elasticsearch 中。如果其他人同时更改这个文档,他们的更改将丢失。<br>​</p>
+<p>很多时候这是没有问题的。也许我们的主数据存储是一个关系型数据库,我们只是将数据复制到 Elasticsearch 中并使其可被搜索。 也许两个人同时更改相同的文档的几率很小。或者对于我们的业务来说偶尔丢失更改并不是很严重的问题。<br>​</p>
+<p>但有时丢失了一个变更就是 非常严重的 。试想我们使用 Elasticsearch 存储我们网上商城商品库存的数量, 每次我们卖一个商品的时候,我们在 Elasticsearch 中将库存数量减少。有一天,管理层决定做一次促销。突然地,我们一秒要卖好几个商品。 假设有两个 web程序并行运行,每一个都同时处理所有商品的销售<br>                                                      <img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1623029293411-0ba78c39-64d6-4926-9d0c-dea70641a927.png#clientId=ubda5c093-cc76-4&from=ui&id=u7957aa3e&margin=%5Bobject%20Object%5D&name=1.png&originHeight=358&originWidth=268&originalType=binary&ratio=2&size=38125&status=done&style=none&taskId=uc6542bba-c916-49f3-9fb1-873e825f12d" alt="1.png"><br>web_1 对 stock_count 所做的更改已经丢失,因为 web_2 不知道它的 stock_count 的拷贝已经过期。 结果我们会认为有超过商品的实际数量的库存,因为卖给顾客的库存商品并不存在,我们将让他们非常失望。<br>​</p>
+<p>变更越频繁,读数据和更新数据的间隙越长,也就越可能丢失变更。<br>​</p>
+<p>在数据库领域中,有两种方法通常被用来确保并发更新时变更不会丢失:<br>​</p>
+<ul>
+<li>悲观并发控制</li>
+</ul>
+<p>这种方法被关系型数据库广泛使用,它假定有变更冲突可能发生,因此阻塞访问资源以防止冲突。 一个典型的例子是读取一行数据之前先将其锁住,确保只有放置锁的线程能够对这行数据进行修改。</p>
+<ul>
+<li>乐观并发控制</li>
+</ul>
+<p>Elasticsearch 中使用的这种方法假定冲突是不可能发生的,并且不会阻塞正在尝试的操作。 然而,如果源数据在读写当中被修改,更新将会失败。应用程序接下来将决定该如何解决冲突。 例如,可以重试更新、使用新的数据、或者将相关情况报告给用户。</p>
+<h3 id="2-8-2-乐观并发控制"><a href="#2-8-2-乐观并发控制" class="headerlink" title="2.8.2 乐观并发控制"></a>2.8.2 乐观并发控制</h3><p>Elasticsearch 是分布式的。当文档创建、更新或删除时, 新版本的文档必须复制到集群中的其他节点。Elasticsearch 也是异步和并发的,这意味着这些复制请求被并行发送,并且到达目的地时也许 顺序是乱的 。 Elasticsearch 需要一种方法确保文档的旧版本不会覆盖新的版本。<br>​</p>
+<p>当我们之前讨论 index ,GET 和 delete 请求时,我们指出每个文档都有一个 _version(版本)号,当文档被修改时版本号递增。 Elasticsearch 使用这个 version 号来确保变更以正确顺序得到执行。如果旧版本的文档在新版本之后到达,它可以被简单的忽略。<br>​</p>
+<p>我们可以利用 version 号来确保 应用中相互冲突的变更不会导致数据丢失。我们通过指定想要修改文档的 version 号来达到这个目的。 如果该版本不是当前版本号,我们的请求将会失败。<br>​</p>
+<p>老的版本 es 使用 version,但是新版本不支持了,会报下面的错误,提示我们用 if_seq_no和 if_primary_term<br>​</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">&quot;error&quot;</span>: &#123;</span><br><span class="line">    <span class="attr">&quot;root_cause&quot;</span>: [</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="attr">&quot;type&quot;</span>: <span class="string">&quot;action_request_validation_exception&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;reason&quot;</span>: <span class="string">&quot;Validation Failed: 1: internal versioning can not be used for optimistic concurrency control.Please use`if_seq_no`and`if_primary_term`instead;&quot;</span></span><br><span class="line">      &#125;</span><br><span class="line">    ],</span><br><span class="line">    <span class="attr">&quot;type&quot;</span>: <span class="string">&quot;action_request_validation_exception&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;reason&quot;</span>: <span class="string">&quot;Validation Failed: 1: internal versioning can not be used for optimistic concurrency control. Please use`if_seq_no`and`if_primary_term`instead ;&quot;</span></span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="attr">&quot;status&quot;</span>: <span class="number">400</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h3 id="2-8-3-外部系统版本控制"><a href="#2-8-3-外部系统版本控制" class="headerlink" title="2.8.3 外部系统版本控制"></a>2.8.3 外部系统版本控制</h3><p>一个常见的设置是使用其它数据库作为主要的数据存储,使用 Elasticsearch 做数据检索, 这意味着主数据库的所有更改发生时都需要被复制到 Elasticsearch ,如果多个进程负责这一数据同步,你可能遇到类似于之前描述的并发问题。<br>​</p>
+<p>如果你的主数据库已经有了版本号 — 或一个能作为版本号的字段值比如 timestamp —那么你就可以在 Elasticsearch 中通过增加 version_type=external 到查询字符串的方式重用这些相同的版本号, 版本号必须是大于零的整数, 且小于 9.2E+18 — 一个 Java 中 long类型的正值。<br>​</p>
+<p>外部版本号的处理方式和我们之前讨论的内部版本号的处理方式有些不同,Elasticsearch 不是检查当前 _version 和请求中指定的版本号是否相同, 而是检查当前_version 是否 小于 指定的版本号。 如果请求成功,外部的版本号作为文档的新 _version进行存储。<br><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1623029615106-69764f0f-8737-4d72-a8b4-7ae38a397e6a.png#clientId=ubda5c093-cc76-4&from=ui&id=u2d46df30&margin=%5Bobject%20Object%5D&name=1.png&originHeight=480&originWidth=960&originalType=binary&ratio=2&size=75956&status=done&style=none&taskId=ufc713ea4-b4cc-471b-88f7-9ec92900ca7" alt="1.png"><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1623029636722-ae0e228b-c3f5-4eb6-b9f6-908b0a8ba9d8.png#clientId=ubda5c093-cc76-4&from=ui&id=u546d2ce1&margin=%5Bobject%20Object%5D&name=1.png&originHeight=495&originWidth=958&originalType=binary&ratio=2&size=112360&status=done&style=none&taskId=u7940768c-2b73-4146-8c75-01846ef2f84" alt="1.png">外部版本号不仅在索引和删除请求是可以指定,而且在 创建 新文档时也可以指定。</p>
+<h2 id="2-5-Kibana"><a href="#2-5-Kibana" class="headerlink" title="2.5 Kibana"></a>2.5 Kibana</h2><p>Kibana 是一个免费且开放的用户界面,能够让你对 Elasticsearch 数据进行可视化,并让你在 Elastic Stack 中进行导航。你可以进行各种操作,从跟踪查询负载,到理解请求如何流经你的整个应用,都能轻松完成。<br><a target="_blank" rel="noopener" href="https://artifacts.elastic.co/downloads/kibana/kibana-7.8.0-windows-x86_64.zip">下载地址:</a></p>
+<ul>
+<li><p>解压缩下载的 zip 文件</p>
+</li>
+<li><p>修改 config/kibana.yml 文件</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"># 默认端口</span><br><span class="line">server.port: <span class="number">5601</span></span><br><span class="line"># ES 服务器的地址</span><br><span class="line">elasticsearch.hosts: [<span class="string">&quot;http://localhost:9200&quot;</span>]</span><br><span class="line"># 索引名</span><br><span class="line">kibana.index: <span class="string">&quot;.kibana&quot;</span></span><br><span class="line"># 支持中文</span><br><span class="line">i18n.locale: <span class="string">&quot;zh-CN&quot;</span></span><br></pre></td></tr></table></figure></li>
+<li><p><a target="_blank" rel="noopener" href="http://localhost:5601/">通过浏览器访问 : </a></p>
+</li>
+</ul>
+<p><img src="https://cdn.nlark.com/yuque/0/2021/png/12610368/1623029778852-7adc8e90-4dcf-4b6a-9a23-071125c67612.png#clientId=ubda5c093-cc76-4&from=ui&id=ue9167b86&margin=%5Bobject%20Object%5D&name=1.png&originHeight=310&originWidth=730&originalType=binary&ratio=2&size=41579&status=done&style=none&taskId=u1f968be2-b698-49e7-9c7c-44a89835706" alt="1.png"></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">二十</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://yinhuidong.github.io/2022/01/12/ElasticSearch/ElasticSearch%E9%9B%86%E7%BE%A4%E4%B8%8E%E5%8E%9F%E7%90%86/">https://yinhuidong.github.io/2022/01/12/ElasticSearch/ElasticSearch集群与原理/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://yinhuidong.github.io" target="_blank">二十</a> 许可协议。转载请注明来自 <a href="https://yinhuidong.github.io" target="_blank">二十</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Elasticsearch/">Elasticsearch</a></div><div class="post_share"><div class="social-share" data-image="/images/cover/Elasticsearch.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js" defer></script></div></div><div class="post-reward"><div class="reward-button button--animated"><i class="fas fa-qrcode"></i> 打赏</div><div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/img/wechat_pay.jpg" target="_blank"><img class="post-qr-code-img" src="/img/wechat_pay.jpg" alt="微信"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="/img/alipay.jpg" target="_blank"><img class="post-qr-code-img" src="/img/alipay.jpg" alt="支付宝"/></a><div class="post-qr-code-desc">支付宝</div></li></ul></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2022/01/12/JAVA%E5%9F%BA%E7%A1%80/JAVA-SE%E6%A0%B8%E5%BF%83%E5%9F%BA%E7%A1%80%E7%AF%87/"><img class="prev-cover" src="/images/cover/JAVA.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">JAVA-SE核心基础篇</div></div></a></div><div class="next-post pull-right"><a href="/2022/01/12/ElasticSearch/ElasticSearch%E5%9F%BA%E7%A1%80%E5%85%A5%E9%97%A8%E7%AF%87/"><img class="next-cover" src="/images/cover/Elasticsearch.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">Elasticsearch使用篇</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2022/01/12/ElasticSearch/Elasticsearch%20%E4%BC%98%E5%8C%96%E4%B8%8E%E5%B0%8F%E7%BB%93/" title="Elasticsearch优化&总结"><img class="cover" src="/images/cover/Elasticsearch.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-12</div><div class="title">Elasticsearch优化&总结</div></div></a></div><div><a href="/2022/01/12/ElasticSearch/ElasticSearch%E5%9F%BA%E7%A1%80%E5%85%A5%E9%97%A8%E7%AF%87/" title="Elasticsearch使用篇"><img class="cover" src="/images/cover/Elasticsearch.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-12</div><div class="title">Elasticsearch使用篇</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/head.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">二十</div><div class="author-info__description">欢迎来到二十的博客....</div></div><div class="card-info-data"><div class="card-info-data-item is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">118</div></a></div><div class="card-info-data-item is-center"><a href="/tags/"><div class="headline">标签</div><div class="length-num">14</div></a></div><div class="card-info-data-item is-center"><a href="/categories/"><div class="headline">分类</div><div class="length-num">13</div></a></div></div><a class="button--animated" id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/yinhuidong"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/yinhuidong" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="mailto:1972039773@qq.com" target="_blank" title="Email"><i class="fas fa-envelope"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn card-announcement-animation"></i><span>公告</span></div><div class="announcement_content">欢迎来到二十的个人博客，联系作者：VX：yinhuidong666</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%AC%AC%E4%B8%80%E7%AB%A0-Elasticsearch-%E7%8E%AF%E5%A2%83"><span class="toc-text">第一章 Elasticsearch 环境</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-1-%E7%9B%B8%E5%85%B3%E6%A6%82%E5%BF%B5"><span class="toc-text">1.1 相关概念</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-1-%E5%8D%95%E6%9C%BA%E5%92%8C%E9%9B%86%E7%BE%A4"><span class="toc-text">1.1.1 单机和集群</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-2-%E9%9B%86%E7%BE%A4Cluster"><span class="toc-text">1.1.2 集群Cluster</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-3-%E8%8A%82%E7%82%B9-Node"><span class="toc-text">1.1.3 节点 Node</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-2-Linux%E5%8D%95%E6%9C%BA"><span class="toc-text">1.2 Linux单机</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-1-%E8%BD%AF%E4%BB%B6%E4%B8%8B%E8%BD%BD"><span class="toc-text">1.2.1 软件下载</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-2-%E8%BD%AF%E4%BB%B6%E5%AE%89%E8%A3%85"><span class="toc-text">1.2.2 软件安装</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1%EF%BC%89%E8%A7%A3%E5%8E%8B%E8%BD%AF%E4%BB%B6"><span class="toc-text">1）解压软件</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2%EF%BC%89%E5%88%9B%E5%BB%BA%E7%94%A8%E6%88%B7"><span class="toc-text">2）创建用户</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3%EF%BC%89%E4%BF%AE%E6%94%B9%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6"><span class="toc-text">3）修改配置文件</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-3-%E5%90%AF%E5%8A%A8%E8%BD%AF%E4%BB%B6"><span class="toc-text">1.2.3 启动软件</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-3-Linux%E9%9B%86%E7%BE%A4"><span class="toc-text">1.3 Linux集群</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%AC%AC%E4%BA%8C%E7%AB%A0-Elasticsearch-%E5%8E%9F%E7%90%86"><span class="toc-text">第二章 Elasticsearch 原理</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#2-1-%E6%A0%B8%E5%BF%83%E6%A6%82%E5%BF%B5"><span class="toc-text">2.1 核心概念</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-1-%E7%B4%A2%E5%BC%95-index"><span class="toc-text">2.1.1 索引-index</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-2-%E7%B1%BB%E5%9E%8B-type"><span class="toc-text">2.1.2 类型-type</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-3-%E6%96%87%E6%A1%A3-document"><span class="toc-text">2.1.3 文档-document</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-4-%E5%AD%97%E6%AE%B5-field"><span class="toc-text">2.1.4 字段-field</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-5-%E6%98%A0%E5%B0%84-mapping"><span class="toc-text">2.1.5 映射-mapping</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-6-%E5%88%86%E7%89%87-shards"><span class="toc-text">2.1.6 分片-shards</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-7-%E5%89%AF%E6%9C%AC-replicas"><span class="toc-text">2.1.7 副本-replicas</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-8-%E5%88%86%E9%85%8D-allocation"><span class="toc-text">2.1.8 分配-allocation</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-2-%E7%B3%BB%E7%BB%9F%E6%9E%B6%E6%9E%84"><span class="toc-text">2.2 系统架构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-3-%E5%88%86%E5%B8%83%E5%BC%8F%E9%9B%86%E7%BE%A4"><span class="toc-text">2.3 分布式集群</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-1-%E5%8D%95%E8%8A%82%E7%82%B9%E9%9B%86%E7%BE%A4"><span class="toc-text">2.3.1 单节点集群</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-2-%E6%95%85%E9%9A%9C%E8%BD%AC%E7%A7%BB"><span class="toc-text">2.3.2 故障转移</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-3-%E6%B0%B4%E5%B9%B3%E6%89%A9%E5%AE%B9"><span class="toc-text">2.3.3 水平扩容</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-4-%E5%BA%94%E5%AF%B9%E6%95%85%E9%9A%9C"><span class="toc-text">2.3.4 应对故障</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-4-%E8%B7%AF%E7%94%B1%E8%AE%A1%E7%AE%97"><span class="toc-text">2.4 路由计算</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-5-%E5%88%86%E7%89%87%E6%8E%A7%E5%88%B6"><span class="toc-text">2.5 分片控制</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-5-1-%E5%86%99%E6%B5%81%E7%A8%8B"><span class="toc-text">2.5.1 写流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-5-5-%E8%AF%BB%E6%B5%81%E7%A8%8B"><span class="toc-text">2.5.5 读流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-5-3-%E6%9B%B4%E6%96%B0%E6%B5%81%E7%A8%8B"><span class="toc-text">2.5.3 更新流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-5-4-%E5%A4%9A%E6%96%87%E6%A1%A3%E6%93%8D%E4%BD%9C%E6%B5%81%E7%A8%8B"><span class="toc-text">2.5.4 多文档操作流程</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-6-%E5%88%86%E7%89%87%E5%8E%9F%E7%90%86"><span class="toc-text">2.6 分片原理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-6-1-%E5%80%92%E6%8E%92%E7%B4%A2%E5%BC%95"><span class="toc-text">2.6.1 倒排索引</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-6-2-%E6%96%87%E6%A1%A3%E6%90%9C%E7%B4%A2"><span class="toc-text">2.6.2 文档搜索</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-6-3-%E5%8A%A8%E6%80%81%E6%9B%B4%E6%96%B0%E7%B4%A2%E5%BC%95"><span class="toc-text">2.6.3 动态更新索引</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-6-4-%E8%BF%91%E5%AE%9E%E6%97%B6%E6%90%9C%E7%B4%A2"><span class="toc-text">2.6.4 近实时搜索</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-6-5-%E6%8C%81%E4%B9%85%E5%8C%96%E5%8F%98%E6%9B%B4"><span class="toc-text">2.6.5 持久化变更</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-6-6-%E6%AE%B5%E5%90%88%E5%B9%B6"><span class="toc-text">2.6.6 段合并</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-7-%E6%96%87%E6%A1%A3%E5%88%86%E6%9E%90"><span class="toc-text">2.7 文档分析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-7-1-%E5%86%85%E7%BD%AE%E5%88%86%E6%9E%90%E5%99%A8"><span class="toc-text">2.7.1 内置分析器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-7-2-%E5%88%86%E6%9E%90%E5%99%A8%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-text">2.7.2 分析器使用场景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-7-3-%E6%B5%8B%E8%AF%95%E5%88%86%E6%9E%90%E5%99%A8"><span class="toc-text">2.7.3 测试分析器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-7-4-%E6%8C%87%E5%AE%9A%E5%88%86%E6%9E%90%E5%99%A8"><span class="toc-text">2.7.4 指定分析器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-7-5-IK%E5%88%86%E8%AF%8D%E5%99%A8"><span class="toc-text">2.7.5 IK分词器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-7-6-%E8%87%AA%E5%AE%9A%E4%B9%89%E5%88%86%E6%9E%90%E5%99%A8"><span class="toc-text">2.7.6 自定义分析器</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-8-%E6%96%87%E6%A1%A3%E5%86%B2%E7%AA%81"><span class="toc-text">2.8 文档冲突</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-8-1-%E6%96%87%E6%A1%A3%E5%86%B2%E7%AA%81"><span class="toc-text">2.8.1 文档冲突</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-8-2-%E4%B9%90%E8%A7%82%E5%B9%B6%E5%8F%91%E6%8E%A7%E5%88%B6"><span class="toc-text">2.8.2 乐观并发控制</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-8-3-%E5%A4%96%E9%83%A8%E7%B3%BB%E7%BB%9F%E7%89%88%E6%9C%AC%E6%8E%A7%E5%88%B6"><span class="toc-text">2.8.3 外部系统版本控制</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-5-Kibana"><span class="toc-text">2.5 Kibana</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2022/01/12/%E9%A2%86%E5%9F%9F%E9%A9%B1%E5%8A%A8%E8%AE%BE%E8%AE%A1/DDD%E4%B9%8B%E9%A2%86%E5%9F%9F%E5%B1%82%E8%AE%BE%E8%AE%A1%E8%A7%84%E8%8C%83/" title="DDD之领域层设计规范"><img src="/images/cover/DDD.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="DDD之领域层设计规范"/></a><div class="content"><a class="title" href="/2022/01/12/%E9%A2%86%E5%9F%9F%E9%A9%B1%E5%8A%A8%E8%AE%BE%E8%AE%A1/DDD%E4%B9%8B%E9%A2%86%E5%9F%9F%E5%B1%82%E8%AE%BE%E8%AE%A1%E8%A7%84%E8%8C%83/" title="DDD之领域层设计规范">DDD之领域层设计规范</a><time datetime="2022-01-12T00:19:55.254Z" title="发表于 2022-01-12 08:19:55">2022-01-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/01/12/%E9%A2%86%E5%9F%9F%E9%A9%B1%E5%8A%A8%E8%AE%BE%E8%AE%A1/%E6%B5%85%E8%B0%88%E9%A2%86%E5%9F%9F%E6%A8%A1%E5%9E%8B%E8%AE%BE%E8%AE%A1/" title="浅谈领域模型设计"><img src="/images/cover/DDD.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="浅谈领域模型设计"/></a><div class="content"><a class="title" href="/2022/01/12/%E9%A2%86%E5%9F%9F%E9%A9%B1%E5%8A%A8%E8%AE%BE%E8%AE%A1/%E6%B5%85%E8%B0%88%E9%A2%86%E5%9F%9F%E6%A8%A1%E5%9E%8B%E8%AE%BE%E8%AE%A1/" title="浅谈领域模型设计">浅谈领域模型设计</a><time datetime="2022-01-12T00:19:55.254Z" title="发表于 2022-01-12 08:19:55">2022-01-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/01/12/%E9%A2%86%E5%9F%9F%E9%A9%B1%E5%8A%A8%E8%AE%BE%E8%AE%A1/DDD%E4%B9%8BDP/" title="DDD之DP"><img src="/images/cover/DDD.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="DDD之DP"/></a><div class="content"><a class="title" href="/2022/01/12/%E9%A2%86%E5%9F%9F%E9%A9%B1%E5%8A%A8%E8%AE%BE%E8%AE%A1/DDD%E4%B9%8BDP/" title="DDD之DP">DDD之DP</a><time datetime="2022-01-12T00:19:55.253Z" title="发表于 2022-01-12 08:19:55">2022-01-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/01/12/%E9%A2%86%E5%9F%9F%E9%A9%B1%E5%8A%A8%E8%AE%BE%E8%AE%A1/DDD%E4%B9%8BRepository%E6%A8%A1%E5%BC%8F/" title="DDD之Repository模式"><img src="/images/cover/DDD.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="DDD之Repository模式"/></a><div class="content"><a class="title" href="/2022/01/12/%E9%A2%86%E5%9F%9F%E9%A9%B1%E5%8A%A8%E8%AE%BE%E8%AE%A1/DDD%E4%B9%8BRepository%E6%A8%A1%E5%BC%8F/" title="DDD之Repository模式">DDD之Repository模式</a><time datetime="2022-01-12T00:19:55.253Z" title="发表于 2022-01-12 08:19:55">2022-01-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/01/12/%E9%A2%86%E5%9F%9F%E9%A9%B1%E5%8A%A8%E8%AE%BE%E8%AE%A1/DDD%E4%B9%8B%E5%BA%94%E7%94%A8%E6%9E%B6%E6%9E%84/" title="DDD之应用架构"><img src="/images/cover/DDD.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="DDD之应用架构"/></a><div class="content"><a class="title" href="/2022/01/12/%E9%A2%86%E5%9F%9F%E9%A9%B1%E5%8A%A8%E8%AE%BE%E8%AE%A1/DDD%E4%B9%8B%E5%BA%94%E7%94%A8%E6%9E%B6%E6%9E%84/" title="DDD之应用架构">DDD之应用架构</a><time datetime="2022-01-12T00:19:55.253Z" title="发表于 2022-01-12 08:19:55">2022-01-12</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('/images/cover/Elasticsearch.png')"><div id="footer-wrap"><div class="copyright">&copy;2021 - 2022 By 二十</div><div class="footer_custom_text">树是生活，埋的是我。看花就好，别看我落魄。</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="font-plus" type="button" title="放大字体"><i class="fas fa-plus"></i></button><button id="font-minus" type="button" title="缩小字体"><i class="fas fa-minus"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div id="local-search"><div class="search-dialog"><div class="search-dialog__title" id="local-search-title">本地搜索</div><div id="local-input-panel"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div></div><hr/><div id="local-search-results"></div><span class="search-close-button"><i class="fas fa-times"></i></span></div><div id="search-mask"></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/search/local-search.js"></script><div class="js-pjax"></div><script src="https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js"></script><script src="/js/chocolate.js"></script><script defer="defer" id="fluttering_ribbon" mobile="true" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/canvas-fluttering-ribbon.min.js"></script><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="true" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/canvas-nest.min.js"></script><script id="click-show-text" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/click-show-text.min.js" data-mobile="false" data-text="二十,二十二十,二十二十二十,二十二十二十二十,二十二十二十二十二十" data-fontsize="15px" data-random="true" async="async"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

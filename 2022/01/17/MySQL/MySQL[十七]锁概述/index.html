@@ -1,0 +1,568 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MySQL[十七]锁概述 | 二十</title><meta name="keywords" content="MySQL"><meta name="author" content="二十"><meta name="copyright" content="二十"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="锁的简介">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MySQL[十七]锁概述">
+<meta property="og:url" content="https://yinhuidong.github.io/2022/01/17/MySQL/MySQL[%E5%8D%81%E4%B8%83]%E9%94%81%E6%A6%82%E8%BF%B0/index.html">
+<meta property="og:site_name" content="二十">
+<meta property="og:description" content="锁的简介">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yinhuidong.github.io/images/cover/mysql.png">
+<meta property="article:published_time" content="2022-01-16T16:00:00.000Z">
+<meta property="article:modified_time" content="2022-01-12T01:38:28.958Z">
+<meta property="article:author" content="二十">
+<meta property="article:tag" content="MySQL">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://yinhuidong.github.io/images/cover/mysql.png"><link rel="shortcut icon" href="/img/favicon.jpg"><link rel="canonical" href="https://yinhuidong.github.io/2022/01/17/MySQL/MySQL[%E5%8D%81%E4%B8%83]%E9%94%81%E6%A6%82%E8%BF%B0/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":800},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js',
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css'
+    },
+    fancybox: {
+      js: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isanchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'MySQL[十七]锁概述',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2022-01-12 09:38:28'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const fontSizeVal = saveToLocal.get('global-font-size')
+    if (fontSizeVal !== undefined) {
+      document.documentElement.style.setProperty('--global-font-size', fontSizeVal + 'px')
+    }
+    
+    const detectApple = () => {
+      if (GLOBAL_CONFIG_SITE.isHome && /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/custom.css"><meta name="referrer" content="no-referrer" /><meta name="generator" content="Hexo 5.4.0"></head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/head.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data"><div class="data-item is-center"><div class="data-item-link"><a href="/archives/"><div class="headline">文章</div><div class="length-num">119</div></a></div></div><div class="data-item is-center"><div class="data-item-link"><a href="/tags/"><div class="headline">标签</div><div class="length-num">14</div></a></div></div><div class="data-item is-center"><div class="data-item-link"><a href="/categories/"><div class="headline">分类</div><div class="length-num">13</div></a></div></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/%E5%85%B3%E4%BA%8E%E6%88%91/"><i class="fa-fw fas fa-user"></i><span> 关于我</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/images/cover/mysql.png')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">二十</a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/%E5%85%B3%E4%BA%8E%E6%88%91/"><i class="fa-fw fas fa-user"></i><span> 关于我</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">MySQL[十七]锁概述</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-01-16T16:00:00.000Z" title="发表于 2022-01-17 00:00:00">2022-01-17</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2022-01-12T01:38:28.958Z" title="更新于 2022-01-12 09:38:28">2022-01-12</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/MySQL/">MySQL</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">10.9k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>33分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="MySQL[十七]锁概述"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="一，并发事务带来的问题"><a href="#一，并发事务带来的问题" class="headerlink" title="一，并发事务带来的问题"></a>一，并发事务带来的问题</h1><p>并发事务访问相同记录的情况大致可以划分为3种：</p>
+<ol>
+<li>读&amp;读：并发事务相继读取相同的记录。读取操作本身不会对记录有任何影响，不会引起什么问题，所以允许这种情况发生</li>
+<li>写&amp;写：并发事务相继对相同的记录进行改动</li>
+<li>读&amp;写/写&amp;读：一个事务进行读取操作，另一个事务进行改动操作</li>
+</ol>
+<h2 id="1-写-amp-写情况"><a href="#1-写-amp-写情况" class="headerlink" title="1.写&amp;写情况"></a>1.写&amp;写情况</h2><p>一个事务修改了另一个事务未提交的数据就是脏写。所有的隔离级别都不允许这种情况。具体的处理方式其实就是通过加锁排队实现的。锁本质上是内存中的一个结构，在事务执行之前本身是没有锁的，当一个事务对记录进行改动的时候，首先会判断内存中有没有与这条记录关联的锁结构：没有就生成一个锁结构与记录关联。</p>
+<p>假如现在事务T1要对一条记录进行写操作，就需要生成一个锁结构与之关联。</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641301943529-c4e8df17-1485-41c5-b696-7adc5d62d1e6.png#clientId=u896402f9-b7d4-4&crop=0&crop=0&crop=1&crop=1&from=ui&id=u511c1e4f&margin=%5Bobject%20Object%5D&name=1.png&originHeight=438&originWidth=1266&originalType=binary&ratio=1&rotation=0&showTitle=false&size=40771&status=done&style=none&taskId=ue672755b-a7fe-44be-b85d-46a94c40251&title=" alt="1.png"></p>
+<p>暂时先看锁结构里面的两个重要信息：</p>
+<ol>
+<li>trx信息：表示这个锁结构是与哪个事务关联</li>
+<li>is_waiting:表示当前事务是否在等待</li>
+</ol>
+<p>当事务<code>T1</code>改动了这条记录后，就生成了一个<code>锁结构</code>与该记录关联，因为之前没有别的事务为这条记录加锁，所以<code>is_waiting</code>属性就是<code>false</code>，这个场景就称之为获取锁成功，或者加锁成功，然后就可以继续执行操作了。</p>
+<p>在事务<code>T1</code>提交之前，另一个事务<code>T2</code>也想对该记录做改动，那么先去看看有没有<code>锁结构</code>与这条记录关联，发现有一个<code>锁结构</code>与之关联后，然后也生成了一个<code>锁结构</code>与这条记录关联，不过<code>锁结构</code>的<code>is_waiting</code>属性值为<code>true</code>，表示当前事务需要等待，这个场景就是获取锁失败，或者加锁失败，或者没有成功的获取到锁：</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641301952993-18b03394-a8fe-4fcd-9718-2e0bcd03a93b.png#clientId=u896402f9-b7d4-4&crop=0&crop=0&crop=1&crop=1&from=ui&id=uc532ad3a&margin=%5Bobject%20Object%5D&name=2.png&originHeight=898&originWidth=1426&originalType=binary&ratio=1&rotation=0&showTitle=false&size=104410&status=done&style=none&taskId=u5413b773-8cda-4f20-b1ab-4625f4cd514&title=" alt="2.png"></p>
+<p>事务<code>T1</code>提交之后，就会把该事务生成的<code>锁结构</code>释放掉，然后看看还有没有别的事务在等待获取锁，发现了事务<code>T2</code>还在等待获取锁，所以把事务<code>T2</code>对应的锁结构的<code>is_waiting</code>属性设置为<code>false</code>，然后把该事务对应的线程唤醒，让它继续执行，此时事务<code>T2</code>就算获取到锁了。</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641301960785-d8d4f94c-89bd-4bcc-8348-8372aa28e75d.png#clientId=u896402f9-b7d4-4&crop=0&crop=0&crop=1&crop=1&from=ui&id=u587eaab2&margin=%5Bobject%20Object%5D&name=3.png&originHeight=538&originWidth=1570&originalType=binary&ratio=1&rotation=0&showTitle=false&size=54836&status=done&style=none&taskId=u37d6c78c-3bad-4b76-a887-70914d39c1a&title=" alt="3.png"></p>
+<h2 id="2-读-amp-写情况"><a href="#2-读-amp-写情况" class="headerlink" title="2.读&amp;写情况"></a>2.读&amp;写情况</h2><p><code>读-写</code>或<code>写-读</code>情况：也就是一个事务进行读取操作，另一个进行改动操作。这种情况下可能发生<code>脏读</code>、<code>不可重复读</code>、<code>幻读</code>的问题。</p>
+<blockquote>
+<p>幻读问题的产生是因为某个事务读了一个范围的记录，之后别的事务在该范围内插入了新记录，该事务再次读取该范围的记录时，可以读到新插入的记录，所以幻读问题准确的说并不是因为读取和写入一条相同记录而产生的。</p>
+</blockquote>
+<p>怎么解决<code>脏读</code>、<code>不可重复读</code>、<code>幻读</code>这些问题呢？其实有两种可选的解决方案：</p>
+<ol>
+<li>读操作利用多版本并发控制（<code>MVCC</code>），写操作进行<code>加锁</code>。</li>
+<li>读、写操作都采用<code>加锁</code>的方式。</li>
+</ol>
+<h3 id="2-1-方案一"><a href="#2-1-方案一" class="headerlink" title="2.1 方案一"></a>2.1 方案一</h3><p><code>MVCC</code>就是通过生成一个<code>ReadView</code>，然后通过<code>ReadView</code>找到符合条件的记录版本（历史版本是由<code>undo日志</code>构建的），其实就像是在生成<code>ReadView</code>的那个时刻做了一次时间静止（就像用相机拍了一个快照），查询语句只能读到在生成<code>ReadView</code>之前已提交事务所做的更改，在生成<code>ReadView</code>之前未提交的事务或者之后才开启的事务所做的更改是看不到的。而写操作肯定针对的是最新版本的记录，读记录的历史版本和改动记录的最新版本本身并不冲突，也就是采用<code>MVCC</code>时，<code>读-写</code>操作并不冲突。</p>
+<blockquote>
+<p>普通的SELECT语句在READ COMMITTED和REPEATABLE READ隔离级别下会使用到MVCC读取记录。在READ COMMITTED隔离级别下，一个事务在执行过程中每次执行SELECT操作时都会生成一个ReadView，ReadView的存在本身就保证了事务不可以读取到未提交的事务所做的更改，也就是避免了脏读现象；REPEATABLE READ隔离级别下，一个事务在执行过程中只有第一次执行SELECT操作才会生成一个ReadView，之后的SELECT操作都复用这个ReadView，这样也就避免了不可重复读和幻读的问题。</p>
+</blockquote>
+<h3 id="2-2-方案二"><a href="#2-2-方案二" class="headerlink" title="2.2 方案二"></a>2.2 方案二</h3><p>如果一些业务场景不允许读取记录的旧版本，而是每次都必须去读取记录的最新版本，比方在银行存款的事务中，需要先把账户的余额读出来，然后将其加上本次存款的数额，最后再写到数据库中。在将账户余额读取出来后，就不想让别的事务再访问该余额，直到本次存款事务执行完成，其他事务才可以访问账户的余额。这样在读取记录的时候也就需要对其进行<code>加锁</code>操作，这样也就意味着<code>读</code>操作和<code>写</code>操作也像<code>写-写</code>操作那样排队执行。</p>
+<blockquote>
+<p>脏读的产生是因为当前事务读取了另一个未提交事务写的一条记录，如果另一个事务在写记录的时候就给这条记录加锁，那么当前事务就无法继续读取该记录了，所以也就不会有脏读问题的产生了。</p>
+<p>不可重复读的产生是因为当前事务先读取一条记录，另外一个事务对该记录做了改动之后并提交之后，当前事务再次读取时会获得不同的值，如果在当前事务读取记录时就给该记录加锁，那么另一个事务就无法修改该记录，自然也不会发生不可重复读了。</p>
+<p>幻读问题的产生是因为当前事务读取了一个范围的记录，然后另外的事务向该范围内插入了新记录，当前事务再次读取该范围的记录时发现了新插入的新记录，新插入的那些记录就像是幻影记录。采用加锁的方式解决幻读问题比较麻烦，因为当前事务在第一次读取记录时那些幻影记录并不存在，所以读取的时候加锁就有点尴尬，因为你并不知道给谁加锁。</p>
+</blockquote>
+<p>采用<code>MVCC</code>方式的话，<code>读-写</code>操作彼此并不冲突，性能更高，采用<code>加锁</code>方式的话，<code>读-写</code>操作彼此需要排队执行，影响性能。一般情况下我们当然愿意采用<code>MVCC</code>来解决<code>读-写</code>操作并发执行的问题，但是业务在某些特殊情况下，要求必须采用<code>加锁</code>的方式执行。</p>
+<h2 id="3-一致性读"><a href="#3-一致性读" class="headerlink" title="3.一致性读"></a>3.一致性读</h2><p>事务利用<code>MVCC</code>进行的读取操作称之为<code>一致性读</code>，或者<code>一致性非锁读</code>。所有普通的<code>SELECT</code>语句（<code>plain SELECT</code>）在<code>READ COMMITTED</code>、<code>REPEATABLE READ</code>隔离级别下都算是<code>一致性读</code>，比方说：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM t;</span><br><span class="line">SELECT * FROM t1 INNER JOIN t2 ON t1.col1 = t2.col2</span><br></pre></td></tr></table></figure>
+
+
+<p><code>一致性读</code>并不会对表中的任何记录做<code>加锁</code>操作，其他事务可以自由的对表中的记录做改动。</p>
+<h2 id="4-锁定读"><a href="#4-锁定读" class="headerlink" title="4.锁定读"></a>4.锁定读</h2><h3 id="4-1-共享锁-amp-独占锁"><a href="#4-1-共享锁-amp-独占锁" class="headerlink" title="4.1 共享锁&amp;独占锁"></a>4.1 共享锁&amp;独占锁</h3><ul>
+<li><code>共享锁</code>，英文名：<code>Shared Locks</code>，简称<code>S锁</code>。在事务要读取一条记录时，需要先获取该记录的<code>S锁</code>。</li>
+<li><code>独占锁</code>，也常称<code>排他锁</code>，英文名：<code>Exclusive Locks</code>，简称<code>X锁</code>。在事务要改动一条记录时，需要先获取该记录的<code>X锁</code>。</li>
+</ul>
+<p>假如事务<code>T1</code>首先获取了一条记录的<code>S锁</code>之后，事务<code>T2</code>接着也要访问这条记录：</p>
+<ul>
+<li>如果事务<code>T2</code>想要再获取一个记录的<code>S锁</code>，那么事务<code>T2</code>也会获得该锁，也就意味着事务<code>T1</code>和<code>T2</code>在该记录上同时持有<code>S锁</code>。</li>
+<li>如果事务<code>T2</code>想要再获取一个记录的<code>X锁</code>，那么此操作会被阻塞，直到事务<code>T1</code>提交之后将<code>S锁</code>释放掉。</li>
+</ul>
+<p>如果事务<code>T1</code>首先获取了一条记录的<code>X锁</code>之后，那么不管事务<code>T2</code>接着想获取该记录的<code>S锁</code>还是<code>X锁</code>都会被阻塞，直到事务<code>T1</code>提交。</p>
+<p>所以说<code>S锁</code>和<code>S锁</code>是兼容的，<code>S锁</code>和<code>X锁</code>是不兼容的，<code>X锁</code>和<code>X锁</code>也是不兼容的：</p>
+<table>
+<thead>
+<tr>
+<th>兼容性</th>
+<th><code>X</code></th>
+<th><code>S</code></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>X</code></td>
+<td>不兼容</td>
+<td>不兼容</td>
+</tr>
+<tr>
+<td><code>S</code></td>
+<td>不兼容</td>
+<td>兼容</td>
+</tr>
+</tbody></table>
+<h3 id="4-2-锁定读的语句"><a href="#4-2-锁定读的语句" class="headerlink" title="4.2 锁定读的语句"></a>4.2 锁定读的语句</h3><p>在采用<code>加锁</code>方式解决<code>脏读</code>、<code>不可重复读</code>、<code>幻读</code>这些问题时，读取一条记录时需要获取一下该记录的<code>S锁</code>，其实这是不严谨的，有时候想在读取记录时就获取记录的<code>X锁</code>，来禁止别的事务读写该记录，为此<code>MySQL</code>提出了两种比较特殊的<code>SELECT</code>语句格式：</p>
+<ul>
+<li><p> 对读取的记录加<code>S锁</code>：<br>也就是在普通的<code>SELECT</code>语句后边加<code>LOCK IN SHARE MODE</code>，如果当前事务执行了该语句，那么它会为读取到的记录加<code>S锁</code>，这样允许别的事务继续获取这些记录的<code>S锁</code>（比方说别的事务也使用<code>SELECT ... LOCK IN SHARE MODE</code>语句来读取这些记录），但是不能获取这些记录的<code>X锁</code>（比方说使用<code>SELECT ... FOR UPDATE</code>语句来读取这些记录，或者直接修改这些记录）。如果别的事务想要获取这些记录的<code>X锁</code>，那么它们会阻塞，直到当前事务提交之后将这些记录上的<code>S锁</code>释放掉。 </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SELECT ... LOCK IN SHARE MODE;</span><br></pre></td></tr></table></figure></li>
+<li><p> 对读取的记录加<code>X锁</code>：<br>也就是在普通的<code>SELECT</code>语句后边加<code>FOR UPDATE</code>，如果当前事务执行了该语句，那么它会为读取到的记录加<code>X锁</code>，这样既不允许别的事务获取这些记录的<code>S锁</code>（比方说别的事务使用<code>SELECT ... LOCK IN SHARE MODE</code>语句来读取这些记录），也不允许获取这些记录的<code>X锁</code>（比如说使用<code>SELECT ... FOR UPDATE</code>语句来读取这些记录，或者直接修改这些记录）。如果别的事务想要获取这些记录的<code>S锁</code>或者<code>X锁</code>，那么它们会阻塞，直到当前事务提交之后将这些记录上的<code>X锁</code>释放掉。 </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SELECT ... FOR UPDATE;</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h2 id="5-写操作"><a href="#5-写操作" class="headerlink" title="5.写操作"></a>5.写操作</h2><p>平常所用到的<code>写操作</code>无非是<code>DELETE</code>、<code>UPDATE</code>、<code>INSERT</code>这三种：</p>
+<ul>
+<li> <code>DELETE</code>：<br>对一条记录做<code>DELETE</code>操作的过程其实是先在<code>B+</code>树中定位到这条记录的位置，然后获取一下这条记录的<code>X锁</code>，然后再执行<code>delete mark</code>操作。这个定位待删除记录在<code>B+</code>树中位置的过程看成是一个获取<code>X锁</code>的<code>锁定读</code>。 </li>
+<li><code>UPDATE</code>：<br>在对一条记录做<code>UPDATE</code>操作时分为三种情况： <ul>
+<li>如果未修改该记录的键值并且被更新的列占用的存储空间在修改前后未发生变化，则先在<code>B+</code>树中定位到这条记录的位置，然后再获取一下记录的<code>X锁</code>，最后在原记录的位置进行修改操作。这个定位待修改记录在<code>B+</code>树中位置的过程是一个获取<code>X锁</code>的<code>锁定读</code>。</li>
+<li>如果未修改该记录的键值并且至少有一个被更新的列占用的存储空间在修改前后发生变化，则先在<code>B+</code>树中定位到这条记录的位置，然后获取一下记录的<code>X锁</code>，将该记录彻底删除掉（就是把记录彻底移入垃圾链表），最后再插入一条新记录。这个定位待修改记录在<code>B+</code>树中位置的过程看成是一个获取<code>X锁</code>的<code>锁定读</code>，新插入的记录由<code>INSERT</code>操作提供的<code>隐式锁</code>进行保护。</li>
+<li>如果修改了该记录的键值，则相当于在原记录上做<code>DELETE</code>操作之后再来一次<code>INSERT</code>操作，加锁操作就需要按照<code>DELETE</code>和<code>INSERT</code>的规则进行了。</li>
+</ul>
+</li>
+<li> <code>INSERT</code>：<br>一般情况下，新插入一条记录的操作并不加锁，<code>InnoDB</code>通过<code>隐式锁</code>来保护这条新插入的记录在本事务提交前不被别的事务访问。 </li>
+</ul>
+<blockquote>
+<p>在一个事务中加的锁一般在事务提交或终止时才会释放，当然也有一些特殊情况。</p>
+</blockquote>
+<hr>
+<h1 id="二，多粒度锁"><a href="#二，多粒度锁" class="headerlink" title="二，多粒度锁"></a>二，多粒度锁</h1><p>上面介绍的<code>锁</code>都是针对记录的，也可以被称之为<code>行级锁</code>或者<code>行锁</code>，对一条记录加锁影响的也只是这条记录而已，我们就说这个锁的粒度比较细；其实一个事务也可以在<code>表</code>级别进行加锁，自然就被称之为<code>表级锁</code>或者<code>表锁</code>，对一个表加锁影响整个表中的记录，我们就说这个锁的粒度比较粗。给表加的锁也可以分为<code>共享锁</code>（<code>S锁</code>）和<code>独占锁</code>（<code>X锁</code>）：</p>
+<ul>
+<li>给表加<code>S锁</code>：<br>如果一个事务给表加了<code>S锁</code>，那么： <ul>
+<li>别的事务可以继续获得该表的<code>S锁</code></li>
+<li>别的事务可以继续获得该表中的某些记录的<code>S锁</code></li>
+<li>别的事务不可以继续获得该表的<code>X锁</code></li>
+<li>别的事务不可以继续获得该表中的某些记录的<code>X锁</code></li>
+</ul>
+</li>
+<li>给表加<code>X锁</code>：<br>如果一个事务给表加了<code>X锁</code>（意味着该事务要独占这个表），那么： <ul>
+<li>别的事务不可以继续获得该表的<code>S锁</code></li>
+<li>别的事务不可以继续获得该表中的某些记录的<code>S锁</code></li>
+<li>别的事务不可以继续获得该表的<code>X锁</code></li>
+<li>别的事务不可以继续获得该表中的某些记录的<code>X锁</code></li>
+</ul>
+</li>
+</ul>
+<p>思考一下：</p>
+<ul>
+<li>如果我们想对表上<code>S锁</code>，首先需要确保表中的没有记录加了锁，如果有加锁记录，需要等到锁释放才可以对表上<code>S锁</code>。</li>
+<li>如果想对表整体上<code>X锁</code>，首先需要确保表中没有加行锁，如果有加行锁的记录，需要等到全部行锁释放才可以对表上<code>X锁</code>。</li>
+</ul>
+<p>在上锁（<code>表锁</code>）时，怎么知道表已经被上锁（<code>行锁</code>）了呢？<code>InnoDB</code>提出了<strong>意向锁</strong>：</p>
+<ul>
+<li>意向共享锁，英文名：<code>Intention Shared Lock</code>，简称<code>IS锁</code>。当事务准备在某条记录上加<code>S锁</code>时，需要先在表级别加一个<code>IS锁</code>。</li>
+<li>意向独占锁，英文名：<code>Intention Exclusive Lock</code>，简称<code>IX锁</code>。当事务准备在某条记录上加<code>X锁</code>时，需要先在表级别加一个<code>IX锁</code>。</li>
+</ul>
+<p>总结一下：IS、IX锁是表级锁，它们的提出仅仅为了在之后加表级别的S锁和X锁时可以快速判断表中的记录是否被上锁，以避免用遍历的方式来查看表中有没有上锁的记录，也就是说其实IS锁和IX锁是兼容的，IX锁和IX锁是兼容的。</p>
+<table>
+<thead>
+<tr>
+<th>兼容性</th>
+<th><code>X</code></th>
+<th><code>IX</code></th>
+<th><code>S</code></th>
+<th><code>IS</code></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>X</code></td>
+<td>不兼容</td>
+<td>不兼容</td>
+<td>不兼容</td>
+<td>不兼容</td>
+</tr>
+<tr>
+<td><code>IX</code></td>
+<td>不兼容</td>
+<td>兼容</td>
+<td>不兼容</td>
+<td>兼容</td>
+</tr>
+<tr>
+<td><code>S</code></td>
+<td>不兼容</td>
+<td>不兼容</td>
+<td>兼容</td>
+<td>兼容</td>
+</tr>
+<tr>
+<td><code>IS</code></td>
+<td>不兼容</td>
+<td>兼容</td>
+<td>兼容</td>
+<td>兼容</td>
+</tr>
+</tbody></table>
+<hr>
+<h1 id="三，MySQL中的行锁-amp-表锁"><a href="#三，MySQL中的行锁-amp-表锁" class="headerlink" title="三，MySQL中的行锁&amp;表锁"></a>三，MySQL中的行锁&amp;表锁</h1><p><code>MySQL</code>支持多种存储引擎，不同存储引擎对锁的支持也是不一样的。我们重点还是讨论<code>InnoDB</code>存储引擎中的锁。</p>
+<h2 id="1-InnoDB存储引擎中的锁"><a href="#1-InnoDB存储引擎中的锁" class="headerlink" title="1.InnoDB存储引擎中的锁"></a>1.InnoDB存储引擎中的锁</h2><h3 id="1-1-InnoDB中的表级锁"><a href="#1-1-InnoDB中的表级锁" class="headerlink" title="1.1 InnoDB中的表级锁"></a>1.1 InnoDB中的表级锁</h3><ul>
+<li><p>表级别的<code>S锁</code>、<code>X锁</code><br>在对某个表执行<code>SELECT</code>、<code>INSERT</code>、<code>DELETE</code>、<code>UPDATE</code>语句时，<code>InnoDB</code>存储引擎是不会为这个表添加表级别的<code>S锁</code>或者<code>X锁</code>的。<br>另外，在对某个表执行一些诸如<code>ALTER TABLE</code>、<code>DROP TABLE</code>这类的<code>DDL</code>语句时，其他事务对这个表并发执行诸如<code>SELECT</code>、<code>INSERT</code>、<code>DELETE</code>、<code>UPDATE</code>的语句会发生阻塞，同理，某个事务中对某个表执行<code>SELECT</code>、<code>INSERT</code>、<code>DELETE</code>、<code>UPDATE</code>语句时，在其他会话中对这个表执行<code>DDL</code>语句也会发生阻塞。这个过程其实是通过在<code>server层</code>使用<code>元数据锁</code>（英文名：<code>Metadata Locks</code>，简称<code>MDL</code>）来实现，一般情况下也不会使用<code>InnoDB</code>存储引擎自己提供的表级别的<code>S锁</code>和<code>X锁</code>。<br>其实这个<code>InnoDB</code>存储引擎提供的表级<code>S锁</code>或者<code>X锁</code>是相当鸡肋，只会在一些特殊情况下，比方说崩溃恢复过程中用到。不过我们还是可以手动获取一下的，比方说在系统变量<code>autocommit=0，innodb_table_locks = 1</code>时，手动获取<code>InnoDB</code>存储引擎提供的表<code>t</code>的<code>S锁</code>或者<code>X锁</code>可以这么写： </p>
+<blockquote>
+<p>DDL语句执行时会隐式的提交当前会话中的事务，这主要是DDL语句的执行一般都会在若干个特殊事务中完成，在开启这些特殊事务前，需要将当前会话中的事务提交掉。</p>
+</blockquote>
+<ul>
+<li><code>LOCK TABLES t READ</code>：<code>InnoDB</code>存储引擎会对表<code>t</code>加表级别的<code>S锁</code>。</li>
+<li><code>LOCK TABLES t WRITE</code>：<code>InnoDB</code>存储引擎会对表<code>t</code>加表级别的<code>X锁</code>。</li>
+</ul>
+</li>
+</ul>
+<p>不过请尽量避免在使用<code>InnoDB</code>存储引擎的表上使用<code>LOCK TABLES</code>这样的手动锁表语句，它们并不会提供什么额外的保护，只是会降低并发能力而已。<code>InnoDB</code>的厉害之处还是实现了更细粒度的行锁。 </p>
+<ul>
+<li> 表级别的<code>IS锁</code>、<code>IX锁</code><br>当我们在对使用<code>InnoDB</code>存储引擎的表的某些记录加<code>S锁</code>之前，那就需要先在表级别加一个<code>IS锁</code>，当我们在对使用<code>InnoDB</code>存储引擎的表的某些记录加<code>X锁</code>之前，那就需要先在表级别加一个<code>IX锁</code>。<code>IS锁</code>和<code>IX锁</code>的使命只是为了后续在加表级别的<code>S锁</code>和<code>X锁</code>时判断表中是否有已经被加锁的记录，以避免用遍历的方式来查看表中有没有上锁的记录。 </li>
+<li> 表级别的<code>AUTO-INC锁</code><br>在使用<code>MySQL</code>过程中，我们可以为表的某个列添加<code>AUTO_INCREMENT</code>属性，之后在插入记录时，可以不指定该列的值，系统会自动为它赋上递增的值，比方说我们有一个表：<br>由于这个表的<code>id</code>字段声明了<code>AUTO_INCREMENT</code>，也就意味着在书写插入语句时不需要为其赋值，比方说这样：<br>上边的插入语句并没有为<code>id</code>列显式赋值，所以系统会自动为它赋上递增的值，效果就是这样：<br>系统实现这种自动给<code>AUTO_INCREMENT</code>修饰的列递增赋值的原理主要是两个： <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">CREATE TABLE t (</span><br><span class="line">    id INT NOT NULL AUTO_INCREMENT,</span><br><span class="line">    c VARCHAR(100),</span><br><span class="line">    PRIMARY KEY (id)</span><br><span class="line">) Engine=InnoDB CHARSET=utf8;</span><br><span class="line">INSERT INTO t(c) VALUES(&#x27;aa&#x27;), (&#x27;bb&#x27;);</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>mysql&gt; SELECT * FROM t;<br>+—-+——+<br>| id | c    |<br>+—-+——+<br>|  1 | aa   |<br>|  2 | bb   |<br>+—-+——+<br>2 rows in set (0.00 sec)</p>
+</blockquote>
+</li>
+</ul>
+<ol>
+<li><p> 采用<code>AUTO-INC</code>锁，也就是在执行插入语句时就在表级别加一个<code>AUTO-INC</code>锁，然后为每条待插入记录的<code>AUTO_INCREMENT</code>修饰的列分配递增的值，在该语句执行结束后，再把<code>AUTO-INC</code>锁释放掉。这样一个事务在持有<code>AUTO-INC</code>锁的过程中，其他事务的插入语句都要被阻塞，可以保证一个语句中分配的递增值是连续的。<br>如果我们的插入语句在执行前不可以确定具体要插入多少条记录（无法预计即将插入记录的数量），比方说使用<code>INSERT ... SELECT</code>、<code>REPLACE ... SELECT</code>或者<code>LOAD DATA</code>这种插入语句，一般是使用<code>AUTO-INC</code>锁为<code>AUTO_INCREMENT</code>修饰的列生成对应的值。  </p>
+<blockquote>
+<p>这个AUTO-INC锁的作用范围只是单个插入语句，插入语句执行完成后，这个锁就被释放了，跟之前说的锁在事务结束时释放是不一样的。</p>
+</blockquote>
+</li>
+<li><p> 采用一个轻量级的锁，在为插入语句生成<code>AUTO_INCREMENT</code>修饰的列的值时获取一下这个轻量级锁，然后生成本次插入语句需要用到的<code>AUTO_INCREMENT</code>列的值之后，就把该轻量级锁释放掉，并不需要等到整个插入语句执行完才释放锁。<br>如果插入语句在执行前就可以确定具体要插入多少条记录，比方说我们上边的例子，在语句执行前就可以确定要插入2条记录，那么一般采用轻量级锁的方式对<code>AUTO_INCREMENT</code>修饰的列进行赋值。这种方式可以避免锁定表，可以提升插入性能。 </p>
+<blockquote>
+<p>InnoDB提供了一个称之为innodb_autoinc_lock_mode的系统变量来控制到底使用上述两种方式中的哪种来为AUTO_INCREMENT修饰的列进行赋值，当innodb_autoinc_lock_mode值为0时，一律采用AUTO-INC锁；当innodb_autoinc_lock_mode值为2时，一律采用轻量级锁；当innodb_autoinc_lock_mode值为1时，两种方式混着来（也就是在插入记录数量确定时采用轻量级锁，不确定时使用AUTO-INC锁）。不过当innodb_autoinc_lock_mode值为2时，可能会造成不同事务中的插入语句为AUTO_INCREMENT修饰的列生成的值是交叉的，在有主从复制的场景中是不安全的。</p>
+</blockquote>
+</li>
+</ol>
+<h3 id="1-2-InnoDB中的行级锁"><a href="#1-2-InnoDB中的行级锁" class="headerlink" title="1.2 InnoDB中的行级锁"></a>1.2 InnoDB中的行级锁</h3><p><code>行锁</code>，也称为<code>记录锁</code>，有很多种类型。即使对同一条记录加<code>行锁</code>，如果类型不同，起到的功效也是不同的。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">CREATE TABLE hero (</span><br><span class="line">    number INT,</span><br><span class="line">    name VARCHAR(100),</span><br><span class="line">    country varchar(100),</span><br><span class="line">    PRIMARY KEY (number)</span><br><span class="line">) Engine=InnoDB CHARSET=utf8;</span><br></pre></td></tr></table></figure>
+
+
+<p>我们主要是想用这个表存储三国时的英雄，然后向这个表里插入几条记录：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">INSERT INTO hero VALUES</span><br><span class="line">    (1, &#x27;l刘备&#x27;, &#x27;蜀&#x27;),</span><br><span class="line">    (3, &#x27;z诸葛亮&#x27;, &#x27;蜀&#x27;),</span><br><span class="line">    (8, &#x27;c曹操&#x27;, &#x27;魏&#x27;),</span><br><span class="line">    (15, &#x27;x荀彧&#x27;, &#x27;魏&#x27;),</span><br><span class="line">    (20, &#x27;s孙权&#x27;, &#x27;吴&#x27;);</span><br></pre></td></tr></table></figure>
+
+
+<p>现在表里的数据就是这样的：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; SELECT * FROM hero;</span><br><span class="line">+--------+------------+---------+</span><br><span class="line">| number | name       | country |</span><br><span class="line">+--------+------------+---------+</span><br><span class="line">|      1 | l刘备      | 蜀      |</span><br><span class="line">|      3 | z诸葛亮    | 蜀      |</span><br><span class="line">|      8 | c曹操      | 魏      |</span><br><span class="line">|     15 | x荀彧      | 魏      |</span><br><span class="line">|     20 | s孙权      | 吴      |</span><br><span class="line">+--------+------------+---------+</span><br><span class="line">5 rows in set (0.01 sec)</span><br></pre></td></tr></table></figure>
+
+
+<blockquote>
+<p>为啥要在’刘备’、’曹操’、’孙权’前边加上’l’、’c’、’s’这几个字母呀？这个主要是因为我们采用utf8字符集，该字符集并没有对应的按照汉语拼音进行排序的比较规则，也就是说’刘备’、’曹操’、’孙权’这几个字符串的排序并不是按照它们汉语拼音进行排序的，在汉字前边加上了汉字对应的拼音的第一个字母，这样在排序时就是按照汉语拼音进行排序。</p>
+</blockquote>
+<p>把<code>hero</code>表中的聚簇索引的示意图画一下：</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641302020162-57b1cb50-6cf2-475d-9bac-b5a8dbbc94a2.png#clientId=u896402f9-b7d4-4&crop=0&crop=0&crop=1&crop=1&from=ui&id=u5a4959a3&margin=%5Bobject%20Object%5D&name=4.png&originHeight=652&originWidth=1790&originalType=binary&ratio=1&rotation=0&showTitle=false&size=221654&status=done&style=none&taskId=ua465969b-7542-491b-88f7-37983342e34&title=" alt="4.png"></p>
+<p>现在准备工作做完了，下边看看都有哪些常用的<code>行锁类型</code>。</p>
+<h4 id="①Record-Locks（普通锁）"><a href="#①Record-Locks（普通锁）" class="headerlink" title="①Record Locks（普通锁）"></a>①<code>Record Locks</code>（普通锁）</h4><p>前边提到的记录锁就是这种类型，也就是仅仅把一条记录锁上，<code>正经记录锁</code>。官方的类型名称为：<code>LOCK_REC_NOT_GAP</code>。比方说我们把<code>number</code>值为<code>8</code>的那条记录加一个<code>正经记录锁</code>的示意图如下：</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641302028081-39771584-25c4-4a51-9184-1b543193ec44.png#clientId=u896402f9-b7d4-4&crop=0&crop=0&crop=1&crop=1&from=ui&id=ue433160c&margin=%5Bobject%20Object%5D&name=5.png&originHeight=820&originWidth=1814&originalType=binary&ratio=1&rotation=0&showTitle=false&size=364970&status=done&style=none&taskId=u90882115-d9c9-4339-baad-e66c3651839&title=" alt="5.png"></p>
+<p><code>正经记录锁</code>是有<code>S锁</code>和<code>X锁</code>之分的，当一个事务获取了一条记录的<code>S型正经记录锁</code>后，其他事务也可以继续获取该记录的<code>S型正经记录锁</code>，但不可以继续获取<code>X型正经记录锁</code>；当一个事务获取了一条记录的<code>X型正经记录锁</code>后，其他事务既不可以继续获取该记录的<code>S型正经记录锁</code>，也不可以继续获取<code>X型正经记录锁</code>；</p>
+<h4 id="②Gap-Locks（间歇锁）"><a href="#②Gap-Locks（间歇锁）" class="headerlink" title="②Gap Locks（间歇锁）"></a>②<code>Gap Locks</code>（间歇锁）</h4><p><code>MySQL</code>在<code>REPEATABLE READ</code>隔离级别下是可以解决幻读问题的，解决方案有两种，可以使用<code>MVCC</code>方案解决，也可以采用<code>加锁</code>方案解决。但是在使用<code>加锁</code>方案解决时有个大问题，就是事务在第一次执行读取操作时，那些幻影记录尚不存在，我们无法给这些幻影记录加上<code>正经记录锁</code>。不InnoDB提出了一种称之为<code>Gap Locks</code>的锁，官方的类型名称为：<code>LOCK_GAP</code>，简称为<code>gap锁</code>。</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641302035709-ea025477-5a96-4bfc-b14a-abba62dd6e76.png#clientId=u896402f9-b7d4-4&crop=0&crop=0&crop=1&crop=1&from=ui&id=ucca99412&margin=%5Bobject%20Object%5D&name=6.png&originHeight=802&originWidth=1768&originalType=binary&ratio=1&rotation=0&showTitle=false&size=353710&status=done&style=none&taskId=u62dcd67f-a6d5-4621-9318-9f9568b3c31&title=" alt="6.png"></p>
+<p>如图中为<code>number</code>值为<code>8</code>的记录加了<code>gap锁</code>，意味着不允许别的事务在<code>number</code>值为<code>8</code>的记录前边的<code>间隙</code>插入新记录，其实就是<code>number</code>列的值<code>(3, 8)</code>这个区间的新记录是不允许立即插入的。比方说有另外一个事务再想插入一条<code>number</code>值为<code>4</code>的新记录，它定位到该条新记录的下一条记录的<code>number</code>值为8，而这条记录上又有一个<code>gap锁</code>，所以就会阻塞插入操作，直到拥有这个<code>gap锁</code>的事务提交了之后，<code>number</code>列的值在区间<code>(3, 8)</code>中的新记录才可以被插入。</p>
+<p>这个<code>gap锁</code>的提出仅仅是为了防止插入幻影记录而提出的，虽然有<code>共享gap锁</code>和<code>独占gap锁</code>这样的说法，但是它们起到的作用都是相同的。而且如果对一条记录加了<code>gap锁</code>（不论是<code>共享gap锁</code>还是<code>独占gap锁</code>），并不会限制其他事务对这条记录加<code>正经记录锁</code>或者继续加<code>gap锁</code>，<code>**gap锁**</code><strong>的作用仅仅是为了防止插入幻影记录的而已。</strong></p>
+<p>给一条记录加了<code>gap锁</code>只是不允许其他事务往这条记录前边的间隙插入新记录，那对于最后一条记录之后的间隙，也就是<code>hero</code>表中<code>number</code>值为<code>20</code>的记录之后的间隙该咋办呢？也就是说给哪条记录加<code>gap锁</code>才能阻止其他事务插入<code>number</code>值在<code>(20, +∞)</code>这个区间的新记录呢？这时候应该想起我们在前边唠叨<code>数据页</code>时介绍的两条伪记录了：</p>
+<ul>
+<li><code>Infimum</code>记录，表示该页面中最小的记录。</li>
+<li><code>Supremum</code>记录，表示该页面中最大的记录。</li>
+</ul>
+<p>为了实现阻止其他事务插入<code>number</code>值在<code>(20, +∞)</code>这个区间的新记录，我们可以给索引中的最后一条记录，也就是<code>number</code>值为<code>20</code>的那条记录所在页面的<code>Supremum</code>记录加上一个<code>gap锁</code>，画个图就是这样：</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641302043308-f2be7f92-fb93-4522-bba6-884406120a78.png#clientId=u896402f9-b7d4-4&crop=0&crop=0&crop=1&crop=1&from=ui&id=u4645862a&margin=%5Bobject%20Object%5D&name=7.png&originHeight=794&originWidth=1884&originalType=binary&ratio=1&rotation=0&showTitle=false&size=322691&status=done&style=none&taskId=u914c0560-257f-4a8d-b349-736b519d00f&title=" alt="7.png"></p>
+<p>这样就可以阻止其他事务插入<code>number</code>值在<code>(20, +∞)</code>这个区间的新记录。</p>
+<h4 id="③Next-Key-Locks（普通-amp-间歇）"><a href="#③Next-Key-Locks（普通-amp-间歇）" class="headerlink" title="③Next-Key Locks（普通&amp;间歇）"></a>③<code>Next-Key Locks</code>（普通&amp;间歇）</h4><p>有时候我们既想锁住某条记录，又想阻止其他事务在该记录前边的<code>间隙</code>插入新记录，所以<code>InnoDB</code>就提出了一种称之为<code>Next-Key Locks</code>的锁，官方的类型名称为：<code>LOCK_ORDINARY</code>，我们也可以简称为<code>next-key锁</code>。比方说我们把<code>number</code>值为<code>8</code>的那条记录加一个<code>next-key锁</code>的示意图如下：</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641302051023-35f06f71-a431-400a-ade3-f1bc13bc694d.png#clientId=u896402f9-b7d4-4&crop=0&crop=0&crop=1&crop=1&from=ui&id=u7efdfba9&margin=%5Bobject%20Object%5D&name=8.png&originHeight=738&originWidth=1862&originalType=binary&ratio=1&rotation=0&showTitle=false&size=349508&status=done&style=none&taskId=ub86b76ad-bf59-43ad-9e0b-fed5dc2d687&title=" alt="8.png"></p>
+<p><code>next-key锁</code>的本质就是一个<code>正经记录锁</code>和一个<code>gap锁</code>的合体，它既能保护该条记录，又能阻止别的事务将新记录插入被保护记录前边的<code>间隙</code>。</p>
+<h4 id="④Insert-Intention-Locks（插入意向锁）"><a href="#④Insert-Intention-Locks（插入意向锁）" class="headerlink" title="④Insert Intention Locks（插入意向锁）"></a>④<code>Insert Intention Locks</code>（插入意向锁）</h4><p>一个事务在插入一条记录时需要判断一下插入位置是不是被别的事务加了所谓的<code>gap锁</code>（<code>next-key锁</code>也包含<code>gap锁</code>），如果有的话，插入操作需要等待，直到拥有<code>gap锁</code>的那个事务提交。但是<code>InnoDB</code>规定事务在等待的时候也需要在内存中生成一个<code>锁结构</code>，表明有事务想在某个<code>间隙</code>中插入新记录，但是现在在等待。<code>InnoDB</code>就把这种类型的锁命名为<code>Insert Intention Locks</code>，官方的类型名称为：<code>LOCK_INSERT_INTENTION</code>，我们也可以称为<code>插入意向锁</code>。</p>
+<p>比方说我们把<code>number</code>值为<code>8</code>的那条记录加一个<code>插入意向锁</code>的示意图如下：</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641302059287-b4ef7d36-db6e-4b1b-a171-7b17db31261a.png#clientId=u896402f9-b7d4-4&crop=0&crop=0&crop=1&crop=1&from=ui&id=u07232356&margin=%5Bobject%20Object%5D&name=9png.png&originHeight=758&originWidth=1888&originalType=binary&ratio=1&rotation=0&showTitle=false&size=362070&status=done&style=none&taskId=uc7b8ed49-38d4-4f4f-8d45-a8cdc7b7297&title=" alt="9png.png"></p>
+<p>比方说现在<code>T1</code>为<code>number</code>值为<code>8</code>的记录加了一个<code>gap锁</code>，然后<code>T2</code>和<code>T3</code>分别想向<code>hero</code>表中插入<code>number</code>值分别为<code>4</code>、<code>5</code>的两条记录，所以现在为<code>number</code>值为<code>8</code>的记录加的锁的示意图就如下所示：</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641302067431-e07b6354-4b3b-4767-b91e-5c9ba4465181.png#clientId=u896402f9-b7d4-4&crop=0&crop=0&crop=1&crop=1&from=ui&id=u9aa11ca4&margin=%5Bobject%20Object%5D&name=10.png&originHeight=1088&originWidth=1802&originalType=binary&ratio=1&rotation=0&showTitle=false&size=164592&status=done&style=none&taskId=u9b510092-0588-45ef-a0c8-ee88fc46405&title=" alt="10.png"></p>
+<p>从图中可以看到，由于<code>T1</code>持有<code>gap锁</code>，所以<code>T2</code>和<code>T3</code>需要生成一个<code>插入意向锁</code>的<code>锁结构</code>并且处于等待状态。当<code>T1</code>提交后会把它获取到的锁都释放掉，这样<code>T2</code>和<code>T3</code>就能获取到对应的<code>插入意向锁</code>了（本质上就是把插入意向锁对应锁结构的<code>is_waiting</code>属性改为<code>false</code>），<code>T2</code>和<code>T3</code>之间也并不会相互阻塞，它们可以同时获取到<code>number</code>值为8的<code>插入意向锁</code>，然后执行插入操作。事实上插入意向锁并不会阻止别的事务继续获取该记录上任何类型的锁。</p>
+<h4 id="⑤隐式锁"><a href="#⑤隐式锁" class="headerlink" title="⑤隐式锁"></a>⑤隐式锁</h4><p>一个事务在执行<code>INSERT</code>操作时，如果即将插入的<code>间隙</code>已经被其他事务加了<code>gap锁</code>，那么本次<code>INSERT</code>操作会阻塞，并且当前事务会在该间隙上加一个<code>插入意向锁</code>，否则一般情况下<code>INSERT</code>操作是不加锁的。那如果一个事务首先插入了一条记录（此时并没有与该记录关联的锁结构），然后另一个事务：</p>
+<ol>
+<li> 立即使用<code>SELECT ... LOCK IN SHARE MODE</code>语句读取这条记录，也就是在要获取这条记录的<code>S锁</code>，或者使用<code>SELECT ... FOR UPDATE</code>语句读取这条记录，也就是要获取这条记录的<code>X锁</code>，该咋办？<br>如果允许这种情况的发生，那么可能产生<code>脏读</code>问题。 </li>
+<li> 立即修改这条记录，也就是要获取这条记录的<code>X锁</code>，该咋办？<br>如果允许这种情况的发生，那么可能产生<code>脏写</code>问题。 </li>
+</ol>
+<p>这时候事务id`又要起作用了。我们把聚簇索引和二级索引中的记录分开看一下：</p>
+<ol>
+<li>对于聚簇索引记录来说，有一个<code>trx_id</code>隐藏列，该隐藏列记录着最后改动该记录的<code>事务id</code>。那么如果在当前事务中新插入一条聚簇索引记录后，该记录的<code>trx_id</code>隐藏列代表的的就是当前事务的<code>事务id</code>，如果其他事务此时想对该记录添加<code>S锁</code>或者<code>X锁</code>时，首先会看一下该记录的<code>trx_id</code>隐藏列代表的事务是否是当前的活跃事务，如果是的话，那么就帮助当前事务创建一个<code>X锁</code>（也就是为当前事务创建一个锁结构，<code>is_waiting</code>属性是<code>false</code>），然后自己进入等待状态（也就是为自己也创建一个锁结构，<code>is_waiting</code>属性是<code>true</code>）。</li>
+<li>对于二级索引记录来说，本身并没有<code>trx_id</code>隐藏列，但是在二级索引页面的<code>Page Header</code>部分有一个<code>PAGE_MAX_TRX_ID</code>属性，该属性代表对该页面做改动的最大的<code>事务id</code>，如果<code>PAGE_MAX_TRX_ID</code>属性值小于当前最小的活跃<code>事务id</code>，那么说明对该页面做修改的事务都已经提交了，否则就需要在页面中定位到对应的二级索引记录，然后回表找到它对应的聚簇索引记录，然后再重复<code>情景一</code>的做法。</li>
+</ol>
+<p>一个事务对新插入的记录可以不显式的加锁（生成一个锁结构），但是由于<code>事务id</code>的存在，相当于加了一个<code>隐式锁</code>。别的事务在对这条记录加<code>S锁</code>或者<code>X锁</code>时，由于<code>隐式锁</code>的存在，会先帮助当前事务生成一个锁结构，然后自己再生成一个锁结构后进入等待状态。</p>
+<blockquote>
+<p>小贴士： 除了插入意向锁，在一些特殊情况下INSERT还会获取一些锁。</p>
+</blockquote>
+<h2 id="2-InnoDB锁的内存结构"><a href="#2-InnoDB锁的内存结构" class="headerlink" title="2.InnoDB锁的内存结构"></a>2.InnoDB锁的内存结构</h2><p>对一条记录加锁的本质就是在内存中创建一个<code>锁结构</code>与之关联，那么是不是一个事务对多条记录加锁，就要创建多个<code>锁结构</code>呢？比方说事务<code>T1</code>要执行下边这个语句：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># 事务T1</span><br><span class="line">SELECT * FROM hero LOCK IN SHARE MODE;</span><br></pre></td></tr></table></figure>
+
+
+<p>很显然这条语句需要为<code>hero表</code>中的所有记录进行加锁，那是不是需要为每条记录都生成一个<code>锁结构</code>呢？其实理论上创建多个<code>锁结构</code>没问题，但是InnoDB决定在对不同记录加锁时，如果符合下边这些条件：</p>
+<ul>
+<li>在同一个事务中进行加锁操作</li>
+<li>被加锁的记录在同一个页面中</li>
+<li>加锁的类型是一样的</li>
+<li>等待状态是一样的</li>
+</ul>
+<p>那么这些记录的锁就可以被放到一个<code>锁结构</code>中。<code>InnoDB</code>存储引擎中的<code>锁结构</code>：</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641302077652-fd0f7c1b-6ec7-4bcd-a7c3-4882d21ff692.png#clientId=u896402f9-b7d4-4&crop=0&crop=0&crop=1&crop=1&from=ui&id=ucb623544&margin=%5Bobject%20Object%5D&name=11.png&originHeight=968&originWidth=1862&originalType=binary&ratio=1&rotation=0&showTitle=false&size=153226&status=done&style=none&taskId=ufcdf857f-68bf-4658-bf71-e5d27aa8960&title=" alt="11.png"></p>
+<ol>
+<li><p> <code>锁所在的事务信息</code>：<br>不论是<code>表锁</code>还是<code>行锁</code>，都是在事务执行过程中生成的，哪个事务生成了这个<code>锁结构</code>，这里就记载着这个事务的信息。  </p>
+<blockquote>
+<p>实际上这个所谓的<code>锁所在的事务信息</code>在内存结构中只是一个指针而已，所以不会占用多大内存空间，通过指针可以找到内存中关于该事务的更多信息，比方说事务id是什么。下边介绍的所谓的<code>索引信息</code>其实也是一个指针。</p>
+</blockquote>
+</li>
+<li><p> <code>索引信息</code>：<br>对于<code>行锁</code>来说，需要记录一下加锁的记录是属于哪个索引的。 </p>
+</li>
+<li><p> <code>表锁／行锁信息</code>：<br><code>表锁结构</code>和<code>行锁结构</code>在这个位置的内容是不同的： </p>
+</li>
+</ol>
+<ul>
+<li> 表锁：<br>记载着这是对哪个表加的锁，还有其他的一些信息。 </li>
+<li>行锁：<br>记载了三个重要的信息： <ul>
+<li><code>Space ID</code>：记录所在表空间。</li>
+<li><code>Page Number</code>：记录所在页号。</li>
+<li><code>n_bits</code>：对于行锁来说，一条记录就对应着一个比特位，一个页面中包含很多记录，用不同的比特位来区分到底是哪一条记录加了锁。为此在行锁结构的末尾放置了一堆比特位，这个<code>n_bits</code>属性代表使用了多少比特位。<blockquote>
+<p>并不是该页面中有多少记录，n_bits属性的值就是多少。为了让之后在页面中插入了新记录后也不至于重新分配锁结构，所以n_bits的值一般都比页面中记录条数多一些。</p>
+</blockquote>
+</li>
+</ul>
+</li>
+</ul>
+<ol start="4">
+<li> <code>type_mode</code>：<br>这是一个32位的数，被分成了<code>lock_mode</code>、<code>lock_type</code>和<code>rec_lock_type</code>三个部分，如图所示：<br><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641302089365-08d3f5f6-13c3-484f-8190-fe25ca593efe.png#clientId=u896402f9-b7d4-4&crop=0&crop=0&crop=1&crop=1&from=ui&id=u48dc3b4c&margin=%5Bobject%20Object%5D&name=12.png&originHeight=462&originWidth=1822&originalType=binary&ratio=1&rotation=0&showTitle=false&size=243960&status=done&style=none&taskId=u57043d3b-b911-4e1a-bf7f-3418f43fcf6&title=" alt="12.png"> </li>
+</ol>
+<ul>
+<li><p>锁的模式（<code>lock_mode</code>），占用低4位，可选的值如下： </p>
+<ul>
+<li><code>LOCK_IS</code>（十进制的<code>0</code>）：表示共享意向锁，也就是<code>IS锁</code>。</li>
+<li><code>LOCK_IX</code>（十进制的<code>1</code>）：表示独占意向锁，也就是<code>IX锁</code>。</li>
+<li><code>LOCK_S</code>（十进制的<code>2</code>）：表示共享锁，也就是<code>S锁</code>。</li>
+<li><code>LOCK_X</code>（十进制的<code>3</code>）：表示独占锁，也就是<code>X锁</code>。</li>
+<li><code>LOCK_AUTO_INC</code>（十进制的<code>4</code>）：表示<code>AUTO-INC锁</code>。<blockquote>
+<p>在InnoDB存储引擎中，LOCK_IS，LOCK_IX，LOCK_AUTO_INC都算是表级锁的模式，LOCK_S和LOCK_X既可以算是表级锁的模式，也可以是行级锁的模式。</p>
+</blockquote>
+</li>
+</ul>
+</li>
+<li><p>锁的类型（<code>lock_type</code>），占用第5～8位，不过现阶段只有第5位和第6位被使用： </p>
+<ul>
+<li><code>LOCK_TABLE</code>（十进制的<code>16</code>），也就是当第5个比特位置为1时，表示表级锁。</li>
+<li><code>LOCK_REC</code>（十进制的<code>32</code>），也就是当第6个比特位置为1时，表示行级锁。</li>
+</ul>
+</li>
+<li><p>行锁的具体类型（<code>rec_lock_type</code>），使用其余的位来表示。只有在<code>lock_type</code>的值为<code>LOCK_REC</code>时，也就是只有在该锁为行级锁时，才会被细分为更多的类型： </p>
+<ul>
+<li><code>LOCK_ORDINARY</code>（十进制的<code>0</code>）：表示<code>next-key锁</code>。</li>
+<li><code>LOCK_GAP</code>（十进制的<code>512</code>）：也就是当第10个比特位置为1时，表示<code>gap锁</code>。</li>
+<li><code>LOCK_REC_NOT_GAP</code>（十进制的<code>1024</code>）：也就是当第11个比特位置为1时，表示<code>正经记录锁</code>。</li>
+<li><code>LOCK_INSERT_INTENTION</code>（十进制的<code>2048</code>）：也就是当第12个比特位置为1时，表示插入意向锁。</li>
+<li>其他的类型：还有一些不常用的类型我们就不多说了。</li>
+</ul>
+</li>
+</ul>
+<p><code>is_waiting</code>属性也被放到了<code>type_mode</code>这个32位的数字中： </p>
+<pre><code>  - `LOCK_WAIT`（十进制的`256`） ：也就是当第9个比特位置为`1`时，表示`is_waiting`为`true`，也就是当前事务尚未获取到锁，处在等待状态；当这个比特位为`0`时，表示`is_waiting`为`false`，也就是当前事务获取锁成功。
+</code></pre>
+<ol start="5">
+<li> <code>其他信息</code>：<br>为了更好的管理系统运行过程中生成的各种锁结构而设计了各种哈希表和链表。 </li>
+<li> <code>一堆比特位</code>：<br>如果是<code>行锁结构</code>的话，在该结构末尾还放置了一堆比特位，比特位的数量是由上边提到的<code>n_bits</code>属性表示的。页面中的每条记录在<code>记录头信息</code>中都包含一个<code>heap_no</code>属性，伪记录<code>Infimum</code>的<code>heap_no</code>值为<code>0</code>，<code>Supremum</code>的<code>heap_no</code>值为<code>1</code>，之后每插入一条记录，<code>heap_no</code>值就增1。<code>锁结构</code>最后的一堆比特位就对应着一个页面中的记录，一个比特位映射一个<code>heap_no</code>，不过为了编码方便，映射方式有点怪：<br><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641302099676-d78db18a-0cee-4675-8588-d5f530504d5f.png#clientId=u896402f9-b7d4-4&crop=0&crop=0&crop=1&crop=1&from=ui&id=u44c1185f&margin=%5Bobject%20Object%5D&name=13.png&originHeight=536&originWidth=1830&originalType=binary&ratio=1&rotation=0&showTitle=false&size=272715&status=done&style=none&taskId=u7c288288-e770-4ab6-9c1d-cd7b6d4bd50&title=" alt="13.png"> </li>
+</ol>
+<p>比方说现在有两个事务<code>T1</code>和<code>T2</code>想对<code>hero</code>表中的记录进行加锁，<code>hero</code>表中记录比较少，假设这些记录都存储在所在的表空间号为<code>67</code>，页号为<code>3</code>的页面上，那么如果：</p>
+<ul>
+<li><p><code>T1</code>想对<code>number</code>值为<code>15</code>的这条记录加<code>S型正常记录锁</code>，在对记录加行锁之前，需要先加表级别的<code>IS</code>锁，也就是会生成一个表级锁的内存结构，不过我们这里不关心表级锁， 接下来分析一下生成行锁结构的过程： </p>
+<ul>
+<li><p> 事务<code>T1</code>要进行加锁，所以锁结构的<code>锁所在事务信息</code>指的就是<code>T1</code>。 </p>
+</li>
+<li><p> 直接对聚簇索引进行加锁，所以索引信息指的其实就是<code>PRIMARY</code>索引。 </p>
+</li>
+<li><p>由于是行锁，所以接下来需要记录的是三个重要信息： </p>
+<ul>
+<li><p> <code>Space ID</code>：表空间号为<code>67</code>。 </p>
+</li>
+<li><p> <code>Page Number</code>：页号为<code>3</code>。 </p>
+</li>
+<li><p> <code>n_bits</code>：我们的<code>hero</code>表中现在只插入了5条用户记录，但是在初始分配比特位时会多分配一些，这主要是为了在之后新增记录时不用频繁分配比特位。其实计算<code>n_bits</code>有一个公式：<br>其中<code>n_recs</code>指的是当前页面中一共有多少条记录（算上伪记录和在垃圾链表中的记录），比方说现在<code>hero</code>表一共有7条记录（5条用户记录和2条伪记录），所以<code>n_recs</code>的值就是<code>7</code>，<code>LOCK_PAGE_BITMAP_MARGIN</code>是一个固定的值<code>64</code>，所以本次加锁的<code>n_bits</code>值就是：  </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">n_bits = (1 + ((n_recs + LOCK_PAGE_BITMAP_MARGIN) / 8)) * 8</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">n_bits = (1 + ((7 + 64) / 8)) * 8 = 72</span><br></pre></td></tr></table></figure></li>
+<li><p><code>type_mode</code>是由三部分组成的： </p>
+<ul>
+<li><code>lock_mode</code>，这是对记录加<code>S锁</code>，它的值为<code>LOCK_S</code>。</li>
+<li><code>lock_type</code>，这是对记录进行加锁，也就是行锁，所以它的值为<code>LOCK_REC</code>。</li>
+<li><code>rec_lock_type</code>，这是对记录加<code>正经记录锁</code>，也就是类型为<code>LOCK_REC_NOT_GAP</code>的锁。另外，由于当前没有其他事务对该记录加锁，所以应当获取到锁，也就是<code>LOCK_WAIT</code>代表的二进制位应该是0。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>综上所属，此次加锁的<code>type_mode</code>的值应该是： </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">type_mode = LOCK_S | LOCK_REC | LOCK_REC_NOT_GAP</span><br><span class="line">也就是：</span><br><span class="line">type_mode = 2 | 32 | 1024 = 1058</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li> 其他信息 </li>
+<li> 一堆比特位<br>因为<code>number</code>值为<code>15</code>的记录<code>heap_no</code>值为<code>5</code>，根据上边列举的比特位和<code>heap_no</code>的映射图来看，应该是第一个字节从低位往高位数第6个比特位被置为1，就像这样：<br><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641302111508-e34e6184-f370-496c-8779-5b1c920a6d9c.png#clientId=u896402f9-b7d4-4&crop=0&crop=0&crop=1&crop=1&from=ui&id=u95974072&margin=%5Bobject%20Object%5D&name=14.png&originHeight=186&originWidth=1608&originalType=binary&ratio=1&rotation=0&showTitle=false&size=144706&status=done&style=none&taskId=ub44051d6-419d-453d-8876-a0acf30de20&title=" alt="14.png"> </li>
+</ul>
+<p>综上所述，事务<code>T1</code>为<code>number</code>值为5的记录加锁生成的锁结构就如下图所示：<br><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641302119792-3d4e38f6-02d6-4a13-8da5-9a7b39984e93.png#clientId=u896402f9-b7d4-4&crop=0&crop=0&crop=1&crop=1&from=ui&id=uc1fb285c&margin=%5Bobject%20Object%5D&name=15.png&originHeight=774&originWidth=698&originalType=binary&ratio=1&rotation=0&showTitle=false&size=35302&status=done&style=none&taskId=u03d768e6-2a4d-40f5-b88f-beab23a442e&title=" alt="15.png"></p>
+<ul>
+<li><code>T2</code>想对<code>number</code>值为<code>3</code>、<code>8</code>、<code>15</code>的这三条记录加<code>X型的next-key锁</code>，在对记录加行锁之前，需要先加表级别的<code>IX</code>锁，也就是会生成一个表级锁的内存结构，不过我们这里不关心表级锁。<br>现在<code>T2</code>要为3条记录加锁，<code>number</code>为<code>3</code>、<code>8</code>的两条记录由于没有其他事务加锁，所以可以成功获取这条记录的<code>X型next-key锁</code>，也就是生成的锁结构的<code>is_waiting</code>属性为<code>false</code>；但是<code>number</code>为<code>15</code>的记录已经被<code>T1</code>加了<code>S型正经记录锁</code>，<code>T2</code>是不能获取到该记录的<code>X型next-key锁</code>的，也就是生成的锁结构的<code>is_waiting</code>属性为<code>true</code>。因为等待状态不相同，所以这时候会生成两个<code>锁结构</code>。这两个锁结构中相同的属性如下： <ul>
+<li> 事务<code>T2</code>要进行加锁，所以锁结构的<code>锁所在事务信息</code>指的就是<code>T2</code>。 </li>
+<li> 直接对聚簇索引进行加锁，所以索引信息指的其实就是<code>PRIMARY</code>索引。 </li>
+<li>由于是行锁，所以接下来需要记录是三个重要信息： <ul>
+<li><code>Space ID</code>：表空间号为<code>67</code>。</li>
+<li><code>Page Number</code>：页号为<code>3</code>。</li>
+<li><code>n_bits</code>：此属性生成策略同<code>T1</code>中一样，该属性的值为<code>72</code>。</li>
+<li><code>type_mode</code>是由三部分组成的： <ul>
+<li><code>lock_mode</code>，这是对记录加<code>X锁</code>，它的值为<code>LOCK_X</code>。</li>
+<li><code>lock_type</code>，这是对记录进行加锁，也就是行锁，所以它的值为<code>LOCK_REC</code>。</li>
+<li><code>rec_lock_type</code>，这是对记录加<code>next-key锁</code>，也就是类型为<code>LOCK_ORDINARY</code>的锁。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li> 其他信息 </li>
+</ul>
+</li>
+</ul>
+<p>不同的属性如下： </p>
+<ul>
+<li><p>为<code>number</code>为<code>3</code>、<code>8</code>的记录生成的<code>锁结构</code>： </p>
+<ul>
+<li><p> <code>type_mode</code>值。<br>由于可以获取到锁，所以<code>is_waiting</code>属性为<code>false</code>，也就是<code>LOCK_WAIT</code>代表的二进制位被置0。所以：  </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">type_mode = LOCK_X | LOCK_REC |LOCK_ORDINARY</span><br><span class="line">也就是</span><br><span class="line">type_mode = 3 | 32 | 0 = 35</span><br></pre></td></tr></table></figure></li>
+<li><p> <code>一堆比特位</code><br>因为<code>number</code>值为<code>3</code>、<code>8</code>的记录<code>heap_no</code>值分别为<code>3</code>、<code>4</code>，根据上边列举的比特位和<code>heap_no</code>的映射图来看，应该是第一个字节从低位往高位数第4、5个比特位被置为1，就像这样： </p>
+</li>
+</ul>
+</li>
+</ul>
+<p><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641302130872-326c14a6-7f5f-4e77-a994-5088ed95df7e.png#clientId=u896402f9-b7d4-4&crop=0&crop=0&crop=1&crop=1&from=ui&id=u61d0c40f&margin=%5Bobject%20Object%5D&name=16.png&originHeight=166&originWidth=1612&originalType=binary&ratio=1&rotation=0&showTitle=false&size=130594&status=done&style=none&taskId=u20d1b4d8-3c37-4770-b5b7-71f2f97775f&title=" alt="16.png">综上所述，事务<code>T2</code>为<code>number</code>值为<code>3</code>、<code>8</code>两条记录加锁生成的锁结构就如下图所示：<br><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641302140888-47eabca0-72df-43df-886e-b066881f22ec.png#clientId=u896402f9-b7d4-4&crop=0&crop=0&crop=1&crop=1&from=ui&id=u638162ff&margin=%5Bobject%20Object%5D&name=17.png&originHeight=762&originWidth=744&originalType=binary&ratio=1&rotation=0&showTitle=false&size=39205&status=done&style=none&taskId=u6982e453-738e-427e-9fc2-60287436818&title=" alt="17.png"></p>
+<ul>
+<li><p>为<code>number</code>为<code>15</code>的记录生成的<code>锁结构</code>： </p>
+<ul>
+<li><p> <code>type_mode</code>值。<br>由于不可以获取到锁，所以<code>is_waiting</code>属性为<code>true</code>，也就是<code>LOCK_WAIT</code>代表的二进制位被置1。所以：  </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">type_mode = LOCK_X | LOCK_REC |LOCK_ORDINARY | LOCK_WAIT</span><br><span class="line">也就是</span><br><span class="line">type_mode = 3 | 32 | 0 | 256 = 291</span><br></pre></td></tr></table></figure></li>
+<li><p> <code>一堆比特位</code><br>因为<code>number</code>值为<code>15</code>的记录<code>heap_no</code>值为<code>5</code>，根据上边列举的比特位和<code>heap_no</code>的映射图来看，应该是第一个字节从低位往高位数第6个比特位被置为1，就像这样： </p>
+</li>
+</ul>
+</li>
+</ul>
+<p><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641302153651-ac5612e4-f9ae-40d3-813b-7ee40984d28f.png#clientId=u896402f9-b7d4-4&crop=0&crop=0&crop=1&crop=1&from=ui&id=u4df268cf&margin=%5Bobject%20Object%5D&name=18.png&originHeight=150&originWidth=1500&originalType=binary&ratio=1&rotation=0&showTitle=false&size=129272&status=done&style=none&taskId=u0cc2800e-a377-4edf-8a64-688a135946b&title=" alt="18.png">综上所述，事务<code>T2</code>为<code>number</code>值为<code>15</code>的记录加锁生成的锁结构就如下图所示：<br><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641302165317-6ad1f943-138a-432a-8829-b6910ee032c2.png#clientId=u896402f9-b7d4-4&crop=0&crop=0&crop=1&crop=1&from=ui&id=u72c20c19&margin=%5Bobject%20Object%5D&name=19.png&originHeight=770&originWidth=826&originalType=binary&ratio=1&rotation=0&showTitle=false&size=37315&status=done&style=none&taskId=ubbffe363-f571-43e6-b319-b57fd666d03&title=" alt="19.png"></p>
+<p>综上所述，事务<code>T1</code>先获取<code>number</code>值为<code>15</code>的<code>S型正经记录锁</code>，然后事务<code>T2</code>获取<code>number</code>值为<code>3</code>、<code>8</code>、<code>15</code>的<code>X型正经记录锁</code>共需要生成3个锁结构。</p>
+<blockquote>
+<p>事务T2在对number值分别为3、8、15这三条记录加锁的情景中，是按照先对number值为3的记录加锁、再对number值为8的记录加锁，最后对number值为15的记录加锁的顺序进行的，如果我们一开始就对number值为15的记录加锁，那么该事务在为number值为15的记录生成一个锁结构后，直接就进入等待状态，就不为number值为3、8的两条记录生成锁结构了。在事务T1提交后会把在number值为15的记录上获取的锁释放掉，然后事务T2就可以获取该记录上的锁，这时再对number值为3、8的两条记录加锁时，就可以复用之前为number值为15的记录加锁时生成的锁结构了。</p>
+</blockquote>
+<hr>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">二十</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://yinhuidong.github.io/2022/01/17/MySQL/MySQL[%E5%8D%81%E4%B8%83]%E9%94%81%E6%A6%82%E8%BF%B0/">https://yinhuidong.github.io/2022/01/17/MySQL/MySQL[十七]锁概述/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://yinhuidong.github.io" target="_blank">二十</a> 许可协议。转载请注明来自 <a href="https://yinhuidong.github.io" target="_blank">二十</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/MySQL/">MySQL</a></div><div class="post_share"><div class="social-share" data-image="/images/cover/mysql.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js" defer></script></div></div><div class="post-reward"><div class="reward-button button--animated"><i class="fas fa-qrcode"></i> 打赏</div><div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/img/wechat_pay.jpg" target="_blank"><img class="post-qr-code-img" src="/img/wechat_pay.jpg" alt="微信"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="/img/alipay.jpg" target="_blank"><img class="post-qr-code-img" src="/img/alipay.jpg" alt="支付宝"/></a><div class="post-qr-code-desc">支付宝</div></li></ul></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2022/01/20/MySQL/MySQL%5B%E4%BA%8C%E5%8D%81%5D%E6%B5%B7%E9%87%8F%E6%95%B0%E6%8D%AE%E5%A4%84%E7%90%86%E6%80%BB%E7%BB%93/"><img class="prev-cover" src="/images/cover/mysql.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">MySQL[二十]海量数据处理</div></div></a></div><div class="next-post pull-right"><a href="/2022/01/16/MySQL/MySQL%5B%E5%8D%81%E5%85%AD%5D%E5%B9%B6%E5%8F%91%E7%89%88%E6%9C%AC%E6%8E%A7%E5%88%B6-MVCC/"><img class="next-cover" src="/images/cover/mysql.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">MySQL[十六]并发版本控制-MVCC</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2022/01/01/MySQL/MySQL%5B%E4%B8%80%5D%E5%85%A5%E9%97%A8/" title="MySQL[一]入门"><img class="cover" src="/images/cover/mysql.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-01</div><div class="title">MySQL[一]入门</div></div></a></div><div><a href="/2022/01/02/MySQL/MySQL%5B%E4%BA%8C%5D%E6%A6%82%E8%BF%B0/" title="MySQL[二]概述"><img class="cover" src="/images/cover/mysql.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-02</div><div class="title">MySQL[二]概述</div></div></a></div><div><a href="/2022/01/09/MySQL/MySQL%5B%E4%B9%9D%5D%E5%9F%BA%E4%BA%8E%E8%A7%84%E5%88%99%E7%9A%84%E4%BC%98%E5%8C%96&%E5%AD%90%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96/" title="MySQL[九]基于规则的优化&子查询优化"><img class="cover" src="/images/cover/mysql.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-09</div><div class="title">MySQL[九]基于规则的优化&子查询优化</div></div></a></div><div><a href="/2022/01/20/MySQL/MySQL%5B%E4%BA%8C%E5%8D%81%5D%E6%B5%B7%E9%87%8F%E6%95%B0%E6%8D%AE%E5%A4%84%E7%90%86%E6%80%BB%E7%BB%93/" title="MySQL[二十]海量数据处理"><img class="cover" src="/images/cover/mysql.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-20</div><div class="title">MySQL[二十]海量数据处理</div></div></a></div><div><a href="/2022/01/03/MySQL/MySQL%5B%E4%B8%89%5DInnoDB%E7%B4%A2%E5%BC%95%E7%BB%93%E6%9E%84/" title="MySQL[三]InnoDB索引结构"><img class="cover" src="/images/cover/mysql.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-03</div><div class="title">MySQL[三]InnoDB索引结构</div></div></a></div><div><a href="/2022/01/08/MySQL/MySQL%5B%E5%85%AB%5DInnoDB%E7%BB%9F%E8%AE%A1%E6%95%B0%E6%8D%AE%E6%94%B6%E9%9B%86%E5%8E%9F%E7%90%86/" title="MySQL[八]InnoDB统计数据收集原理"><img class="cover" src="/images/cover/mysql.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-08</div><div class="title">MySQL[八]InnoDB统计数据收集原理</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/head.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">二十</div><div class="author-info__description">欢迎来到二十的博客....</div></div><div class="card-info-data"><div class="card-info-data-item is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">119</div></a></div><div class="card-info-data-item is-center"><a href="/tags/"><div class="headline">标签</div><div class="length-num">14</div></a></div><div class="card-info-data-item is-center"><a href="/categories/"><div class="headline">分类</div><div class="length-num">13</div></a></div></div><a class="button--animated" id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/yinhuidong"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/yinhuidong" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="mailto:1972039773@qq.com" target="_blank" title="Email"><i class="fas fa-envelope"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn card-announcement-animation"></i><span>公告</span></div><div class="announcement_content">欢迎来到二十的个人博客，联系作者：VX：yinhuidong666</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%80%EF%BC%8C%E5%B9%B6%E5%8F%91%E4%BA%8B%E5%8A%A1%E5%B8%A6%E6%9D%A5%E7%9A%84%E9%97%AE%E9%A2%98"><span class="toc-text">一，并发事务带来的问题</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%86%99-amp-%E5%86%99%E6%83%85%E5%86%B5"><span class="toc-text">1.写&amp;写情况</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E8%AF%BB-amp-%E5%86%99%E6%83%85%E5%86%B5"><span class="toc-text">2.读&amp;写情况</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E6%96%B9%E6%A1%88%E4%B8%80"><span class="toc-text">2.1 方案一</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E6%96%B9%E6%A1%88%E4%BA%8C"><span class="toc-text">2.2 方案二</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E4%B8%80%E8%87%B4%E6%80%A7%E8%AF%BB"><span class="toc-text">3.一致性读</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E9%94%81%E5%AE%9A%E8%AF%BB"><span class="toc-text">4.锁定读</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E5%85%B1%E4%BA%AB%E9%94%81-amp-%E7%8B%AC%E5%8D%A0%E9%94%81"><span class="toc-text">4.1 共享锁&amp;独占锁</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E9%94%81%E5%AE%9A%E8%AF%BB%E7%9A%84%E8%AF%AD%E5%8F%A5"><span class="toc-text">4.2 锁定读的语句</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E5%86%99%E6%93%8D%E4%BD%9C"><span class="toc-text">5.写操作</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%8C%EF%BC%8C%E5%A4%9A%E7%B2%92%E5%BA%A6%E9%94%81"><span class="toc-text">二，多粒度锁</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%89%EF%BC%8CMySQL%E4%B8%AD%E7%9A%84%E8%A1%8C%E9%94%81-amp-%E8%A1%A8%E9%94%81"><span class="toc-text">三，MySQL中的行锁&amp;表锁</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-InnoDB%E5%AD%98%E5%82%A8%E5%BC%95%E6%93%8E%E4%B8%AD%E7%9A%84%E9%94%81"><span class="toc-text">1.InnoDB存储引擎中的锁</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-InnoDB%E4%B8%AD%E7%9A%84%E8%A1%A8%E7%BA%A7%E9%94%81"><span class="toc-text">1.1 InnoDB中的表级锁</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-InnoDB%E4%B8%AD%E7%9A%84%E8%A1%8C%E7%BA%A7%E9%94%81"><span class="toc-text">1.2 InnoDB中的行级锁</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A0Record-Locks%EF%BC%88%E6%99%AE%E9%80%9A%E9%94%81%EF%BC%89"><span class="toc-text">①Record Locks（普通锁）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A1Gap-Locks%EF%BC%88%E9%97%B4%E6%AD%87%E9%94%81%EF%BC%89"><span class="toc-text">②Gap Locks（间歇锁）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A2Next-Key-Locks%EF%BC%88%E6%99%AE%E9%80%9A-amp-%E9%97%B4%E6%AD%87%EF%BC%89"><span class="toc-text">③Next-Key Locks（普通&amp;间歇）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A3Insert-Intention-Locks%EF%BC%88%E6%8F%92%E5%85%A5%E6%84%8F%E5%90%91%E9%94%81%EF%BC%89"><span class="toc-text">④Insert Intention Locks（插入意向锁）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A4%E9%9A%90%E5%BC%8F%E9%94%81"><span class="toc-text">⑤隐式锁</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-InnoDB%E9%94%81%E7%9A%84%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%84"><span class="toc-text">2.InnoDB锁的内存结构</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2022/01/20/MySQL/MySQL%5B%E4%BA%8C%E5%8D%81%5D%E6%B5%B7%E9%87%8F%E6%95%B0%E6%8D%AE%E5%A4%84%E7%90%86%E6%80%BB%E7%BB%93/" title="MySQL[二十]海量数据处理"><img src="/images/cover/mysql.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="MySQL[二十]海量数据处理"/></a><div class="content"><a class="title" href="/2022/01/20/MySQL/MySQL%5B%E4%BA%8C%E5%8D%81%5D%E6%B5%B7%E9%87%8F%E6%95%B0%E6%8D%AE%E5%A4%84%E7%90%86%E6%80%BB%E7%BB%93/" title="MySQL[二十]海量数据处理">MySQL[二十]海量数据处理</a><time datetime="2022-01-19T16:00:00.000Z" title="发表于 2022-01-20 00:00:00">2022-01-20</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/01/17/MySQL/MySQL%5B%E5%8D%81%E4%B8%83%5D%E9%94%81%E6%A6%82%E8%BF%B0/" title="MySQL[十七]锁概述"><img src="/images/cover/mysql.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="MySQL[十七]锁概述"/></a><div class="content"><a class="title" href="/2022/01/17/MySQL/MySQL%5B%E5%8D%81%E4%B8%83%5D%E9%94%81%E6%A6%82%E8%BF%B0/" title="MySQL[十七]锁概述">MySQL[十七]锁概述</a><time datetime="2022-01-16T16:00:00.000Z" title="发表于 2022-01-17 00:00:00">2022-01-17</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/01/16/MySQL/MySQL%5B%E5%8D%81%E5%85%AD%5D%E5%B9%B6%E5%8F%91%E7%89%88%E6%9C%AC%E6%8E%A7%E5%88%B6-MVCC/" title="MySQL[十六]并发版本控制-MVCC"><img src="/images/cover/mysql.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="MySQL[十六]并发版本控制-MVCC"/></a><div class="content"><a class="title" href="/2022/01/16/MySQL/MySQL%5B%E5%8D%81%E5%85%AD%5D%E5%B9%B6%E5%8F%91%E7%89%88%E6%9C%AC%E6%8E%A7%E5%88%B6-MVCC/" title="MySQL[十六]并发版本控制-MVCC">MySQL[十六]并发版本控制-MVCC</a><time datetime="2022-01-15T16:00:00.000Z" title="发表于 2022-01-16 00:00:00">2022-01-16</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/01/15/MySQL/MySQL%5B%E5%8D%81%E4%BA%94%5Dundo%E6%97%A5%E5%BF%97/" title="MySQL[十五]undo日志"><img src="/images/cover/mysql.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="MySQL[十五]undo日志"/></a><div class="content"><a class="title" href="/2022/01/15/MySQL/MySQL%5B%E5%8D%81%E4%BA%94%5Dundo%E6%97%A5%E5%BF%97/" title="MySQL[十五]undo日志">MySQL[十五]undo日志</a><time datetime="2022-01-14T16:00:00.000Z" title="发表于 2022-01-15 00:00:00">2022-01-15</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/01/14/MySQL/MySQL%5B%E5%8D%81%E5%9B%9B%5Dredo%E6%97%A5%E5%BF%97/" title="MySQL[十四]redo日志"><img src="/images/cover/mysql.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="MySQL[十四]redo日志"/></a><div class="content"><a class="title" href="/2022/01/14/MySQL/MySQL%5B%E5%8D%81%E5%9B%9B%5Dredo%E6%97%A5%E5%BF%97/" title="MySQL[十四]redo日志">MySQL[十四]redo日志</a><time datetime="2022-01-13T16:00:00.000Z" title="发表于 2022-01-14 00:00:00">2022-01-14</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('/images/cover/mysql.png')"><div id="footer-wrap"><div class="copyright">&copy;2021 - 2022 By 二十</div><div class="footer_custom_text">树是生活，埋的是我。看花就好，别看我落魄。</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="font-plus" type="button" title="放大字体"><i class="fas fa-plus"></i></button><button id="font-minus" type="button" title="缩小字体"><i class="fas fa-minus"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div id="local-search"><div class="search-dialog"><div class="search-dialog__title" id="local-search-title">本地搜索</div><div id="local-input-panel"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div></div><hr/><div id="local-search-results"></div><span class="search-close-button"><i class="fas fa-times"></i></span></div><div id="search-mask"></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/search/local-search.js"></script><div class="js-pjax"></div><script src="https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js"></script><script src="/js/chocolate.js"></script><script defer="defer" id="fluttering_ribbon" mobile="true" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/canvas-fluttering-ribbon.min.js"></script><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="true" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/canvas-nest.min.js"></script><script id="click-show-text" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/click-show-text.min.js" data-mobile="false" data-text="二十,二十二十,二十二十二十,二十二十二十二十,二十二十二十二十二十" data-fontsize="15px" data-random="true" async="async"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

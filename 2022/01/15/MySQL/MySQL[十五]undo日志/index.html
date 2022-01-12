@@ -1,0 +1,593 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MySQL[十五]undo日志 | 二十</title><meta name="keywords" content="MySQL"><meta name="author" content="二十"><meta name="copyright" content="二十"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="undo日志">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MySQL[十五]undo日志">
+<meta property="og:url" content="https://yinhuidong.github.io/2022/01/15/MySQL/MySQL[%E5%8D%81%E4%BA%94]undo%E6%97%A5%E5%BF%97/index.html">
+<meta property="og:site_name" content="二十">
+<meta property="og:description" content="undo日志">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yinhuidong.github.io/images/cover/mysql.png">
+<meta property="article:published_time" content="2022-01-14T16:00:00.000Z">
+<meta property="article:modified_time" content="2022-01-12T00:43:02.433Z">
+<meta property="article:author" content="二十">
+<meta property="article:tag" content="MySQL">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://yinhuidong.github.io/images/cover/mysql.png"><link rel="shortcut icon" href="/img/favicon.jpg"><link rel="canonical" href="https://yinhuidong.github.io/2022/01/15/MySQL/MySQL[%E5%8D%81%E4%BA%94]undo%E6%97%A5%E5%BF%97/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":800},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js',
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css'
+    },
+    fancybox: {
+      js: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isanchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'MySQL[十五]undo日志',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2022-01-12 08:43:02'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const fontSizeVal = saveToLocal.get('global-font-size')
+    if (fontSizeVal !== undefined) {
+      document.documentElement.style.setProperty('--global-font-size', fontSizeVal + 'px')
+    }
+    
+    const detectApple = () => {
+      if (GLOBAL_CONFIG_SITE.isHome && /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/custom.css"><meta name="referrer" content="no-referrer" /><meta name="generator" content="Hexo 5.4.0"></head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/head.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data"><div class="data-item is-center"><div class="data-item-link"><a href="/archives/"><div class="headline">文章</div><div class="length-num">118</div></a></div></div><div class="data-item is-center"><div class="data-item-link"><a href="/tags/"><div class="headline">标签</div><div class="length-num">14</div></a></div></div><div class="data-item is-center"><div class="data-item-link"><a href="/categories/"><div class="headline">分类</div><div class="length-num">13</div></a></div></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/%E5%85%B3%E4%BA%8E%E6%88%91/"><i class="fa-fw fas fa-user"></i><span> 关于我</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/images/cover/mysql.png')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">二十</a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/%E5%85%B3%E4%BA%8E%E6%88%91/"><i class="fa-fw fas fa-user"></i><span> 关于我</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">MySQL[十五]undo日志</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-01-14T16:00:00.000Z" title="发表于 2022-01-15 00:00:00">2022-01-15</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2022-01-12T00:43:02.433Z" title="更新于 2022-01-12 08:43:02">2022-01-12</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/MySQL/">MySQL</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">16.7k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>52分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="MySQL[十五]undo日志"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h2 id="1-事务回滚的需求"><a href="#1-事务回滚的需求" class="headerlink" title="1.事务回滚的需求"></a>1.事务回滚的需求</h2><p>我们说过<code>事务</code>需要保证<code>原子性</code>，也就是事务中的操作要么全部完成，要么什么也不做。但是偏偏有时候事务执行到一半会出现一些情况，比如：</p>
+<ul>
+<li>情况一：事务执行过程中可能遇到各种错误，比如服务器本身的错误，操作系统错误，甚至是突然断电导致的错误。</li>
+<li>情况二：程序员可以在事务执行过程中手动输入<code>ROLLBACK</code>语句结束当前的事务的执行。</li>
+</ul>
+<p>这两种情况都会导致事务执行到一半就结束，但是事务执行过程中可能已经修改了很多东西，为了保证事务的原子性，我们需要把东西改回原先的样子，这个过程就称之为<code>回滚</code>（英文名：<code>rollback</code>），这样就可以造成一个假象：这个事务看起来什么都没做，所以符合<code>原子性</code>要求。</p>
+<p>每当我们要对一条记录做改动时（这里的<code>改动</code>可以指<code>INSERT</code>、<code>DELETE</code>、<code>UPDATE</code>），都需要留一手 —— 把回滚时所需的东西都给记下来。比方说：</p>
+<ul>
+<li>你插入一条记录时，至少要把这条记录的主键值记下来，之后回滚的时候只需要把这个主键值对应的记录删掉就好了。</li>
+<li>你删除了一条记录，至少要把这条记录中的内容都记下来，这样之后回滚时再把由这些内容组成的记录插入到表中就好了。</li>
+<li>你修改了一条记录，至少要把修改这条记录前的旧值都记录下来，这样之后回滚时再把这条记录更新为旧值就好了。</li>
+</ul>
+<p>数据库把这些为了回滚而记录的这些东西称之为撤销日志，英文名为<code>undo log</code>，我们也可以土洋结合，称之为<code>undo日志</code>。这里需要注意的一点是，由于查询操作（<code>SELECT</code>）并不会修改任何用户记录，所以在查询操作执行时，并不需要记录相应的<code>undo日志</code>。在真实的<code>InnoDB</code>中，<code>undo日志</code>其实并不像我们上边所说的那么简单，不同类型的操作产生的<code>undo日志</code>的格式也是不同的，不过先暂时把这些具体细节放一放，我们先回过头来看看<code>事务id</code>。</p>
+<h2 id="2-事务id"><a href="#2-事务id" class="headerlink" title="2.事务id"></a>2.事务id</h2><h3 id="2-1给事务分配id的时机"><a href="#2-1给事务分配id的时机" class="headerlink" title="2.1给事务分配id的时机"></a>2.1给事务分配id的时机</h3><p>一个事务可以是一个只读事务，或者是一个读写事务：</p>
+<ul>
+<li> 我们可以通过<code>START TRANSACTION READ ONLY</code>语句开启一个只读事务。<br>在只读事务中不可以对普通的表（其他事务也能访问到的表）进行增、删、改操作，但可以对临时表做增、删、改操作。 </li>
+<li> 我们可以通过<code>START TRANSACTION READ WRITE</code>语句开启一个读写事务，或者使用<code>BEGIN</code>、<code>START TRANSACTION</code>语句开启的事务默认也算是读写事务。<br>在读写事务中可以对表执行增删改查操作。 </li>
+</ul>
+<p>如果某个事务执行过程中对某个表执行了增、删、改操作，那么<code>InnoDB</code>存储引擎就会给它分配一个独一无二的<code>事务id</code>，分配方式如下：</p>
+<ul>
+<li><p> 对于只读事务来说，只有在它第一次对某个用户创建的临时表执行增、删、改操作时才会为这个事务分配一个<code>事务id</code>，否则的话是不分配<code>事务id</code>的。  </p>
+<blockquote>
+<p>对某个查询语句执行EXPLAIN分析它的查询计划时，有时候在Extra列会看到Using temporary的提示，这个表明在执行该查询语句时会用到内部临时表。这个所谓的内部临时表和我们手动用CREATE TEMPORARY TABLE创建的用户临时表并不一样，在事务回滚时并不需要把执行SELECT语句过程中用到的内部临时表也回滚，在执行SELECT语句用到内部临时表时并不会为它分配事务id。</p>
+</blockquote>
+</li>
+<li><p> 对于读写事务来说，只有在它第一次对某个表（包括用户创建的临时表）执行增、删、改操作时才会为这个事务分配一个<code>事务id</code>，否则的话也是不分配<code>事务id</code>的。<br>有的时候虽然我们开启了一个读写事务，但是在这个事务中全是查询语句，并没有执行增、删、改的语句，那也就意味着这个事务并不会被分配一个<code>事务id</code>。 </p>
+</li>
+</ul>
+<p><strong>只有在事务对表中的记录做改动时才会为这个事务分配一个唯一的</strong><code>**事务id**</code><strong>。</strong></p>
+<blockquote>
+<p>上边描述的事务id分配策略是针对MySQL 5.7来说的，前边的版本的分配方式可能不同。</p>
+</blockquote>
+<h3 id="2-2事务id是怎么生成的"><a href="#2-2事务id是怎么生成的" class="headerlink" title="2.2事务id是怎么生成的"></a>2.2事务id是怎么生成的</h3><p>这个<code>事务id</code>本质上就是一个数字，它的分配策略和我们前边提到的对隐藏列<code>row_id</code>（当用户没有为表创建主键和<code>UNIQUE</code>键时<code>InnoDB</code>自动创建的列）的分配策略大抵相同，具体策略如下：</p>
+<ul>
+<li>服务器会在内存中维护一个全局变量，每当需要为某个事务分配一个<code>事务id</code>时，就会把该变量的值当作<code>事务id</code>分配给该事务，并且把该变量自增1。</li>
+<li>每当这个变量的值为<code>256</code>的倍数时，就会将该变量的值刷新到系统表空间的页号为<code>5</code>的页面中一个称之为<code>Max Trx ID</code>的属性处，这个属性占用<code>8</code>个字节的存储空间。</li>
+<li>当系统下一次重新启动时，会将上边提到的<code>Max Trx ID</code>属性加载到内存中，将该值加上256之后赋值给我们前边提到的全局变量（因为在上次关机时该全局变量的值可能大于<code>Max Trx ID</code>属性值）。</li>
+</ul>
+<p>这样就可以保证整个系统中分配的<code>事务id</code>值是一个递增的数字。先被分配<code>id</code>的事务得到的是较小的<code>事务id</code>，后被分配<code>id</code>的事务得到的是较大的<code>事务id</code>。</p>
+<h3 id="2-3trx-id隐藏列"><a href="#2-3trx-id隐藏列" class="headerlink" title="2.3trx_id隐藏列"></a>2.3trx_id隐藏列</h3><p>聚簇索引的记录除了会保存完整的用户数据以外，而且还会自动添加名为trx_id、roll_pointer的隐藏列，如果用户没有在表中定义主键以及UNIQUE键，还会自动添加一个名为row_id的隐藏列。所以一条记录在页面中的真实结构看起来就是这样的：</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641192428771-f02d33a9-de15-4576-a7c6-5810a20421e0.png#clientId=ue22caadf-f35c-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=269&id=u183bae73&margin=%5Bobject%20Object%5D&name=image.png&originHeight=269&originWidth=849&originalType=binary&ratio=1&rotation=0&showTitle=false&size=17085&status=done&style=none&taskId=ua4675c27-ddca-4438-8efa-3fb7ee923c4&title=&width=849" alt="image.png"></p>
+<p>其中的<code>trx_id</code>列其实还蛮好理解的，就是某个对这个聚簇索引记录做改动的语句所在的事务对应的<code>事务id</code>而已（此处的改动可以是<code>INSERT</code>、<code>DELETE</code>、<code>UPDATE</code>操作）。至于<code>roll_pointer</code>隐藏列我们后边分析。</p>
+<h2 id="3-undo日志的格式"><a href="#3-undo日志的格式" class="headerlink" title="3.undo日志的格式"></a>3.undo日志的格式</h2><p>为了实现事务的<code>原子性</code>，<code>InnoDB</code>存储引擎在实际进行增、删、改一条记录时，都需要先把对应的<code>undo日志</code>记下来。一般每对一条记录做一次改动，就对应着一条<code>undo日志</code>，但在某些更新记录的操作中，也可能会对应着2条<code>undo日志</code>。一个事务在执行过程中可能新增、删除、更新若干条记录，也就是说需要记录很多条对应的<code>undo日志</code>，这些<code>undo日志</code>会被从<code>0</code>开始编号，也就是说根据生成的顺序分别被称为<code>第0号undo日志</code>、<code>第1号undo日志</code>、…、<code>第n号undo日志</code>等，这个编号也被称之为<code>undo no</code>。</p>
+<p>这些<code>undo日志</code>是被记录到类型为<code>FIL_PAGE_UNDO_LOG</code>的页面中。这些页面可以从系统表空间中分配，也可以从一种专门存放<code>undo日志</code>的表空间，也就是所谓的<code>undo tablespace</code>中分配。先来看看不同操作都会产生什么样子的<code>undo日志</code>吧～我们先来创建一个名为<code>undo_demo</code>的表：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">CREATE TABLE undo_demo (</span><br><span class="line">    id INT NOT NULL,</span><br><span class="line">    key1 VARCHAR(100),</span><br><span class="line">    col VARCHAR(100),</span><br><span class="line">    PRIMARY KEY (id),</span><br><span class="line">    KEY idx_key1 (key1)</span><br><span class="line">)Engine=InnoDB CHARSET=utf8;</span><br></pre></td></tr></table></figure>
+
+
+<p>这个表中有3个列，其中<code>id</code>列是主键，我们为<code>key1</code>列建立了一个二级索引，<code>col</code>列是一个普通的列。每个表都会被分配一个唯一的<code>table id</code>，我们可以通过系统数据库<code>information_schema</code>中的<code>innodb_sys_tables</code>表来查看某个表对应的<code>table id</code>是什么，现在我们查看一下<code>undo_demo</code>对应的<code>table id</code>是多少：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; SELECT * FROM information_schema.innodb_sys_tables WHERE name = &#x27;yhd/undo_demo&#x27;;</span><br><span class="line">+----------+---------------------+------+--------+-------+-------------+------------+---------------+------------+</span><br><span class="line">| TABLE_ID | NAME                | FLAG | N_COLS | SPACE | FILE_FORMAT | ROW_FORMAT | ZIP_PAGE_SIZE | SPACE_TYPE |</span><br><span class="line">+----------+---------------------+------+--------+-------+-------------+------------+---------------+------------+</span><br><span class="line">|      138 | yhd/undo_demo |   33 |      6 |   482 | Barracuda   | Dynamic    |             0 | Single     |</span><br><span class="line">+----------+---------------------+------+--------+-------+-------------+------------+---------------+------------+</span><br><span class="line">1 row in set (0.01 sec)</span><br></pre></td></tr></table></figure>
+
+
+<p>从查询结果可以看出，<code>undo_demo</code>表对应的<code>table id</code>为<code>138</code>。</p>
+<h3 id="3-1INSERT操作对应的undo日志"><a href="#3-1INSERT操作对应的undo日志" class="headerlink" title="3.1INSERT操作对应的undo日志"></a>3.1INSERT操作对应的undo日志</h3><p>当我们向表中插入一条记录时会有<code>乐观插入</code>和<code>悲观插入</code>的区分，但是不管怎么插入，最终导致的结果就是这条记录被放到了一个数据页中。如果希望回滚这个插入操作，那么把这条记录删除就好了，也就是说在写对应的<code>undo</code>日志时，主要是把这条记录的主键信息记上。所以<code>InnoDB</code>设计了一个类型为<code>TRX_UNDO_INSERT_REC</code>的<code>undo日志</code>，它的完整结构如下图所示：</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641192872644-4ff1f513-17b7-4247-bcc3-01bfff35ea0f.png#clientId=ue22caadf-f35c-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=704&id=u66ad5046&margin=%5Bobject%20Object%5D&name=image.png&originHeight=704&originWidth=1164&originalType=binary&ratio=1&rotation=0&showTitle=false&size=67121&status=done&style=none&taskId=ue631307e-8b61-41c6-b727-8c6d7a7b6b6&title=&width=1164" alt="image.png"></p>
+<p>根据示意图我们强调几点：</p>
+<ul>
+<li><code>undo no</code>在一个事务中是从<code>0</code>开始递增的，也就是说只要事务没提交，每生成一条<code>undo日志</code>，那么该条日志的<code>undo no</code>就增1。</li>
+<li>如果记录中的主键只包含一个列，那么在类型为<code>TRX_UNDO_INSERT_REC</code>的<code>undo日志</code>中只需要把该列占用的存储空间大小和真实值记录下来，如果记录中的主键包含多个列，那么每个列占用的存储空间大小和对应的真实值都需要记录下来（图中的<code>len</code>就代表列占用的存储空间大小，<code>value</code>就代表列的真实值）。</li>
+</ul>
+<blockquote>
+<p>当我们向某个表中插入一条记录时，实际上需要向聚簇索引和所有的二级索引都插入一条记录。不过记录undo日志时，我们只需要考虑向聚簇索引插入记录时的情况就好了，因为其实聚簇索引记录和二级索引记录是一一对应的，我们在回滚插入操作时，只需要知道这条记录的主键信息，然后根据主键信息做对应的删除操作，做删除操作时就会顺带着把所有二级索引中相应的记录也删除掉。后边说到的DELETE操作和UPDATE操作对应的undo日志也都是针对聚簇索引记录而言的。</p>
+</blockquote>
+<p>现在我们向<code>undo_demo</code>中插入两条记录：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">BEGIN;  # 显式开启一个事务，假设该事务的id为100</span><br><span class="line"></span><br><span class="line"># 插入两条记录</span><br><span class="line">INSERT INTO undo_demo(id, key1, col) </span><br><span class="line">    VALUES (1, &#x27;AWM&#x27;, &#x27;狙击枪&#x27;), (2, &#x27;M416&#x27;, &#x27;步枪&#x27;);</span><br></pre></td></tr></table></figure>
+
+
+<p>因为记录的主键只包含一个<code>id</code>列，所以我们在对应的<code>undo日志</code>中只需要将待插入记录的<code>id</code>列占用的存储空间长度（<code>id</code>列的类型为<code>INT</code>，<code>INT</code>类型占用的存储空间长度为<code>4</code>个字节）和真实值记录下来。本例中插入了两条记录，所以会产生两条类型为<code>TRX_UNDO_INSERT_REC</code>的<code>undo日志</code>:</p>
+<ul>
+<li> 第一条<code>undo日志</code>的<code>undo no</code>为<code>0</code>，记录主键占用的存储空间长度为<code>4</code>，真实值为<code>1</code>。画一个示意图就是这样：<br><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641193036863-044fc48f-f5d6-488b-a83d-b41eed09cbec.png#clientId=ue22caadf-f35c-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=717&id=ue27077c5&margin=%5Bobject%20Object%5D&name=image.png&originHeight=717&originWidth=1028&originalType=binary&ratio=1&rotation=0&showTitle=false&size=41607&status=done&style=none&taskId=u70a71d82-1f17-48e8-b1c9-f6c027f3a9e&title=&width=1028" alt="image.png"></li>
+<li> 第二条<code>undo日志</code>的<code>undo no</code>为<code>1</code>，记录主键占用的存储空间长度为<code>4</code>，真实值为<code>2</code>。画一个示意图就是这样（与第一条<code>undo日志</code>对比，<code>undo no</code>和主键各列信息有不同）：<br><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641193076991-d0994b60-867c-445a-92ef-6aa3d2768fda.png#clientId=ue22caadf-f35c-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=706&id=uf6ba6854&margin=%5Bobject%20Object%5D&name=image.png&originHeight=706&originWidth=983&originalType=binary&ratio=1&rotation=0&showTitle=false&size=40549&status=done&style=none&taskId=u12aeca4b-404b-4f4a-86aa-3843b71214c&title=&width=983" alt="image.png"> </li>
+</ul>
+<blockquote>
+<p>为了最大限度的节省undo日志占用的存储空间，和我们前边说过的redo日志类似，InnoDB会给undo日志中的某些属性进行压缩处理。</p>
+</blockquote>
+<h4 id="①roll-pointer隐藏列的含义"><a href="#①roll-pointer隐藏列的含义" class="headerlink" title="①roll_pointer隐藏列的含义"></a>①roll_pointer隐藏列的含义</h4><p><code>roll_pointer</code>本质上就是一个指向记录对应的<code>undo日志</code>的一个指针。比方说我们上边向<code>undo_demo</code>表里插入了2条记录，每条记录都有与其对应的一条<code>undo日志</code>。记录被存储到了类型为<code>FIL_PAGE_INDEX</code>的页面中（就是我们前边一直所说的<code>数据页</code>），<code>undo日志</code>被存放到了类型为<code>FIL_PAGE_UNDO_LOG</code>的页面中。效果如图所示：</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641232864067-7b7fdb27-1452-4a71-8456-d5dda2e4bcd7.png#clientId=ue22caadf-f35c-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=565&id=u9b86e74c&margin=%5Bobject%20Object%5D&name=image.png&originHeight=565&originWidth=1537&originalType=binary&ratio=1&rotation=0&showTitle=false&size=33192&status=done&style=none&taskId=u88a66d37-323e-435a-9e8a-eb89bfb3c99&title=&width=1537" alt="image.png"></p>
+<p><code>**roll_pointer**</code><strong>本质就是一个指针，指向记录对应的undo日志。</strong></p>
+<h3 id="3-2-DELETE操作对应的undo日志"><a href="#3-2-DELETE操作对应的undo日志" class="headerlink" title="3.2 DELETE操作对应的undo日志"></a>3.2 DELETE操作对应的undo日志</h3><p>插入到页面中的记录会根据记录头信息中的<code>next_record</code>属性组成一个单向链表，我们把这个链表称之为<code>正常记录链表</code>；被删除的记录其实也会根据记录头信息中的<code>next_record</code>属性组成一个链表，只不过这个链表中的记录占用的存储空间可以被重新利用，所以也称这个链表为<code>垃圾链表</code>。<code>Page Header</code>部分有一个称之为<code>PAGE_FREE</code>的属性，它指向由被删除记录组成的垃圾链表中的头节点。我们先画一个图，假设此刻某个页面中的记录分布情况是这样的（这个不是<code>undo_demo</code>表中的记录，只是我们随便举的一个例子）：</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641233156986-d2beeec8-b0c4-46ab-8afe-f48a3198c000.png#clientId=ue22caadf-f35c-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=561&id=uac4cc07c&margin=%5Bobject%20Object%5D&name=image.png&originHeight=561&originWidth=847&originalType=binary&ratio=1&rotation=0&showTitle=false&size=21996&status=done&style=none&taskId=u98029dc5-2433-4793-920e-1e070fb9f02&title=&width=847" alt="image.png"></p>
+<p>为了突出主题，在这个简化版的示意图中，我们只把记录的<code>delete_mask</code>标志位展示了出来。从图中可以看出，<code>正常记录链表</code>中包含了3条正常记录，<code>垃圾链表</code>里包含了2条已删除记录，在<code>垃圾链表</code>中的这些记录占用的存储空间可以被重新利用。页面的<code>Page Header</code>部分的<code>PAGE_FREE</code>属性的值代表指向<code>垃圾链表</code>头节点的指针。假设现在我们准备使用<code>DELETE</code>语句把<code>正常记录链表</code>中的最后一条记录给删除掉，其实这个删除的过程需要经历两个阶段：</p>
+<ul>
+<li><p> 阶段一：仅仅将记录的<code>delete_mask</code>标识位设置为<code>1</code>，其他的不做修改（其实会修改记录的<code>trx_id</code>、<code>roll_pointer</code>这些隐藏列的值）。<code>InnoDB</code>把这个阶段称之为<code>delete mark</code>。<br>把这个过程画下来就是这样：<br><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641233252243-244f2cb5-7898-4ae7-b3b9-15008f9e7e85.png#clientId=ue22caadf-f35c-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=568&id=u11e37266&margin=%5Bobject%20Object%5D&name=image.png&originHeight=568&originWidth=877&originalType=binary&ratio=1&rotation=0&showTitle=false&size=25816&status=done&style=none&taskId=ue0ffcea7-2844-49bd-b689-7ad6ce71739&title=&width=877" alt="image.png"><br>可以看到，<code>正常记录链表</code>中的最后一条记录的<code>delete_mask</code>值被设置为<code>1</code>，但是并没有被加入到<code>垃圾链表</code>。也就是此时记录处于一个<code>中间状态</code>。在删除语句所在的事务提交之前，被删除的记录一直都处于这种所谓的<code>中间状态</code>。  </p>
+<blockquote>
+<p>为啥会有这种奇怪的中间状态呢？其实主要是为了实现一个称之为MVCC的功能。</p>
+</blockquote>
+</li>
+<li><p> 阶段二：当该删除语句所在的事务提交之后，会有专门的线程后来真正的把记录删除掉。所谓真正的删除就是把该记录从<code>正常记录链表</code>中移除，并且加入到<code>垃圾链表</code>中，然后还要调整一些页面的其他信息，比如页面中的用户记录数量<code>PAGE_N_RECS</code>、上次插入记录的位置<code>PAGE_LAST_INSERT</code>、垃圾链表头节点的指针<code>PAGE_FREE</code>、页面中可重用的字节数量<code>PAGE_GARBAGE</code>、还有页目录的一些信息等等。<code>InnoDB</code>把这个阶段称之为<code>purge</code>。<br>把<code>阶段二</code>执行完了，这条记录就算是真正的被删除掉了。这条已删除记录占用的存储空间也可以被重新利用了。画下来就是这样：<br><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641233347214-b6dc41cf-32d3-439a-af0d-73a32d67dd58.png#clientId=ue22caadf-f35c-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=554&id=u60ec8884&margin=%5Bobject%20Object%5D&name=image.png&originHeight=554&originWidth=900&originalType=binary&ratio=1&rotation=0&showTitle=false&size=22118&status=done&style=none&taskId=u9af9b2cb-bb8a-43ca-bc08-47c68de460a&title=&width=900" alt="image.png"><br>将被删除记录加入到<code>垃圾链表</code>时，实际上加入到链表的头节点处，会跟着修改<code>PAGE_FREE</code>属性的值。 </p>
+</li>
+</ul>
+<blockquote>
+<p>页面的Page Header部分有一个PAGE_GARBAGE属性，该属性记录着当前页面中可重用存储空间占用的总字节数。每当有已删除记录被加入到垃圾链表后，都会把这个PAGE_GARBAGE属性的值加上该已删除记录占用的存储空间大小。PAGE_FREE指向垃圾链表的头节点，之后每当新插入记录时，首先判断PAGE_FREE指向的头节点代表的已删除记录占用的存储空间是否足够容纳这条新插入的记录，如果不可以容纳，就直接向页面中申请新的空间来存储这条记录（并不会尝试遍历整个垃圾链表，找到一个可以容纳新记录的节点）。如果可以容纳，那么直接重用这条已删除记录的存储空间，并且把PAGE_FREE指向垃圾链表中的下一条已删除记录。但是这里有一个问题，如果新插入的那条记录占用的存储空间大小小于垃圾链表的头节点占用的存储空间大小，那就意味头节点对应的记录占用的存储空间里有一部分空间用不到，这部分空间就被称之为碎片空间。那这些碎片空间岂不是永远都用不到了么？其实也不是，这些碎片空间占用的存储空间大小会被统计到PAGE_GARBAGE属性中，这些碎片空间在整个页面快使用完前并不会被重新利用，不过当页面快满时，如果再插入一条记录，此时页面中并不能分配一条完整记录的空间，这时候会首先看一看PAGE_GARBAGE的空间和剩余可利用的空间加起来是不是可以容纳下这条记录，如果可以的话，InnoDB会尝试重新组织页内的记录，重新组织的过程就是先开辟一个临时页面，把页面内的记录依次插入一遍，因为依次插入时并不会产生碎片，之后再把临时页面的内容复制到本页面，这样就可以把那些碎片空间都解放出来（很显然重新组织页面内的记录比较耗费性能）。</p>
+</blockquote>
+<p>从上边的描述中我们也可以看出来，在删除语句所在的事务提交之前，只会经历<code>阶段一</code>，也就是<code>delete mark</code>阶段（提交之后我们就不用回滚了，所以只需考虑对删除操作的<code>阶段一</code>做的影响进行回滚）。<code>InnoDB</code>为此设计了一种称之为<code>TRX_UNDO_DEL_MARK_REC</code>类型的<code>undo日志</code>，它的完整结构如下图所示：</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641234018534-0bd494e0-04ee-428b-a8cc-5ed97f24cb8c.png#clientId=ue22caadf-f35c-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=676&id=ue37c8df0&margin=%5Bobject%20Object%5D&name=image.png&originHeight=676&originWidth=762&originalType=binary&ratio=1&rotation=0&showTitle=false&size=72696&status=done&style=none&taskId=uf07027f8-3ee2-4825-85d0-9cbb4383a2f&title=&width=762" alt="image.png"></p>
+<ul>
+<li> 在对一条记录进行<code>delete mark</code>操作前，需要把该记录的旧的<code>trx_id</code>和<code>roll_pointer</code>隐藏列的值都给记到对应的<code>undo日志</code>中来，就是我们图中显示的<code>old trx_id</code>和<code>old roll_pointer</code>属性。这样有一个好处，那就是可以通过<code>undo日志</code>的<code>old roll_pointer</code>找到记录在修改之前对应的<code>undo</code>日志。比方说在一个事务中，我们先插入了一条记录，然后又执行对该记录的删除操作，这个过程的示意图就是这样：<br><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641259097639-7b906379-98a5-42c0-bcc7-699c28f8ede8.png#clientId=u6ba89fc1-2426-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=442&id=ud87231cc&margin=%5Bobject%20Object%5D&name=image.png&originHeight=884&originWidth=2106&originalType=binary&ratio=1&rotation=0&showTitle=false&size=113291&status=done&style=none&taskId=u789bb87c-a415-4f3b-9934-ffb15db2df9&title=&width=1053" alt="image.png"><br>从图中可以看出来，执行完<code>delete mark</code>操作后，它对应的<code>undo</code>日志和<code>INSERT</code>操作对应的<code>undo</code>日志就串成了一个链表。这个链表就称之为<code>版本链</code>。 </li>
+<li> 与类型为<code>TRX_UNDO_INSERT_REC</code>的<code>undo日志</code>不同，类型为<code>TRX_UNDO_DEL_MARK_REC</code>的<code>undo</code>日志还多了一个<code>索引列各列信息</code>的内容，也就是说如果某个列被包含在某个索引中，那么它的相关信息就应该被记录到这个<code>索引列各列信息</code>部分，所谓的相关信息包括该列在记录中的位置（用<code>pos</code>表示），该列占用的存储空间大小（用<code>len</code>表示），该列实际值（用<code>value</code>表示）。所以<code>索引列各列信息</code>存储的内容实质上就是<code>&lt;pos, len, value&gt;</code>的一个列表。这部分信息主要是用在事务提交后，对该<code>中间状态记录</code>做真正删除的阶段二，也就是<code>purge</code>阶段中使用的。 </li>
+</ul>
+<p>现在继续在上边那个事务id为<code>100</code>的事务中删除一条记录，比如我们把<code>id</code>为1的那条记录删除掉：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">BEGIN;  # 显式开启一个事务，假设该事务的id为100</span><br><span class="line"></span><br><span class="line"># 插入两条记录</span><br><span class="line">INSERT INTO undo_demo(id, key1, col) </span><br><span class="line">    VALUES (1, &#x27;AWM&#x27;, &#x27;狙击枪&#x27;), (2, &#x27;M416&#x27;, &#x27;步枪&#x27;);</span><br><span class="line">    </span><br><span class="line"># 删除一条记录    </span><br><span class="line">DELETE FROM undo_demo WHERE id = 1;</span><br></pre></td></tr></table></figure>
+
+
+<p>这个<code>delete mark</code>操作对应的<code>undo日志</code>的结构就是这样：</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641234371779-20b02da8-be31-4bac-a95d-a3e806c3c648.png#clientId=ue22caadf-f35c-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=689&id=ubb3e8894&margin=%5Bobject%20Object%5D&name=image.png&originHeight=689&originWidth=1476&originalType=binary&ratio=1&rotation=0&showTitle=false&size=101497&status=done&style=none&taskId=u6b7b8e3a-c336-47a1-8fb5-eba85fe93b4&title=&width=1476" alt="image.png"></p>
+<p>对照着这个图，我们得注意下边几点：</p>
+<ul>
+<li> 因为这条<code>undo</code>日志是<code>id</code>为<code>100</code>的事务中产生的第3条<code>undo</code>日志，所以它对应的<code>undo no</code>就是<code>2</code>。 </li>
+<li> 在对记录做<code>delete mark</code>操作时，记录的<code>trx_id</code>隐藏列的值是<code>100</code>（也就是说对该记录最近的一次修改就发生在本事务中），所以把<code>100</code>填入<code>old trx_id</code>属性中。然后把记录的<code>roll_pointer</code>隐藏列的值取出来，填入<code>old roll_pointer</code>属性中，这样就可以通过<code>old roll_pointer</code>属性值找到最近一次对该记录做改动时产生的<code>undo日志</code>。 </li>
+<li>由于<code>undo_demo</code>表中有2个索引：一个是聚簇索引，一个是二级索引<code>idx_key1</code>。只要是包含在索引中的列，那么这个列在记录中的位置（<code>pos</code>），占用存储空间大小（<code>len</code>）和实际值（<code>value</code>）就需要存储到<code>undo日志</code>中。 <ul>
+<li>对于主键来说，只包含一个<code>id</code>列，存储到<code>undo日志</code>中的相关信息分别是： <ul>
+<li><code>pos</code>：<code>id</code>列是主键，也就是在记录的第一个列，它对应的<code>pos</code>值为<code>0</code>。<code>pos</code>占用1个字节来存储。</li>
+<li><code>len</code>：<code>id</code>列的类型为<code>INT</code>，占用4个字节，所以<code>len</code>的值为<code>4</code>。<code>len</code>占用1个字节来存储。</li>
+<li><code>value</code>：在被删除的记录中<code>id</code>列的值为<code>1</code>，也就是<code>value</code>的值为<code>1</code>。<code>value</code>占用4个字节来存储。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>画一个图演示一下就是这样：<br><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641234512924-96e2d6cb-78a6-4966-86a7-b23c688cc732.png#clientId=ue22caadf-f35c-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=295&id=u7ee1b91d&margin=%5Bobject%20Object%5D&name=image.png&originHeight=295&originWidth=449&originalType=binary&ratio=1&rotation=0&showTitle=false&size=8683&status=done&style=none&taskId=ubd6e400d-ae02-41f3-b4a8-77a18afc92c&title=&width=449" alt="image.png"><br>所以对于<code>id</code>列来说，最终存储的结果就是<code>&lt;0, 4, 1&gt;</code>，存储这些信息占用的存储空间大小为<code>1 + 1 + 4 = 6</code>个字节。 </p>
+<ul>
+<li>对于<code>idx_key1</code>来说，只包含一个<code>key1</code>列，存储到<code>undo日志</code>中的相关信息分别是： <ul>
+<li><code>pos</code>：<code>key1</code>列是排在<code>id</code>列、<code>trx_id</code>列、<code>roll_pointer</code>列之后的，它对应的<code>pos</code>值为<code>3</code>。<code>pos</code>占用1个字节来存储。</li>
+<li><code>len</code>：<code>key1</code>列的类型为<code>VARCHAR(100)</code>，使用<code>utf8</code>字符集，被删除的记录实际存储的内容是<code>AWM</code>，所以一共占用3个字节，也就是所以<code>len</code>的值为<code>3</code>。<code>len</code>占用1个字节来存储。</li>
+<li><code>value</code>：在被删除的记录中<code>key1</code>列的值为<code>AWM</code>，也就是<code>value</code>的值为<code>AWM</code>。<code>value</code>占用3个字节来存储。</li>
+</ul>
+</li>
+</ul>
+<p>画一个图演示一下就是这样：<br><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641234556691-b7f85a39-5ba0-447a-bb41-a6f242e99660.png#clientId=ue22caadf-f35c-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=194&id=ue8578194&margin=%5Bobject%20Object%5D&name=image.png&originHeight=194&originWidth=380&originalType=binary&ratio=1&rotation=0&showTitle=false&size=8270&status=done&style=none&taskId=u5a5390ae-3969-4e17-99c3-23028a3f777&title=&width=380" alt="image.png">所以对于<code>key1</code>列来说，最终存储的结果就是<code>&lt;3, 3, &#39;AWM&#39;&gt;</code>，存储这些信息占用的存储空间大小为<code>1 + 1 + 3 = 5</code>个字节。<br>从上边的叙述中可以看到，<code>&lt;0, 4, 1&gt;</code>和<code>&lt;3, 3, &#39;AWM&#39;&gt;</code>共占用<code>11</code>个字节。然后<code>index_col_info len</code>本身占用<code>2</code>个字节，所以加起来一共占用<code>13</code>个字节，把数字<code>13</code>就填到了<code>index_col_info len</code>的属性中。 </p>
+<h3 id="3-3-UPDATE操作对应的undo日志"><a href="#3-3-UPDATE操作对应的undo日志" class="headerlink" title="3.3 UPDATE操作对应的undo日志"></a>3.3 UPDATE操作对应的undo日志</h3><p>在执行<code>UPDATE</code>语句时，<code>InnoDB</code>对更新主键和不更新主键这两种情况有截然不同的处理方案。</p>
+<h4 id="①不更新主键的情况"><a href="#①不更新主键的情况" class="headerlink" title="①不更新主键的情况"></a>①不更新主键的情况</h4><p>在不更新主键的情况下，又可以细分为被更新的列占用的存储空间不发生变化和发生变化的情况。</p>
+<ul>
+<li> 就地更新（in-place update）<br>更新记录时，对于被更新的每个列来说，如果更新后的列和更新前的列占用的存储空间都一样大，那么就可以进行<code>就地更新</code>，也就是直接在原记录的基础上修改对应列的值。 </li>
+<li> 先删除掉旧记录，再插入新记录<br>在不更新主键的情况下，如果有任何一个被更新的列更新前和更新后占用的存储空间大小不一致，那么就需要先把这条旧的记录从聚簇索引页面中删除掉，然后再根据更新后列的值创建一条新的记录插入到页面中。<br>注意，这里所说的<code>删除</code>并不是<code>delete mark</code>操作，而是真正的删除掉，也就是把这条记录从<code>正常记录链表</code>中移除并加入到<code>垃圾链表</code>中，并且修改页面中相应的统计信息（比如<code>PAGE_FREE</code>、<code>PAGE_GARBAGE</code>等这些信息）。不过这里做真正删除操作的线程并不是在<code>DELETE</code>语句中做<code>purge</code>操作时使用的另外专门的线程，而是由用户线程同步执行真正的删除操作，真正删除之后紧接着就要根据各个列更新后的值创建的新记录插入。<br>这里如果新创建的记录占用的存储空间大小不超过旧记录占用的空间，那么可以直接重用被加入到<code>垃圾链表</code>中的旧记录所占用的存储空间，否则的话需要在页面中新申请一段空间以供新记录使用，如果本页面内已经没有可用的空间的话，那就需要进行页面分裂操作，然后再插入新记录。 </li>
+</ul>
+<p>针对<code>UPDATE</code>不更新主键的情况（包括上边所说的就地更新和先删除旧记录再插入新记录），InnoDB<code>设计了一种类型为</code>TRX_UNDO_UPD_EXIST_REC<code>的</code>undo日志`，它的完整结构如下：</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641234966515-03077049-dc04-45c7-8368-971fa7e84587.png#clientId=ue22caadf-f35c-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=692&id=u3db950f6&margin=%5Bobject%20Object%5D&name=image.png&originHeight=692&originWidth=641&originalType=binary&ratio=1&rotation=0&showTitle=false&size=75215&status=done&style=none&taskId=u379984f7-ff36-44a2-8e07-c7b669b0778&title=&width=641" alt="image.png"></p>
+<p>其实大部分属性和我们介绍过的<code>TRX_UNDO_DEL_MARK_REC</code>类型的<code>undo日志</code>是类似的，不过还是要注意这么几点：</p>
+<ul>
+<li><code>n_updated</code>属性表示本条<code>UPDATE</code>语句执行后将有几个列被更新，后边跟着的<code>&lt;pos, old_len, old_value&gt;</code>分别表示被更新列在记录中的位置、更新前该列占用的存储空间大小、更新前该列的真实值。</li>
+<li>如果在<code>UPDATE</code>语句中更新的列包含索引列，那么也会添加<code>索引列各列信息</code>这个部分，否则的话是不会添加这个部分的。</li>
+</ul>
+<p>现在继续在上边那个事务id为100的事务中更新一条记录，比如我们把id为2的那条记录更新一下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">BEGIN;  # 显式开启一个事务，假设该事务的id为100</span><br><span class="line"></span><br><span class="line"># 插入两条记录</span><br><span class="line">INSERT INTO undo_demo(id, key1, col) </span><br><span class="line">    VALUES (1, &#x27;AWM&#x27;, &#x27;狙击枪&#x27;), (2, &#x27;M416&#x27;, &#x27;步枪&#x27;);</span><br><span class="line">    </span><br><span class="line"># 删除一条记录    </span><br><span class="line">DELETE FROM undo_demo WHERE id = 1; </span><br><span class="line"></span><br><span class="line"># 更新一条记录</span><br><span class="line">UPDATE undo_demo</span><br><span class="line">    SET key1 = &#x27;M249&#x27;, col = &#x27;机枪&#x27;</span><br><span class="line">    WHERE id = 2;</span><br></pre></td></tr></table></figure>
+
+
+<p>这个<code>UPDATE</code>语句更新的列大小都没有改动，所以可以采用<code>就地更新</code>的方式来执行，在真正改动页面记录时，会先记录一条类型为<code>TRX_UNDO_UPD_EXIST_REC</code>的<code>undo日志</code>，长这样：</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641235039459-5637e131-f16b-4e70-8156-ebd74ee8964b.png#clientId=ue22caadf-f35c-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=701&id=u9c13f809&margin=%5Bobject%20Object%5D&name=image.png&originHeight=701&originWidth=1327&originalType=binary&ratio=1&rotation=0&showTitle=false&size=117479&status=done&style=none&taskId=u1891b884-d470-40b9-92cf-7fdbc734d04&title=&width=1327" alt="image.png"></p>
+<p>对照着这个图我们注意一下这几个地方：</p>
+<ul>
+<li>因为这条<code>undo日志</code>是<code>id</code>为<code>100</code>的事务中产生的第4条<code>undo日志</code>，所以它对应的<code>undo no</code>就是3。</li>
+<li>这条日志的<code>roll_pointer</code>指向<code>undo no</code>为<code>1</code>的那条日志，也就是插入主键值为<code>2</code>的记录时产生的那条<code>undo日志</code>，也就是最近一次对该记录做改动时产生的<code>undo日志</code>。</li>
+<li>由于本条<code>UPDATE</code>语句中更新了索引列<code>key1</code>的值，所以需要记录一下<code>索引列各列信息</code>部分，也就是把主键和<code>key1</code>列更新前的信息填入。</li>
+</ul>
+<h4 id="②更新主键的情况"><a href="#②更新主键的情况" class="headerlink" title="②更新主键的情况"></a>②更新主键的情况</h4><p>在聚簇索引中，记录是按照主键值的大小连成了一个单向链表的，如果我们更新了某条记录的主键值，意味着这条记录在聚簇索引中的位置将会发生改变，比如你将记录的主键值从1更新为10000，如果还有非常多的记录的主键值分布在<code>1 ~ 10000</code>之间的话，那么这两条记录在聚簇索引中就有可能离得非常远，甚至中间隔了好多个页面。针对<code>UPDATE</code>语句中更新了记录主键值的这种情况，<code>InnoDB</code>在聚簇索引中分了两步处理：</p>
+<ul>
+<li><p> 将旧记录进行<code>delete mark</code>操作<br>注意：这里是delete mark操作！也就是说在<code>UPDATE</code>语句所在的事务提交前，对旧记录只做一个<code>delete mark</code>操作，在事务提交后才由专门的线程做purge操作，把它加入到垃圾链表中。  </p>
+<blockquote>
+<p>之所以只对旧记录做delete mark操作，是因为别的事务同时也可能访问这条记录，如果把它真正的删除加入到垃圾链表后，别的事务就访问不到了。这个功能就是所谓的MVCC。</p>
+</blockquote>
+</li>
+<li><p> 根据更新后各列的值创建一条新记录，并将其插入到聚簇索引中（需重新定位插入的位置）。<br>由于更新后的记录主键值发生了改变，所以需要重新从聚簇索引中定位这条记录所在的位置，然后把它插进去。 </p>
+</li>
+</ul>
+<p>针对<code>UPDATE</code>语句更新记录主键值的这种情况，在对该记录进行<code>delete mark</code>操作前，会记录一条类型为<code>TRX_UNDO_DEL_MARK_REC</code>的<code>undo日志</code>；之后插入新记录时，会记录一条类型为<code>TRX_UNDO_INSERT_REC</code>的<code>undo日志</code>，也就是说每对一条记录的主键值做改动时，会记录2条<code>undo日志</code>。</p>
+<h2 id="4-通用链表结构"><a href="#4-通用链表结构" class="headerlink" title="4.通用链表结构"></a>4.通用链表结构</h2><p>在写入<code>undo日志</code>的过程中会使用到多个链表，很多链表都有同样的节点结构，如图所示：</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641914414714-3ebe4b61-8398-4791-bda0-532545859570.png#clientId=u534e2ab0-3316-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=269&id=ubef278a0&margin=%5Bobject%20Object%5D&name=image.png&originHeight=538&originWidth=814&originalType=binary&ratio=1&rotation=0&showTitle=false&size=56452&status=done&style=none&taskId=u8616c489-f9e8-4ccc-a4ba-3822594fc8b&title=&width=407" alt="image.png"></p>
+<p>在某个表空间内，我们可以通过一个页的页号和在页内的偏移量来唯一定位一个节点的位置，这两个信息也就相当于指向这个节点的一个指针。所以：</p>
+<ul>
+<li><code>Pre Node Page Number</code>和<code>Pre Node Offset</code>的组合就是指向前一个节点的指针</li>
+<li><code>Next Node Page Number</code>和<code>Next Node Offset</code>的组合就是指向后一个节点的指针。</li>
+</ul>
+<p>整个<code>List Node</code>占用<code>12</code>个字节的存储空间。</p>
+<p>为了更好的管理链表，<code>InnoDB</code>还提出了一个基节点的结构，里边存储了这个链表的<code>头节点</code>、<code>尾节点</code>以及链表长度信息，基节点的结构示意图如下：</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641914665766-9e9593d3-ac1d-45f6-8e3c-98673a768d46.png#clientId=u534e2ab0-3316-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=298&id=ue3f204d6&margin=%5Bobject%20Object%5D&name=image.png&originHeight=596&originWidth=894&originalType=binary&ratio=1&rotation=0&showTitle=false&size=61179&status=done&style=none&taskId=ue761b32b-fbb2-4d6a-a86c-1252f1aff6a&title=&width=447" alt="image.png"></p>
+<p>其中：</p>
+<ul>
+<li><code>List Length</code>表明该链表一共有多少节点。</li>
+<li><code>First Node Page Number</code>和<code>First Node Offset</code>的组合就是指向链表头节点的指针。</li>
+<li><code>Last Node Page Number</code>和<code>Last Node Offset</code>的组合就是指向链表尾节点的指针。</li>
+</ul>
+<p>整个<code>List Base Node</code>占用<code>16</code>个字节的存储空间。</p>
+<p>所以使用<code>List Base Node</code>和<code>List Node</code>这两个结构组成的链表的示意图就是这样：</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641915010196-4a500e9c-4792-43d1-be07-b897d03767e3.png#clientId=u534e2ab0-3316-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=273&id=u95d6dc84&margin=%5Bobject%20Object%5D&name=image.png&originHeight=546&originWidth=2944&originalType=binary&ratio=1&rotation=0&showTitle=false&size=82686&status=done&style=none&taskId=ufe164678-8a39-43de-8bd8-53574ffdce8&title=&width=1472" alt="image.png"></p>
+<h2 id="5-FIL-PAGE-UNDO-LOG页面"><a href="#5-FIL-PAGE-UNDO-LOG页面" class="headerlink" title="5.FIL_PAGE_UNDO_LOG页面"></a>5.FIL_PAGE_UNDO_LOG页面</h2><p>表空间其实是由许许多多的页面构成的，页面默认大小为<code>16KB</code>。这些页面有不同的类型，比如类型为<code>FIL_PAGE_INDEX</code>的页面用于存储聚簇索引以及二级索引，类型为<code>FIL_PAGE_TYPE_FSP_HDR</code>的页面用于存储表空间头部信息的，还有其他各种类型的页面，其中有一种称之为<code>FIL_PAGE_UNDO_LOG</code>类型的页面是专门用来存储<code>undo日志</code>的，这种类型的页面的通用结构如下图所示（以默认的<code>16KB</code>大小为例）：</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641261787287-9cfc267b-a262-4ab3-ab73-8e5817f5590d.png#clientId=u6ba89fc1-2426-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=427&id=ua708784f&margin=%5Bobject%20Object%5D&name=image.png&originHeight=854&originWidth=1398&originalType=binary&ratio=1&rotation=0&showTitle=false&size=105912&status=done&style=none&taskId=ud5fda792-0bb6-46be-a326-77400123d35&title=&width=699" alt="image.png"></p>
+<p>我们就简称为<code>Undo页面</code>，上图中的<code>File Header</code>和<code>File Trailer</code>是各种页面都有的通用结构。<code>Undo Page Header</code>是<code>Undo页面</code>所特有的，我们来看一下它的结构：</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641915193789-5cb56c84-827c-4334-b433-43b2c5914acb.png#clientId=u534e2ab0-3316-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=307&id=u7260deb3&margin=%5Bobject%20Object%5D&name=image.png&originHeight=614&originWidth=716&originalType=binary&ratio=1&rotation=0&showTitle=false&size=50512&status=done&style=none&taskId=ub8cbdfb5-2cb7-40b1-8e54-6ed326d42ff&title=&width=358" alt="image.png"></p>
+<p>其中各个属性的意思如下：</p>
+<ul>
+<li><code>TRX_UNDO_PAGE_TYPE</code>：本页面准备存储什么种类的<code>undo日志</code>。<br>前边介绍了好几种类型的<code>undo日志</code>，它们可以被分为两个大类： <ul>
+<li><code>TRX_UNDO_INSERT</code>（使用十进制<code>1</code>表示）：类型为<code>TRX_UNDO_INSERT_REC</code>的<code>undo日志</code>属于此大类，一般由<code>INSERT</code>语句产生，或者在<code>UPDATE</code>语句中有更新主键的情况也会产生此类型的<code>undo日志</code>。</li>
+<li><code>TRX_UNDO_UPDATE</code>（使用十进制<code>2</code>表示），除了类型为<code>TRX_UNDO_INSERT_REC</code>的<code>undo日志</code>，其他类型的<code>undo日志</code>都属于这个大类，比如我们前边说的<code>TRX_UNDO_DEL_MARK_REC</code>、<code>TRX_UNDO_UPD_EXIST_REC</code>啥的，一般由<code>DELETE</code>、<code>UPDATE</code>语句产生的<code>undo日志</code>属于这个大类。</li>
+</ul>
+</li>
+</ul>
+<p>这个<code>TRX_UNDO_PAGE_TYPE</code>属性可选的值就是上边的两个，用来标记本页面用于存储哪个大类的<code>undo日志</code>，不同大类的<code>undo日志</code>不能混着存储，比如一个<code>Undo页面</code>的<code>TRX_UNDO_PAGE_TYPE</code>属性值为<code>TRX_UNDO_INSERT</code>，那么这个页面就只能存储类型为<code>TRX_UNDO_INSERT_REC</code>的<code>undo日志</code>，其他类型的<code>undo日志</code>就不能放到这个页面中了。 </p>
+<blockquote>
+<p>之所以把undo日志分成两个大类，是因为类型为TRX_UNDO_INSERT_REC的undo日志在事务提交后可以直接删除掉，而其他类型的undo日志还需要为所谓的MVCC服务，不能直接删除掉，对它们的处理需要区别对待。</p>
+</blockquote>
+<ul>
+<li> <code>TRX_UNDO_PAGE_START</code>：表示在当前页面中是从什么位置开始存储<code>undo日志</code>的，或者说表示第一条<code>undo日志</code>在本页面中的起始偏移量。 </li>
+<li> <code>TRX_UNDO_PAGE_FREE</code>：与上边的<code>TRX_UNDO_PAGE_START</code>对应，表示当前页面中存储的最后一条<code>undo</code>日志结束时的偏移量，或者说从这个位置开始，可以继续写入新的<code>undo日志</code>。<br>假设现在向页面中写入了3条<code>undo日志</code>，那么<code>TRX_UNDO_PAGE_START</code>和<code>TRX_UNDO_PAGE_FREE</code>的示意图就是这样：<br><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641915558287-12ec91c1-b3e9-4bf0-a7c9-95396f9680f9.png#clientId=u534e2ab0-3316-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=289&id=u22cc7819&margin=%5Bobject%20Object%5D&name=image.png&originHeight=578&originWidth=1160&originalType=binary&ratio=1&rotation=0&showTitle=false&size=56110&status=done&style=none&taskId=udfbeb84e-adee-49aa-9e3c-d72023b4e71&title=&width=580" alt="image.png"><br>当然，在最初一条<code>undo日志</code>也没写入的情况下，<code>TRX_UNDO_PAGE_START</code>和<code>TRX_UNDO_PAGE_FREE</code>的值是相同的。 </li>
+<li> <code>TRX_UNDO_PAGE_NODE</code>：代表一个<code>List Node</code>结构（链表的普通节点，我们上边刚说的）。 </li>
+</ul>
+<h2 id="6-Undo页面链表"><a href="#6-Undo页面链表" class="headerlink" title="6.Undo页面链表"></a>6.Undo页面链表</h2><h3 id="6-1单个事务中的Undo页面链表"><a href="#6-1单个事务中的Undo页面链表" class="headerlink" title="6.1单个事务中的Undo页面链表"></a>6.1单个事务中的Undo页面链表</h3><p>因为一个事务可能包含多个语句，而且一个语句可能对若干条记录进行改动，而对每条记录进行改动前，都需要记录1条或2条的<code>undo日志</code>，所以在一个事务执行过程中可能产生很多<code>undo日志</code>，这些日志可能一个页面放不下，需要放到多个页面中，这些页面就通过我们上边介绍的<code>TRX_UNDO_PAGE_NODE</code>属性连成了链表：</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641915818840-44eaad6a-e9af-4bbb-80b2-927c6368acb9.png#clientId=u534e2ab0-3316-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=245&id=u9bfe0d97&margin=%5Bobject%20Object%5D&name=image.png&originHeight=490&originWidth=2378&originalType=binary&ratio=1&rotation=0&showTitle=false&size=79094&status=done&style=none&taskId=u2f5b148c-7567-4040-a42a-b35b4a5a41c&title=&width=1189" alt="image.png"></p>
+<p>链表中的第一个<code>Undo页面</code>称它为<code>first undo page</code>，其余的<code>Undo页面</code>称之为<code>normal undo page</code>，这是因为在<code>first undo page</code>中除了记录<code>Undo Page Header</code>之外，还会记录其他的一些管理信息。</p>
+<p>在一个事务执行过程中，可能混着执行<code>INSERT</code>、<code>DELETE</code>、<code>UPDATE</code>语句，也就意味着会产生不同类型的<code>undo日志</code>。但是，同一个<code>Undo页面</code>要么只存储<code>TRX_UNDO_INSERT</code>大类的<code>undo日志</code>，要么只存储<code>TRX_UNDO_UPDATE</code>大类的<code>undo日志</code>，反正不能混着存，所以在一个事务执行过程中就可能需要2个<code>Undo页面</code>的链表，一个称之为<code>insert undo链表</code>，另一个称之为<code>update undo链表</code>，画个示意图就是这样：</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641915925249-1c3ad46a-c676-4093-a9a7-136db96433bc.png#clientId=u534e2ab0-3316-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=489&id=ue8dc5293&margin=%5Bobject%20Object%5D&name=image.png&originHeight=978&originWidth=2758&originalType=binary&ratio=1&rotation=0&showTitle=false&size=182383&status=done&style=none&taskId=u2348f6d5-527c-421c-b0d8-b4a6f5186d5&title=&width=1379" alt="image.png"></p>
+<p>另外，<code>InnoDB</code>规定对普通表和临时表的记录改动时产生的<code>undo日志</code>要分别记录（我们稍后阐释为啥这么做），所以在一个事务中最多有4个以<code>Undo页面</code>为节点组成的链表：</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641916089828-3dd7f00d-8abd-4804-a6c2-414aee1bd253.png#clientId=u534e2ab0-3316-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=537&id=ucf9fca95&margin=%5Bobject%20Object%5D&name=image.png&originHeight=1074&originWidth=2092&originalType=binary&ratio=1&rotation=0&showTitle=false&size=163193&status=done&style=none&taskId=u508e0e08-01ea-424d-8d90-e332c080420&title=&width=1046" alt="image.png"></p>
+<p>当然，并不是在事务一开始就会为这个事务分配这4个链表，具体分配策略如下：</p>
+<ul>
+<li>刚刚开启事务时，一个<code>Undo页面</code>链表也不分配。</li>
+<li>当事务执行过程中向普通表中插入记录或者执行更新记录主键的操作之后，就会为其分配一个<code>普通表的insert undo链表</code>。</li>
+<li>当事务执行过程中删除或者更新了普通表中的记录之后，就会为其分配一个<code>普通表的update undo链表</code>。</li>
+<li>当事务执行过程中向临时表中插入记录或者执行更新记录主键的操作之后，就会为其分配一个<code>临时表的insert undo链表</code>。</li>
+<li>当事务执行过程中删除或者更新了临时表中的记录之后，就会为其分配一个<code>临时表的update undo链表</code>。</li>
+</ul>
+<p>总结一句就是：按需分配，啥时候需要啥时候再分配，不需要就不分配。</p>
+<h3 id="6-2多个事务中的Undo页面链表"><a href="#6-2多个事务中的Undo页面链表" class="headerlink" title="6.2多个事务中的Undo页面链表"></a>6.2多个事务中的Undo页面链表</h3><p>为了尽可能提高<code>undo日志</code>的写入效率，不同事务执行过程中产生的undo日志需要被写入到不同的Undo页面链表中。比方说现在有事务<code>id</code>分别为<code>1</code>、<code>2</code>的两个事务，我们分别称之为<code>trx 1</code>和<code>trx 2</code>，假设在这两个事务执行过程中：</p>
+<ul>
+<li><code>trx 1</code>对普通表做了<code>DELETE</code>操作，对临时表做了<code>INSERT</code>和<code>UPDATE</code>操作。<br><code>InnoDB</code>会为<code>trx 1</code>分配3个链表，分别是： <ul>
+<li>针对普通表的<code>update undo链表</code></li>
+<li>针对临时表的<code>insert undo链表</code></li>
+<li>针对临时表的<code>update undo链表</code>。</li>
+</ul>
+</li>
+<li><code>trx 2</code>对普通表做了<code>INSERT</code>、<code>UPDATE</code>和<code>DELETE</code>操作，没有对临时表做改动。<br><code>InnoDB</code>会为<code>trx 2</code>分配2个链表，分别是： <ul>
+<li>针对普通表的<code>insert undo链表</code></li>
+<li>针对普通表的<code>update undo链表</code>。</li>
+</ul>
+</li>
+</ul>
+<p>综上所述，在<code>trx 1</code>和<code>trx 2</code>执行过程中，<code>InnoDB</code>共需为这两个事务分配5个<code>Undo页面</code>链表，画个图就是这样：</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641916291798-e3d7177e-3273-4c6f-a348-9e0ed7cc5316.png#clientId=u534e2ab0-3316-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=650&id=u199e5f99&margin=%5Bobject%20Object%5D&name=image.png&originHeight=1300&originWidth=2056&originalType=binary&ratio=1&rotation=0&showTitle=false&size=206100&status=done&style=none&taskId=u90025557-5c38-4d43-843c-da3cbe0e0d9&title=&width=1028" alt="image.png"></p>
+<p>如果有更多的事务，那就意味着可能会产生更多的<code>Undo页面</code>链表。</p>
+<h2 id="7-undo日志具体写入过程"><a href="#7-undo日志具体写入过程" class="headerlink" title="7.undo日志具体写入过程"></a>7.undo日志具体写入过程</h2><h3 id="7-1段（Segment）的概念"><a href="#7-1段（Segment）的概念" class="headerlink" title="7.1段（Segment）的概念"></a>7.1段（Segment）的概念</h3><p><code>段</code>是一个逻辑上的概念，本质上是由若干个零散页面和若干个完整的区组成的。比如一个<code>B+</code>树索引被划分成两个段，一个叶子节点段，一个非叶子节点段，这样叶子节点就可以被尽可能的存到一起，非叶子节点被尽可能的存到一起。每一个段对应一个<code>INODE Entry</code>结构，这个<code>INODE Entry</code>结构描述了这个段的各种信息，比如段的<code>ID</code>，段内的各种链表基节点，零散页面的页号有哪些等信息。为了定位一个<code>INODE Entry</code>，<code>InnoDB</code>设计了一个<code>Segment Header</code>的结构，整个<code>Segment Header</code>占用10个字节大小，各个属性的意思如下：</p>
+<ul>
+<li><code>Space ID of the INODE Entry</code>：<code>INODE Entry</code>结构所在的表空间ID。</li>
+<li><code>Page Number of the INODE Entry</code>：<code>INODE Entry</code>结构所在的页面页号。</li>
+<li><code>Byte Offset of the INODE Ent</code>：<code>INODE Entry</code>结构在该页面中的偏移量</li>
+</ul>
+<p>知道了表空间ID、页号、页内偏移量，就可以唯一定位一个<code>INODE Entry</code>的地址。</p>
+<h3 id="7-2-Undo-Log-Segment-Header"><a href="#7-2-Undo-Log-Segment-Header" class="headerlink" title="7.2 Undo Log Segment Header"></a>7.2 Undo Log Segment Header</h3><p><code>InnoDB</code>规定，每一个<code>Undo页面</code>链表都对应着一个<code>段</code>，称之为<code>Undo Log Segment</code>。也就是说链表中的页面都是从这个段里边申请的，所以他们在<code>Undo页面</code>链表的第一个页面，也就是上边提到的<code>first undo page</code>中设计了一个称之为<code>Undo Log Segment Header</code>的部分，这个部分中包含了该链表对应的段的<code>segment header</code>信息以及其他的一些关于这个段的信息，所以<code>Undo</code>页面链表的第一个页面其实长这样：</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641914015341-9f97767c-63b1-450a-b454-52b7c4fd92b2.png#clientId=u534e2ab0-3316-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=367&id=u451fc923&margin=%5Bobject%20Object%5D&name=image.png&originHeight=734&originWidth=606&originalType=binary&ratio=1&rotation=0&showTitle=false&size=49823&status=done&style=none&taskId=u23e16f9a-8338-48e3-9a3b-fb3bb04bf20&title=&width=303" alt="image.png"></p>
+<p>可以看到这个<code>Undo</code>链表的第一个页面比普通页面多了个<code>Undo Log Segment Header</code>，我们来看一下它的结构：</p>
+<ul>
+<li><code>TRX_UNDO_STATE</code>：本<code>Undo页面</code>链表处在什么状态。<br>一个<code>Undo Log Segment</code>可能处在的状态包括： <ul>
+<li><code>TRX_UNDO_ACTIVE</code>：活跃状态，也就是一个活跃的事务正在往这个段里边写入<code>undo日志</code>。</li>
+<li><code>TRX_UNDO_CACHED</code>：被缓存的状态。处在该状态的<code>Undo页面</code>链表等待着之后被其他事务重用。</li>
+<li><code>TRX_UNDO_TO_FREE</code>：对于<code>insert undo</code>链表来说，如果在它对应的事务提交之后，该链表不能被重用，那么就会处于这种状态。</li>
+<li><code>TRX_UNDO_TO_PURGE</code>：对于<code>update undo</code>链表来说，如果在它对应的事务提交之后，该链表不能被重用，那么就会处于这种状态。</li>
+<li><code>TRX_UNDO_PREPARED</code>：包含处于<code>PREPARE</code>阶段的事务产生的<code>undo日志</code>。</li>
+</ul>
+</li>
+<li> <code>TRX_UNDO_LAST_LOG</code>：本<code>Undo页面</code>链表中最后一个<code>Undo Log Header</code>的位置。 </li>
+<li> <code>TRX_UNDO_FSEG_HEADER</code>：本<code>Undo页面</code>链表对应的段的<code>Segment Header</code>信息。 </li>
+<li> <code>TRX_UNDO_PAGE_LIST</code>：<code>Undo页面</code>链表的基节点。 </li>
+</ul>
+<p><code>Undo页面</code>的<code>Undo Page Header</code>部分有一个12字节大小的<code>TRX_UNDO_PAGE_NODE</code>属性，这个属性代表一个<code>List Node</code>结构。每一个<code>Undo页面</code>都包含<code>Undo Page Header</code>结构，这些页面就可以通过这个属性连成一个链表。这个<code>TRX_UNDO_PAGE_LIST</code>属性代表着这个链表的基节点，当然这个基节点只存在于<code>Undo页面</code>链表的第一个页面，也就是<code>first undo page</code>中。</p>
+<h3 id="7-3Undo-Log-Header"><a href="#7-3Undo-Log-Header" class="headerlink" title="7.3Undo Log Header"></a>7.3Undo Log Header</h3><p>一个事务在向<code>Undo页面</code>中写入<code>undo日志</code>时的方式是十分简单暴力的，就是直接往里怼，写完一条紧接着写另一条，各条<code>undo日志</code>之间是亲密无间的。写完一个<code>Undo页面</code>后，再从段里申请一个新页面，然后把这个页面插入到<code>Undo页面</code>链表中，继续往这个新申请的页面中写。<code>InnoDB</code>认为同一个事务向一个<code>Undo页面</code>链表中写入的<code>undo日志</code>算是一个组，比方说我们上边介绍的<code>trx 1</code>由于会分配3个<code>Undo页面</code>链表，也就会写入3个组的<code>undo日志</code>；<code>trx 2</code>由于会分配2个<code>Undo页面</code>链表，也就会写入2个组的<code>undo日志</code>。在每写入一组<code>undo日志</code>时，都会在这组<code>undo日志</code>前先记录一下关于这个组的一些属性，<code>InnoDB</code>把存储这些属性的地方称之为<code>Undo Log Header</code>。所以<code>Undo页面</code>链表的第一个页面在真正写入<code>undo日志</code>前，其实都会被填充<code>Undo Page Header</code>、<code>Undo Log Segment Header</code>、<code>Undo Log Header</code>这3个部分，如图所示：</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641913926095-d9fd555e-4186-40ae-8885-183269e461ef.png#clientId=u534e2ab0-3316-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=367&id=u723526db&margin=%5Bobject%20Object%5D&name=image.png&originHeight=734&originWidth=606&originalType=binary&ratio=1&rotation=0&showTitle=false&size=49823&status=done&style=none&taskId=uf7987243-5b24-4a47-96c3-d7c56ed93c6&title=&width=303" alt="image.png"></p>
+<p>这个<code>Undo Log Header</code>具体的结构如下：</p>
+<ul>
+<li><p> <code>TRX_UNDO_TRX_ID</code>：生成本组<code>undo日志</code>的事务<code>id</code>。 </p>
+</li>
+<li><p> <code>TRX_UNDO_TRX_NO</code>：事务提交后生成的一个需要序号，使用此序号来标记事务的提交顺序（先提交的此序号小，后提交的此序号大）。 </p>
+</li>
+<li><p> <code>TRX_UNDO_DEL_MARKS</code>：标记本组<code>undo</code>日志中是否包含由于<code>Delete mark</code>操作产生的<code>undo日志</code>。 </p>
+</li>
+<li><p> <code>TRX_UNDO_LOG_START</code>：表示本组<code>undo</code>日志中第一条<code>undo日志</code>的在页面中的偏移量。 </p>
+</li>
+<li><p> <code>TRX_UNDO_XID_EXISTS</code>：本组<code>undo日志</code>是否包含XID信息。 </p>
+</li>
+<li><p> <code>TRX_UNDO_DICT_TRANS</code>：标记本组<code>undo日志</code>是不是由DDL语句产生的。 </p>
+</li>
+<li><p> <code>TRX_UNDO_TABLE_ID</code>：如果<code>TRX_UNDO_DICT_TRANS</code>为真，那么本属性表示DDL语句操作的表的<code>table id</code>。 </p>
+</li>
+<li><p> <code>TRX_UNDO_NEXT_LOG</code>：下一组的<code>undo日志</code>在页面中开始的偏移量。 </p>
+</li>
+<li><p> <code>TRX_UNDO_PREV_LOG</code>：上一组的<code>undo日志</code>在页面中开始的偏移量。  </p>
+<blockquote>
+<p>一般来说一个Undo页面链表只存储一个事务执行过程中产生的一组undo日志，但是在某些情况下，可能会在一个事务提交之后，之后开启的事务重复利用这个Undo页面链表，这样就会导致一个Undo页面中可能存放多组Undo日志，TRX_UNDO_NEXT_LOG和TRX_UNDO_PREV_LOG就是用来标记下一组和上一组undo日志在页面中的偏移量的。</p>
+</blockquote>
+</li>
+<li><p> <code>TRX_UNDO_HISTORY_NODE</code>：一个12字节的<code>List Node</code>结构，代表一个称之为<code>History</code>链表的节点。 </p>
+</li>
+</ul>
+<h3 id="7-4-小结"><a href="#7-4-小结" class="headerlink" title="7.4 小结"></a>7.4 小结</h3><p>对于没有被重用的<code>Undo页面</code>链表来说，链表的第一个页面，也就是<code>first undo page</code>在真正写入<code>undo日志</code>前，会填充<code>Undo Page Header</code>、<code>Undo Log Segment Header</code>、<code>Undo Log Header</code>这3个部分，之后才开始正式写入<code>undo日志</code>。对于其他的页面来说，也就是<code>normal undo page</code>在真正写入<code>undo日志</code>前，只会填充<code>Undo Page Header</code>。链表的<code>List Base Node</code>存放到<code>first undo page</code>的<code>Undo Log Segment Header</code>部分，<code>List Node</code>信息存放到每一个<code>Undo页面</code>的<code>undo Page Header</code>部分，所以画一个<code>Undo页面</code>链表的示意图就是这样：</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641913881869-1706ee6c-6c16-4c67-aab0-4ed893c03f1c.png#clientId=u534e2ab0-3316-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=368&id=u7da91d99&margin=%5Bobject%20Object%5D&name=image.png&originHeight=736&originWidth=2446&originalType=binary&ratio=1&rotation=0&showTitle=false&size=118398&status=done&style=none&taskId=u2abed5c4-f8ba-4e3b-9db8-07551a59576&title=&width=1223" alt="image.png"></p>
+<h2 id="8-重用Undo页面"><a href="#8-重用Undo页面" class="headerlink" title="8.重用Undo页面"></a>8.重用Undo页面</h2><p>为了能提高并发执行的多个事务写入<code>undo日志</code>的性能，<code>InnoDB</code>决定为每个事务单独分配相应的<code>Undo页面</code>链表（最多可能单独分配4个链表）。但是这样也造成了一些问题，比如其实大部分事务执行过程中可能只修改了一条或几条记录，针对某个<code>Undo页面</code>链表只产生了非常少的<code>undo日志</code>，这些<code>undo日志</code>可能只占用一点存储空间，每开启一个事务就新创建一个<code>Undo页面</code>链表（虽然这个链表中只有一个页面）来存储这么一点<code>undo日志</code>岂不是太浪费了么？的确是挺浪费，于是<code>InnoDB</code>决定在事务提交后在某些情况下重用该事务的<code>Undo页面</code>链表。一个<code>Undo页面</code>链表是否可以被重用的条件很简单：</p>
+<ul>
+<li> 该链表中只包含一个<code>Undo页面</code>。<br>如果一个事务执行过程中产生了非常多的<code>undo日志</code>，那么它可能申请非常多的页面加入到<code>Undo页面</code>链表中。在该事物提交后，如果将整个链表中的页面都重用，那就意味着即使新的事务并没有向该<code>Undo页面</code>链表中写入很多<code>undo日志</code>，那该链表中也得维护非常多的页面，那些用不到的页面也不能被别的事务所使用，这样就造成了另一种浪费。所以<code>InnoDB</code>规定，只有在<code>Undo页面</code>链表中只包含一个<code>Undo页面</code>时，该链表才可以被下一个事务所重用。 </li>
+<li> 该<code>Undo页面</code>已经使用的空间小于整个页面空间的3/4。 </li>
+</ul>
+<p><code>Undo页面</code>链表按照存储的<code>undo日志</code>所属的大类可以被分为<code>insert undo链表</code>和<code>update undo链表</code>两种，这两种链表在被重用时的策略也是不同的，我们分别看一下：</p>
+<ul>
+<li> insert undo链表<br><code>insert undo链表</code>中只存储类型为<code>TRX_UNDO_INSERT_REC</code>的<code>undo日志</code>，这种类型的<code>undo日志</code>在事务提交之后就没用了，就可以被清除掉。所以在某个事务提交后，重用这个事务的<code>insert undo链表</code>（这个链表中只有一个页面）时，可以直接把之前事务写入的一组<code>undo日志</code>覆盖掉，从头开始写入新事务的一组<code>undo日志</code>。</li>
+</ul>
+<p>假设有一个事务使用的<code>insert undo链表</code>，到事务提交时，只向<code>insert undo链表</code>中插入了3条<code>undo日志</code>，这个<code>insert undo链表</code>只申请了一个<code>Undo页面</code>。假设此刻该页面已使用的空间小于整个页面大小的3/4，那么下一个事务就可以重用这个<code>insert undo链表</code>（链表中只有一个页面）。假设此时有一个新事务重用了该<code>insert undo链表</code>，那么可以直接把旧的一组<code>undo日志</code>覆盖掉，写入一组新的<code>undo日志</code>。  </p>
+<blockquote>
+<p>在重用Undo页面链表写入新的一组undo日志时，不仅会写入新的Undo Log Header，还会适当调整Undo Page Header、Undo Log Segment Header、Undo Log Header中的一些属性，比如TRX_UNDO_PAGE_START、TRX_UNDO_PAGE_FREE等等。</p>
+</blockquote>
+<ul>
+<li> update undo链表<br>在一个事务提交后，它的<code>update undo链表</code>中的<code>undo日志</code>也不能立即删除掉（这些日志用于MVCC）。所以如果之后的事务想重用<code>update undo链表</code>时，就不能覆盖之前事务写入的<code>undo日志</code>。这样就相当于在同一个<code>Undo页面</code>中写入了多组的<code>undo日志</code>。</li>
+</ul>
+<h2 id="9-回滚段"><a href="#9-回滚段" class="headerlink" title="9.回滚段"></a>9.回滚段</h2><h3 id="9-1回滚段的概念"><a href="#9-1回滚段的概念" class="headerlink" title="9.1回滚段的概念"></a>9.1回滚段的概念</h3><p>一个事务在执行过程中最多可以分配4个<code>Undo页面</code>链表，在同一时刻不同事务拥有的<code>Undo页面</code>链表是不一样的，所以在同一时刻系统里其实可以有许许多多个<code>Undo页面</code>链表存在。为了更好的管理这些链表，<code>InnoDB</code>又设计了一个称之为<code>Rollback Segment Header</code>的页面，在这个页面中存放了各个<code>Undo页面</code>链表的<code>frist undo page</code>的<code>页号</code>，这些<code>页号</code>称之为<code>undo slot</code>。可以这样理解，每个<code>Undo页面</code>链表都相当于是一个班，这个链表的<code>first undo page</code>就相当于这个班的班长，找到了这个班的班长，就可以找到班里的其他同学（其他同学相当于<code>normal undo page</code>）。有时候学校需要向这些班级传达一下精神，就需要把班长都召集在会议室，这个<code>Rollback Segment Header</code>就相当于是一个会议室。</p>
+<p><code>InnoDB</code>规定，每一个<code>Rollback Segment Header</code>页面都对应着一个段，这个段就称为<code>Rollback Segment</code>，翻译过来就是<code>回滚段</code>。与之前介绍的各种段不同的是，这个<code>Rollback Segment</code>里其实只有一个页面。</p>
+<p>了解了<code>Rollback Segment</code>的含义之后，我们再来看看这个称之为<code>Rollback Segment Header</code>的页面的各个部分的含义都是啥意思：</p>
+<ul>
+<li><p> <code>TRX_RSEG_MAX_SIZE</code>：本<code>Rollback Segment</code>中管理的所有<code>Undo页面</code>链表中的<code>Undo页面</code>数量之和的最大值。换句话说，本<code>Rollback Segment</code>中所有<code>Undo页面</code>链表中的<code>Undo页面</code>数量之和不能超过<code>TRX_RSEG_MAX_SIZE</code>代表的值。<br>该属性的值默认为无限大，也就是我们想写多少<code>Undo页面</code>都可以。  </p>
+<blockquote>
+<p>无限大其实也只是个夸张的说法，4个字节能表示最大的数也就是0xFFFFFFFF，但是0xFFFFFFFF这个数有特殊用途，所以实际上TRX_RSEG_MAX_SIZE的值为0xFFFFFFFE。</p>
+</blockquote>
+</li>
+<li><p> <code>TRX_RSEG_HISTORY_SIZE</code>：<code>History</code>链表占用的页面数量。 </p>
+</li>
+<li><p> <code>TRX_RSEG_HISTORY</code>：<code>History</code>链表的基节点。 </p>
+</li>
+<li><p> <code>TRX_RSEG_FSEG_HEADER</code>：本<code>Rollback Segment</code>对应的10字节大小的<code>Segment Header</code>结构，通过它可以找到本段对应的<code>INODE Entry</code>。 </p>
+</li>
+<li><p> <code>TRX_RSEG_UNDO_SLOTS</code>：各个<code>Undo页面</code>链表的<code>first undo page</code>的<code>页号</code>集合，也就是<code>undo slot</code>集合。<br>一个页号占用<code>4</code>个字节，对于<code>16KB</code>大小的页面来说，这个<code>TRX_RSEG_UNDO_SLOTS</code>部分共存储了<code>1024</code>个<code>undo slot</code>，所以共需<code>1024 × 4 = 4096</code>个字节。 </p>
+</li>
+</ul>
+<h3 id="9-2-从回滚段中申请Undo页面链表"><a href="#9-2-从回滚段中申请Undo页面链表" class="headerlink" title="9.2 从回滚段中申请Undo页面链表"></a>9.2 从回滚段中申请Undo页面链表</h3><p>初始情况下，由于未向任何事务分配任何<code>Undo页面</code>链表，所以对于一个<code>Rollback Segment Header</code>页面来说，它的各个<code>undo slot</code>都被设置成了一个特殊的值：<code>FIL_NULL</code>（对应的十六进制就是<code>0xFFFFFFFF</code>），表示该<code>undo slot</code>不指向任何页面。</p>
+<p>随着时间的流逝，开始有事务需要分配<code>Undo页面</code>链表了，就从回滚段的第一个<code>undo slot</code>开始，看看该<code>undo slot</code>的值是不是<code>FIL_NULL</code>：</p>
+<ul>
+<li>如果是<code>FIL_NULL</code>，那么在表空间中新创建一个段（也就是<code>Undo Log Segment</code>），然后从段里申请一个页面作为<code>Undo页面</code>链表的<code>first undo page</code>，然后把该<code>undo slot</code>的值设置为刚刚申请的这个页面的页号，这样也就意味着这个<code>undo slot</code>被分配给了这个事务。</li>
+<li>如果不是<code>FIL_NULL</code>，说明该<code>undo slot</code>已经指向了一个<code>undo链表</code>，也就是说这个<code>undo slot</code>已经被别的事务占用了，那就跳到下一个<code>undo slot</code>，判断该<code>undo slot</code>的值是不是<code>FIL_NULL</code>，重复上边的步骤。</li>
+</ul>
+<p>一个<code>Rollback Segment Header</code>页面中包含<code>1024</code>个<code>undo slot</code>，如果这<code>1024</code>个<code>undo slot</code>的值都不为<code>FIL_NULL</code>，这就意味着这<code>1024</code>个<code>undo slot</code>都已经被分配给了某个事务，此时由于新事务无法再获得新的<code>Undo页面</code>链表，就会回滚这个事务并且给用户报错：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Too many active concurrent transactions</span><br></pre></td></tr></table></figure>
+
+
+<p>用户看到这个错误，可以选择重新执行这个事务（可能重新执行时有别的事务提交了，该事务就可以被分配<code>Undo页面</code>链表了）。</p>
+<p>当一个事务提交时，它所占用的<code>undo slot</code>有两种命运：</p>
+<ul>
+<li>如果该<code>undo slot</code>指向的<code>Undo页面</code>链表符合被重用的条件（就是我们上边说的<code>Undo页面</code>链表只占用一个页面并且已使用空间小于整个页面的3/4）。<br>该<code>undo slot</code>就处于被缓存的状态，<code>InnoDB</code>规定这时该Undo页面链表的<code>TRX_UNDO_STATE</code>属性（该属性在<code>first undo page</code>的<code>Undo Log Segment Header</code>部分）会被设置为<code>TRX_UNDO_CACHED</code>。<br>被缓存的<code>undo slot</code>都会被加入到一个链表，根据对应的<code>Undo页面</code>链表的类型不同，也会被加入到不同的链表： <ul>
+<li>如果对应的<code>Undo页面</code>链表是<code>insert undo链表</code>，则该<code>undo slot</code>会被加入<code>insert undo cached链表</code>。</li>
+<li>如果对应的<code>Undo页面</code>链表是<code>update undo链表</code>，则该<code>undo slot</code>会被加入<code>update undo cached链表</code>。</li>
+</ul>
+</li>
+</ul>
+<p>​</p>
+<p>一个回滚段就对应着上述两个<code>cached链表</code>，如果有新事务要分配<code>undo slot</code>时，先从对应的<code>cached链表</code>中找。如果没有被缓存的<code>undo slot</code>，才会到回滚段的<code>Rollback Segment Header</code>页面中再去找。<br>​</p>
+<ul>
+<li>如果该<code>undo slot</code>指向的<code>Undo页面</code>链表不符合被重用的条件，那么针对该<code>undo slot</code>对应的<code>Undo页面</code>链表类型不同，也会有不同的处理： <ul>
+<li>如果对应的<code>Undo页面</code>链表是<code>insert undo链表</code>，则该<code>Undo页面</code>链表的<code>TRX_UNDO_STATE</code>属性会被设置为<code>TRX_UNDO_TO_FREE</code>，之后该<code>Undo页面</code>链表对应的段会被释放掉（也就意味着段中的页面可以被挪作他用），然后把该<code>undo slot</code>的值设置为<code>FIL_NULL</code>。</li>
+<li>如果对应的<code>Undo页面</code>链表是<code>update undo链表</code>，则该<code>Undo页面</code>链表的<code>TRX_UNDO_STATE</code>属性会被设置为<code>TRX_UNDO_TO_PRUGE</code>，则会将该<code>undo slot</code>的值设置为<code>FIL_NULL</code>，然后将本次事务写入的一组<code>undo</code>日志放到所谓的<code>History链表</code>中（需要注意的是，这里并不会将<code>Undo页面</code>链表对应的段给释放掉，因为这些<code>undo</code>日志还有用）。</li>
+</ul>
+</li>
+</ul>
+<h3 id="9-3-多个回滚段"><a href="#9-3-多个回滚段" class="headerlink" title="9.3 多个回滚段"></a>9.3 多个回滚段</h3><p>一个事务执行过程中最多分配<code>4</code>个<code>Undo页面</code>链表，而一个回滚段里只有<code>1024</code>个<code>undo slot</code>，很显然<code>undo slot</code>的数量有点少。即使假设一个读写事务执行过程中只分配<code>1</code>个<code>Undo页面</code>链表，那<code>1024</code>个<code>undo slot</code>也只能支持<code>1024</code>个读写事务同时执行，再多了就崩溃了。</p>
+<p>在<code>InnoDB</code>的早期只有一个回滚段，但后来定义了<code>128</code>个回滚段，也就相当于有了<code>128 × 1024 = 131072</code>个<code>undo slot</code>。假设一个读写事务执行过程中只分配<code>1</code>个<code>Undo页面</code>链表，那么就可以同时支持<code>131072</code>个读写事务并发执行。</p>
+<blockquote>
+<p>只读事务并不需要分配Undo页面链表，MySQL 5.7中所有刚开启的事务默认都是只读事务，只有在事务执行过程中对记录做了某些改动时才会被升级为读写事务。</p>
+</blockquote>
+<p>每个回滚段都对应着一个<code>Rollback Segment Header</code>页面，有128个回滚段，自然就要有128个<code>Rollback Segment Header</code>页面，这些页面的地址需要找个地方存一下！于是<code>InnoDB</code>在系统表空间的第<code>5</code>号页面的某个区域包含了128个8字节大小的格子：</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641913006988-088fa3c6-8748-4036-9df5-aef65206f08d.png#clientId=u534e2ab0-3316-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=322&id=u0fa0f6dc&margin=%5Bobject%20Object%5D&name=image.png&originHeight=644&originWidth=882&originalType=binary&ratio=1&rotation=0&showTitle=false&size=39638&status=done&style=none&taskId=u1249ed9e-d508-4273-b9dd-2ed11aa6445&title=&width=441" alt="image.png"></p>
+<p>每个8字节的格子的构造就像这样：</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641912776089-76cff9b4-55ed-4ddf-9dff-96364dc890ae.png#clientId=u534e2ab0-3316-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=206&id=u1ee21cfb&margin=%5Bobject%20Object%5D&name=image.png&originHeight=412&originWidth=920&originalType=binary&ratio=1&rotation=0&showTitle=false&size=27874&status=done&style=none&taskId=u328c2979-6013-407e-89fc-13154dac2d6&title=&width=460" alt="image.png"></p>
+<p>如果所示，每个8字节的格子其实由两部分组成：</p>
+<ul>
+<li>4字节大小的<code>Space ID</code>，代表一个表空间的ID。</li>
+<li>4字节大小的<code>Page number</code>，代表一个页号。</li>
+</ul>
+<p>也就是说每个8字节大小的<code>格子</code>相当于一个指针，指向某个表空间中的某个页面，这些页面就是<code>Rollback Segment Header</code>。这里需要注意的一点事，要定位一个<code>Rollback Segment Header</code>还需要知道对应的表空间ID，这也就意味着不同的回滚段可能分布在不同的表空间中。</p>
+<p>所以通过上边的叙述我们可以大致清楚，在系统表空间的第<code>5</code>号页面中存储了128个<code>Rollback Segment Header</code>页面地址，每个<code>Rollback Segment Header</code>就相当于一个回滚段。在<code>Rollback Segment Header</code>页面中，又包含<code>1024</code>个<code>undo slot</code>，每个<code>undo slot</code>都对应一个<code>Undo页面</code>链表。我们画个示意图：</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641912676494-56432391-9d44-4e7b-84cd-2b2249c94753.png#clientId=u534e2ab0-3316-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=536&id=u07165959&margin=%5Bobject%20Object%5D&name=image.png&originHeight=1072&originWidth=2592&originalType=binary&ratio=1&rotation=0&showTitle=false&size=163547&status=done&style=none&taskId=u0e6517f0-d674-4e10-8737-25adc7c75ba&title=&width=1296" alt="image.png"></p>
+<h3 id="9-4回滚段的分类"><a href="#9-4回滚段的分类" class="headerlink" title="9.4回滚段的分类"></a>9.4回滚段的分类</h3><p>把这128个回滚段给编一下号，最开始的回滚段称之为<code>第0号回滚段</code>，之后依次递增，最后一个回滚段就称之为<code>第127号回滚段</code>。这128个回滚段可以被分成两大类：</p>
+<ul>
+<li> 第<code>0</code>号、第<code>33～127</code>号回滚段属于一类。其中第<code>0</code>号回滚段必须在系统表空间中（就是说第<code>0</code>号回滚段对应的<code>Rollback Segment Header</code>页面必须在系统表空间中），第<code>33～127</code>号回滚段既可以在系统表空间中，也可以在自己配置的<code>undo</code>表空间中。<br>如果一个事务在执行过程中由于对普通表的记录做了改动需要分配<code>Undo页面</code>链表时，必须从这一类的段中分配相应的<code>undo slot</code>。 </li>
+<li> 第<code>1～32</code>号回滚段属于一类。这些回滚段必须在临时表空间（对应着数据目录中的<code>ibtmp1</code>文件）中。<br>如果一个事务在执行过程中由于对临时表的记录做了改动需要分配<code>Undo页面</code>链表时，必须从这一类的段中分配相应的<code>undo slot</code>。 </li>
+</ul>
+<p>也就是说如果一个事务在执行过程中既对普通表的记录做了改动，又对临时表的记录做了改动，那么需要为这个记录分配2个回滚段，再分别到这两个回滚段中分配对应的<code>undo slot</code>。</p>
+<p>为啥要把针对普通表和临时表来划分不同种类的<code>回滚段</code>呢？这个还得从<code>Undo页面</code>本身说起，我们说<code>Undo页面</code>其实是类型为<code>FIL_PAGE_UNDO_LOG</code>的页面的简称，说到底它也是一个普通的页面。在修改页面之前一定要先把对应的<code>redo日志</code>写上，这样在系统奔溃重启时才能恢复到奔溃前的状态。我们向<code>Undo页面</code>写入<code>undo日志</code>本身也是一个写页面的过程，<code>InnoDB</code>为此还设计了许多种<code>redo日志</code>的类型，也就是说我们对<code>Undo页面</code>做的任何改动都会记录相应类型的<code>redo日志</code>。但是对于临时表来说，因为修改临时表而产生的<code>undo日志</code>只需要在系统运行过程中有效，如果系统奔溃了，那么在重启时也不需要恢复这些<code>undo</code>日志所在的页面，所以在写针对临时表的<code>Undo页面</code>时，并不需要记录相应的<code>redo日志</code>。总结一下针对普通表和临时表划分不同种类的<code>回滚段</code>的原因：<strong>在修改针对普通表的回滚段中的Undo页面时，需要记录对应的redo日志，而修改针对临时表的回滚段中的Undo页面时，不需要记录对应的redo日志。</strong></p>
+<blockquote>
+<p>实际上在MySQL 5.7.21这个版本中，如果我们仅仅对普通表的记录做了改动，那么只会为该事务分配针对普通表的回滚段，不分配针对临时表的回滚段。但是如果我们仅仅对临时表的记录做了改动，那么既会为该事务分配针对普通表的回滚段，又会为其分配针对临时表的回滚段（不过分配了回滚段并不会立即分配undo slot，只有在真正需要Undo页面链表时才会去分配回滚段中的undo slot）。</p>
+</blockquote>
+<h3 id="9-5-为事务分配Undo页面链表详细过程"><a href="#9-5-为事务分配Undo页面链表详细过程" class="headerlink" title="9.5 为事务分配Undo页面链表详细过程"></a>9.5 为事务分配Undo页面链表详细过程</h3><p>接下来以事务对普通表的记录做改动为例，梳理一下事务执行过程中分配<code>Undo页面</code>链表时的完整过程：</p>
+<ol>
+<li> 事务在执行过程中对普通表的记录首次做改动之前，首先会到系统表空间的第<code>5</code>号页面中分配一个回滚段（其实就是获取一个<code>Rollback Segment Header</code>页面的地址）。一旦某个回滚段被分配给了这个事务，那么之后该事务中再对普通表的记录做改动时，就不会重复分配了。<br>使用<code>round-robin</code>（循环使用）方式来分配回滚段。比如当前事务分配了第<code>0</code>号回滚段，那么下一个事务就要分配第<code>33</code>号回滚段，下下个事务就要分配第<code>34</code>号回滚段，简单一点的说就是这些回滚段被轮着分配给不同的事务。 </li>
+</ol>
+<p>​</p>
+<ol start="2">
+<li> 在分配到回滚段后，首先看一下这个回滚段的两个<code>cached链表</code>有没有已经缓存了的<code>undo slot</code>，比如如果事务做的是<code>INSERT</code>操作，就去回滚段对应的<code>insert undo cached链表</code>中看看有没有缓存的<code>undo slot</code>；如果事务做的是<code>DELETE</code>操作，就去回滚段对应的<code>update undo cached链表</code>中看看有没有缓存的<code>undo slot</code>。如果有缓存的<code>undo slot</code>，那么就把这个缓存的<code>undo slot</code>分配给该事务。 </li>
+</ol>
+<p>​</p>
+<ol start="3">
+<li> 如果没有缓存的<code>undo slot</code>可供分配，那么就要到<code>Rollback Segment Header</code>页面中找一个可用的<code>undo slot</code>分配给当前事务。<br>从<code>Rollback Segment Header</code>页面中分配可用的<code>undo slot</code>的方式我们上边也说过了，就是从第<code>0</code>个<code>undo slot</code>开始，如果该<code>undo slot</code>的值为<code>FIL_NULL</code>，意味着这个<code>undo slot</code>是空闲的，就把这个<code>undo slot</code>分配给当前事务，否则查看第<code>1</code>个<code>undo slot</code>是否满足条件，依次类推，直到最后一个<code>undo slot</code>。如果这<code>1024</code>个<code>undo slot</code>都没有值为<code>FIL_NULL</code>的情况，就直接报错（一般不会出现这种情况）。 </li>
+</ol>
+<p>​</p>
+<ol start="4">
+<li> 找到可用的<code>undo slot</code>后，如果该<code>undo slot</code>是从<code>cached链表</code>中获取的，那么它对应的<code>Undo Log Segment</code>已经分配了，否则的话需要重新分配一个<code>Undo Log Segment</code>，然后从该<code>Undo Log Segment</code>中申请一个页面作为<code>Undo页面</code>链表的<code>first undo page</code>。 </li>
+</ol>
+<p>​</p>
+<ol start="5">
+<li> 然后事务就可以把<code>undo日志</code>写入到上边申请的<code>Undo页面</code>链表了！ </li>
+</ol>
+<p>对临时表的记录做改动的步骤和上述的一样。不过需要再次强调一次，如果一个事务在执行过程中既对普通表的记录做了改动，又对临时表的记录做了改动，那么需要为这个记录分配2个回滚段。并发执行的不同事务其实也可以被分配相同的回滚段，只要分配不同的undo slot就可以了。</p>
+<h2 id="10-回滚段相关配置"><a href="#10-回滚段相关配置" class="headerlink" title="10.回滚段相关配置"></a>10.回滚段相关配置</h2><h3 id="10-1配置回滚段数量"><a href="#10-1配置回滚段数量" class="headerlink" title="10.1配置回滚段数量"></a>10.1配置回滚段数量</h3><p>系统中一共有<code>128</code>个回滚段，其实这只是默认值，我们可以通过启动参数<code>innodb_rollback_segments</code>来配置回滚段的数量，可配置的范围是<code>1~128</code>。但是这个参数并不会影响针对临时表的回滚段数量，针对临时表的回滚段数量一直是<code>32</code>，也就是说：</p>
+<ul>
+<li>如果我们把<code>innodb_rollback_segments</code>的值设置为<code>1</code>，那么只会有1个针对普通表的可用回滚段，但是仍然有32个针对临时表的可用回滚段。</li>
+<li>如果我们把<code>innodb_rollback_segments</code>的值设置为<code>2～33</code>之间的数，效果和将其设置为<code>1</code>是一样的。</li>
+<li>如果我们把<code>innodb_rollback_segments</code>设置为大于<code>33</code>的数，那么针对普通表的可用回滚段数量就是该值减去32。</li>
+</ul>
+<h3 id="10-2-配置undo表空间"><a href="#10-2-配置undo表空间" class="headerlink" title="10.2 配置undo表空间"></a>10.2 配置undo表空间</h3><p>默认情况下，针对普通表设立的回滚段（第<code>0</code>号以及第<code>33~127</code>号回滚段）都是被分配到系统表空间的。其中的第<code>0</code>号回滚段是一直在系统表空间的，但是第<code>33~127</code>号回滚段可以通过配置放到自定义的<code>undo表空间</code>中。但是这种配置只能在系统初始化（创建数据目录时）的时候使用，一旦初始化完成，之后就不能再次更改了。我们看一下相关启动参数：</p>
+<ul>
+<li> 通过<code>innodb_undo_directory</code>指定<code>undo表空间</code>所在的目录，如果没有指定该参数，则默认<code>undo表空间</code>所在的目录就是数据目录。 </li>
+<li> 通过<code>innodb_undo_tablespaces</code>定义<code>undo表空间</code>的数量。该参数的默认值为<code>0</code>，表明不创建任何<code>undo表空间</code>。<br>第<code>33~127</code>号回滚段可以平均分布到不同的<code>undo表空间</code>中。 </li>
+</ul>
+<blockquote>
+<p>如果我们在系统初始化的时候指定了创建了undo表空间，那么系统表空间中的第0号回滚段将处于不可用状态。</p>
+</blockquote>
+<p>比如我们在系统初始化时指定的<code>innodb_rollback_segments</code>为<code>35</code>，<code>innodb_undo_tablespaces</code>为<code>2</code>，这样就会将第<code>33</code>、<code>34</code>号回滚段分别分布到一个<code>undo表空间</code>中。</p>
+<p>设立<code>undo表空间</code>的一个好处就是在<code>undo表空间</code>中的文件大到一定程度时，可以自动的将该<code>undo表空间</code>截断（truncate）成一个小文件。而系统表空间的大小只能不断的增大，却不能截断。</p>
+<h2 id="11-总结"><a href="#11-总结" class="headerlink" title="11.总结"></a>11.总结</h2><p>为了保证事务的原子性设计，InnoDB引入了undo日志。undo日志记载了回滚一个段所需的必要内容。</p>
+<p>在事务对表中的记录进行改动的时候，才会为这个事务分配一个唯一的ID。事务ID值是一个递增的数字。先被分配ID的事务得到的是较小的事务ID，后被分配ID的事务得到的是较大的事务ID。未被分配事务ID的事务ID默认是0。聚簇索引记录中有一个trx_id隐藏列，他代表对这个聚簇索引隐藏记录进行改动的语句所在的事务对应的事务ID。</p>
+<p>InnoDB针对不同的场景设计了不同类型的undo日志。</p>
+<p>类型为FIL_PAGE_UNDO_LOG的页面是专门用来存储undo日志的，简称为undo页面。</p>
+<p>在一个事务执行过程中，最多分配四个undo页面链表：</p>
+<ol>
+<li>针对普通表的insert undo链表</li>
+<li>针对普通表的update undo链表</li>
+<li>针对临时表的insert undo链表</li>
+<li>针对临时表的update undo链表</li>
+</ol>
+<p>只有在真正用到这些链表的时候才会去创建他们。</p>
+<p>每个undo页面链表都对应一个undo log segment。undo页面链表的第一个页面中有一个名为undo log segment header 的部分，专门用来存储关于这个段的一些信息。</p>
+<p>同一个事务向一个undo页面链表中写入的undo日志算是一个组，每个组都以一个undo log header部分开头。</p>
+<p>一个undo页面链表如果可以被重用，需要符合两个条件：</p>
+<ol>
+<li>该链表只包含一个undo页面</li>
+<li>该undo页面已经使用的空间小于整个页面空间的3/4</li>
+</ol>
+<p>每一个Rollback segmrnt header 页面都对应一个回滚段，每个回滚段包含1024个undo slot，一个undo slot代表一个undo页面链表的第一个页面的页号。目前，InnoDB最多支持128个回滚段，其中第0号，第33127号回滚段是针对普通表设计的，第132号回滚段是针对临时表设计的。</p>
+<p>我们可以选择将undo日志记录到专门的undo表空间中，在undo表空间中的文件大到一定程度时，可以自动将该undo表空间截断为小文件。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">二十</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://yinhuidong.github.io/2022/01/15/MySQL/MySQL[%E5%8D%81%E4%BA%94]undo%E6%97%A5%E5%BF%97/">https://yinhuidong.github.io/2022/01/15/MySQL/MySQL[十五]undo日志/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://yinhuidong.github.io" target="_blank">二十</a> 许可协议。转载请注明来自 <a href="https://yinhuidong.github.io" target="_blank">二十</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/MySQL/">MySQL</a></div><div class="post_share"><div class="social-share" data-image="/images/cover/mysql.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js" defer></script></div></div><div class="post-reward"><div class="reward-button button--animated"><i class="fas fa-qrcode"></i> 打赏</div><div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/img/wechat_pay.jpg" target="_blank"><img class="post-qr-code-img" src="/img/wechat_pay.jpg" alt="微信"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="/img/alipay.jpg" target="_blank"><img class="post-qr-code-img" src="/img/alipay.jpg" alt="支付宝"/></a><div class="post-qr-code-desc">支付宝</div></li></ul></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2022/01/16/MySQL/MySQL%5B%E5%8D%81%E5%85%AD%5D%E5%B9%B6%E5%8F%91%E7%89%88%E6%9C%AC%E6%8E%A7%E5%88%B6-MVCC/"><img class="prev-cover" src="/images/cover/mysql.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">MySQL[十六]并发版本控制-MVCC</div></div></a></div><div class="next-post pull-right"><a href="/2022/01/14/MySQL/MySQL%5B%E5%8D%81%E5%9B%9B%5Dredo%E6%97%A5%E5%BF%97/"><img class="next-cover" src="/images/cover/mysql.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">MySQL[十四]redo日志</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2022/01/01/MySQL/MySQL%5B%E4%B8%80%5D%E5%85%A5%E9%97%A8/" title="MySQL[一]入门"><img class="cover" src="/images/cover/mysql.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-01</div><div class="title">MySQL[一]入门</div></div></a></div><div><a href="/2022/01/07/MySQL/MySQL%5B%E4%B8%83%5D%E5%9F%BA%E4%BA%8E%E6%88%90%E6%9C%AC%E7%9A%84%E4%BC%98%E5%8C%96/" title="MySQL[七]基于成本的优化"><img class="cover" src="/images/cover/mysql.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-07</div><div class="title">MySQL[七]基于成本的优化</div></div></a></div><div><a href="/2022/01/09/MySQL/MySQL%5B%E4%B9%9D%5D%E5%9F%BA%E4%BA%8E%E8%A7%84%E5%88%99%E7%9A%84%E4%BC%98%E5%8C%96&%E5%AD%90%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96/" title="MySQL[九]基于规则的优化&子查询优化"><img class="cover" src="/images/cover/mysql.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-09</div><div class="title">MySQL[九]基于规则的优化&子查询优化</div></div></a></div><div><a href="/2022/01/20/MySQL/MySQL%5B%E4%BA%8C%E5%8D%81%5D%E6%B5%B7%E9%87%8F%E6%95%B0%E6%8D%AE%E5%A4%84%E7%90%86%E6%80%BB%E7%BB%93/" title="MySQL[二十]海量数据处理"><img class="cover" src="/images/cover/mysql.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-20</div><div class="title">MySQL[二十]海量数据处理</div></div></a></div><div><a href="/2022/01/02/MySQL/MySQL%5B%E4%BA%8C%5D%E6%A6%82%E8%BF%B0/" title="MySQL[二]概述"><img class="cover" src="/images/cover/mysql.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-02</div><div class="title">MySQL[二]概述</div></div></a></div><div><a href="/2022/01/03/MySQL/MySQL%5B%E4%B8%89%5DInnoDB%E7%B4%A2%E5%BC%95%E7%BB%93%E6%9E%84/" title="MySQL[三]InnoDB索引结构"><img class="cover" src="/images/cover/mysql.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-03</div><div class="title">MySQL[三]InnoDB索引结构</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/head.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">二十</div><div class="author-info__description">欢迎来到二十的博客....</div></div><div class="card-info-data"><div class="card-info-data-item is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">118</div></a></div><div class="card-info-data-item is-center"><a href="/tags/"><div class="headline">标签</div><div class="length-num">14</div></a></div><div class="card-info-data-item is-center"><a href="/categories/"><div class="headline">分类</div><div class="length-num">13</div></a></div></div><a class="button--animated" id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/yinhuidong"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/yinhuidong" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="mailto:1972039773@qq.com" target="_blank" title="Email"><i class="fas fa-envelope"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn card-announcement-animation"></i><span>公告</span></div><div class="announcement_content">欢迎来到二十的个人博客，联系作者：VX：yinhuidong666</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E4%BA%8B%E5%8A%A1%E5%9B%9E%E6%BB%9A%E7%9A%84%E9%9C%80%E6%B1%82"><span class="toc-text">1.事务回滚的需求</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E4%BA%8B%E5%8A%A1id"><span class="toc-text">2.事务id</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1%E7%BB%99%E4%BA%8B%E5%8A%A1%E5%88%86%E9%85%8Did%E7%9A%84%E6%97%B6%E6%9C%BA"><span class="toc-text">2.1给事务分配id的时机</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2%E4%BA%8B%E5%8A%A1id%E6%98%AF%E6%80%8E%E4%B9%88%E7%94%9F%E6%88%90%E7%9A%84"><span class="toc-text">2.2事务id是怎么生成的</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3trx-id%E9%9A%90%E8%97%8F%E5%88%97"><span class="toc-text">2.3trx_id隐藏列</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-undo%E6%97%A5%E5%BF%97%E7%9A%84%E6%A0%BC%E5%BC%8F"><span class="toc-text">3.undo日志的格式</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1INSERT%E6%93%8D%E4%BD%9C%E5%AF%B9%E5%BA%94%E7%9A%84undo%E6%97%A5%E5%BF%97"><span class="toc-text">3.1INSERT操作对应的undo日志</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A0roll-pointer%E9%9A%90%E8%97%8F%E5%88%97%E7%9A%84%E5%90%AB%E4%B9%89"><span class="toc-text">①roll_pointer隐藏列的含义</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-DELETE%E6%93%8D%E4%BD%9C%E5%AF%B9%E5%BA%94%E7%9A%84undo%E6%97%A5%E5%BF%97"><span class="toc-text">3.2 DELETE操作对应的undo日志</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-UPDATE%E6%93%8D%E4%BD%9C%E5%AF%B9%E5%BA%94%E7%9A%84undo%E6%97%A5%E5%BF%97"><span class="toc-text">3.3 UPDATE操作对应的undo日志</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A0%E4%B8%8D%E6%9B%B4%E6%96%B0%E4%B8%BB%E9%94%AE%E7%9A%84%E6%83%85%E5%86%B5"><span class="toc-text">①不更新主键的情况</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%91%A1%E6%9B%B4%E6%96%B0%E4%B8%BB%E9%94%AE%E7%9A%84%E6%83%85%E5%86%B5"><span class="toc-text">②更新主键的情况</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E9%80%9A%E7%94%A8%E9%93%BE%E8%A1%A8%E7%BB%93%E6%9E%84"><span class="toc-text">4.通用链表结构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-FIL-PAGE-UNDO-LOG%E9%A1%B5%E9%9D%A2"><span class="toc-text">5.FIL_PAGE_UNDO_LOG页面</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-Undo%E9%A1%B5%E9%9D%A2%E9%93%BE%E8%A1%A8"><span class="toc-text">6.Undo页面链表</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1%E5%8D%95%E4%B8%AA%E4%BA%8B%E5%8A%A1%E4%B8%AD%E7%9A%84Undo%E9%A1%B5%E9%9D%A2%E9%93%BE%E8%A1%A8"><span class="toc-text">6.1单个事务中的Undo页面链表</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2%E5%A4%9A%E4%B8%AA%E4%BA%8B%E5%8A%A1%E4%B8%AD%E7%9A%84Undo%E9%A1%B5%E9%9D%A2%E9%93%BE%E8%A1%A8"><span class="toc-text">6.2多个事务中的Undo页面链表</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-undo%E6%97%A5%E5%BF%97%E5%85%B7%E4%BD%93%E5%86%99%E5%85%A5%E8%BF%87%E7%A8%8B"><span class="toc-text">7.undo日志具体写入过程</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1%E6%AE%B5%EF%BC%88Segment%EF%BC%89%E7%9A%84%E6%A6%82%E5%BF%B5"><span class="toc-text">7.1段（Segment）的概念</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-Undo-Log-Segment-Header"><span class="toc-text">7.2 Undo Log Segment Header</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3Undo-Log-Header"><span class="toc-text">7.3Undo Log Header</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-4-%E5%B0%8F%E7%BB%93"><span class="toc-text">7.4 小结</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-%E9%87%8D%E7%94%A8Undo%E9%A1%B5%E9%9D%A2"><span class="toc-text">8.重用Undo页面</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#9-%E5%9B%9E%E6%BB%9A%E6%AE%B5"><span class="toc-text">9.回滚段</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#9-1%E5%9B%9E%E6%BB%9A%E6%AE%B5%E7%9A%84%E6%A6%82%E5%BF%B5"><span class="toc-text">9.1回滚段的概念</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-2-%E4%BB%8E%E5%9B%9E%E6%BB%9A%E6%AE%B5%E4%B8%AD%E7%94%B3%E8%AF%B7Undo%E9%A1%B5%E9%9D%A2%E9%93%BE%E8%A1%A8"><span class="toc-text">9.2 从回滚段中申请Undo页面链表</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-3-%E5%A4%9A%E4%B8%AA%E5%9B%9E%E6%BB%9A%E6%AE%B5"><span class="toc-text">9.3 多个回滚段</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-4%E5%9B%9E%E6%BB%9A%E6%AE%B5%E7%9A%84%E5%88%86%E7%B1%BB"><span class="toc-text">9.4回滚段的分类</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-5-%E4%B8%BA%E4%BA%8B%E5%8A%A1%E5%88%86%E9%85%8DUndo%E9%A1%B5%E9%9D%A2%E9%93%BE%E8%A1%A8%E8%AF%A6%E7%BB%86%E8%BF%87%E7%A8%8B"><span class="toc-text">9.5 为事务分配Undo页面链表详细过程</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#10-%E5%9B%9E%E6%BB%9A%E6%AE%B5%E7%9B%B8%E5%85%B3%E9%85%8D%E7%BD%AE"><span class="toc-text">10.回滚段相关配置</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#10-1%E9%85%8D%E7%BD%AE%E5%9B%9E%E6%BB%9A%E6%AE%B5%E6%95%B0%E9%87%8F"><span class="toc-text">10.1配置回滚段数量</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-2-%E9%85%8D%E7%BD%AEundo%E8%A1%A8%E7%A9%BA%E9%97%B4"><span class="toc-text">10.2 配置undo表空间</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#11-%E6%80%BB%E7%BB%93"><span class="toc-text">11.总结</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2022/01/20/MySQL/MySQL%5B%E4%BA%8C%E5%8D%81%5D%E6%B5%B7%E9%87%8F%E6%95%B0%E6%8D%AE%E5%A4%84%E7%90%86%E6%80%BB%E7%BB%93/" title="MySQL[二十]海量数据处理"><img src="/images/cover/mysql.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="MySQL[二十]海量数据处理"/></a><div class="content"><a class="title" href="/2022/01/20/MySQL/MySQL%5B%E4%BA%8C%E5%8D%81%5D%E6%B5%B7%E9%87%8F%E6%95%B0%E6%8D%AE%E5%A4%84%E7%90%86%E6%80%BB%E7%BB%93/" title="MySQL[二十]海量数据处理">MySQL[二十]海量数据处理</a><time datetime="2022-01-19T16:00:00.000Z" title="发表于 2022-01-20 00:00:00">2022-01-20</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/01/16/MySQL/MySQL%5B%E5%8D%81%E5%85%AD%5D%E5%B9%B6%E5%8F%91%E7%89%88%E6%9C%AC%E6%8E%A7%E5%88%B6-MVCC/" title="MySQL[十六]并发版本控制-MVCC"><img src="/images/cover/mysql.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="MySQL[十六]并发版本控制-MVCC"/></a><div class="content"><a class="title" href="/2022/01/16/MySQL/MySQL%5B%E5%8D%81%E5%85%AD%5D%E5%B9%B6%E5%8F%91%E7%89%88%E6%9C%AC%E6%8E%A7%E5%88%B6-MVCC/" title="MySQL[十六]并发版本控制-MVCC">MySQL[十六]并发版本控制-MVCC</a><time datetime="2022-01-15T16:00:00.000Z" title="发表于 2022-01-16 00:00:00">2022-01-16</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/01/15/MySQL/MySQL%5B%E5%8D%81%E4%BA%94%5Dundo%E6%97%A5%E5%BF%97/" title="MySQL[十五]undo日志"><img src="/images/cover/mysql.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="MySQL[十五]undo日志"/></a><div class="content"><a class="title" href="/2022/01/15/MySQL/MySQL%5B%E5%8D%81%E4%BA%94%5Dundo%E6%97%A5%E5%BF%97/" title="MySQL[十五]undo日志">MySQL[十五]undo日志</a><time datetime="2022-01-14T16:00:00.000Z" title="发表于 2022-01-15 00:00:00">2022-01-15</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/01/14/MySQL/MySQL%5B%E5%8D%81%E5%9B%9B%5Dredo%E6%97%A5%E5%BF%97/" title="MySQL[十四]redo日志"><img src="/images/cover/mysql.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="MySQL[十四]redo日志"/></a><div class="content"><a class="title" href="/2022/01/14/MySQL/MySQL%5B%E5%8D%81%E5%9B%9B%5Dredo%E6%97%A5%E5%BF%97/" title="MySQL[十四]redo日志">MySQL[十四]redo日志</a><time datetime="2022-01-13T16:00:00.000Z" title="发表于 2022-01-14 00:00:00">2022-01-14</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/01/13/MySQL/MySQL%5B%E5%8D%81%E4%B8%89%5D%E4%BA%8B%E5%8A%A1/" title="MySQL[十三]事务"><img src="/images/cover/mysql.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="MySQL[十三]事务"/></a><div class="content"><a class="title" href="/2022/01/13/MySQL/MySQL%5B%E5%8D%81%E4%B8%89%5D%E4%BA%8B%E5%8A%A1/" title="MySQL[十三]事务">MySQL[十三]事务</a><time datetime="2022-01-12T16:00:00.000Z" title="发表于 2022-01-13 00:00:00">2022-01-13</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('/images/cover/mysql.png')"><div id="footer-wrap"><div class="copyright">&copy;2021 - 2022 By 二十</div><div class="footer_custom_text">树是生活，埋的是我。看花就好，别看我落魄。</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="font-plus" type="button" title="放大字体"><i class="fas fa-plus"></i></button><button id="font-minus" type="button" title="缩小字体"><i class="fas fa-minus"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div id="local-search"><div class="search-dialog"><div class="search-dialog__title" id="local-search-title">本地搜索</div><div id="local-input-panel"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div></div><hr/><div id="local-search-results"></div><span class="search-close-button"><i class="fas fa-times"></i></span></div><div id="search-mask"></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/search/local-search.js"></script><div class="js-pjax"></div><script src="https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js"></script><script src="/js/chocolate.js"></script><script defer="defer" id="fluttering_ribbon" mobile="true" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/canvas-fluttering-ribbon.min.js"></script><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="true" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/canvas-nest.min.js"></script><script id="click-show-text" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/click-show-text.min.js" data-mobile="false" data-text="二十,二十二十,二十二十二十,二十二十二十二十,二十二十二十二十二十" data-fontsize="15px" data-random="true" async="async"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

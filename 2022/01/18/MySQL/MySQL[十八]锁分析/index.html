@@ -1,0 +1,679 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MySQL[十八]锁分析 | 二十</title><meta name="keywords" content="MySQL"><meta name="author" content="二十"><meta name="copyright" content="二十"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="锁分析">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MySQL[十八]锁分析">
+<meta property="og:url" content="https://yinhuidong.github.io/2022/01/18/MySQL/MySQL[%E5%8D%81%E5%85%AB]%E9%94%81%E5%88%86%E6%9E%90/index.html">
+<meta property="og:site_name" content="二十">
+<meta property="og:description" content="锁分析">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yinhuidong.github.io/images/cover/mysql.png">
+<meta property="article:published_time" content="2022-01-17T16:00:00.000Z">
+<meta property="article:modified_time" content="2022-01-13T01:58:52.473Z">
+<meta property="article:author" content="二十">
+<meta property="article:tag" content="MySQL">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://yinhuidong.github.io/images/cover/mysql.png"><link rel="shortcut icon" href="/img/favicon.jpg"><link rel="canonical" href="https://yinhuidong.github.io/2022/01/18/MySQL/MySQL[%E5%8D%81%E5%85%AB]%E9%94%81%E5%88%86%E6%9E%90/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":800},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js',
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css'
+    },
+    fancybox: {
+      js: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isanchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'MySQL[十八]锁分析',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2022-01-13 09:58:52'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const fontSizeVal = saveToLocal.get('global-font-size')
+    if (fontSizeVal !== undefined) {
+      document.documentElement.style.setProperty('--global-font-size', fontSizeVal + 'px')
+    }
+    
+    const detectApple = () => {
+      if (GLOBAL_CONFIG_SITE.isHome && /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/custom.css"><meta name="referrer" content="no-referrer" /><meta name="generator" content="Hexo 5.4.0"></head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/head.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data"><div class="data-item is-center"><div class="data-item-link"><a href="/archives/"><div class="headline">文章</div><div class="length-num">120</div></a></div></div><div class="data-item is-center"><div class="data-item-link"><a href="/tags/"><div class="headline">标签</div><div class="length-num">14</div></a></div></div><div class="data-item is-center"><div class="data-item-link"><a href="/categories/"><div class="headline">分类</div><div class="length-num">13</div></a></div></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/%E5%85%B3%E4%BA%8E%E6%88%91/"><i class="fa-fw fas fa-user"></i><span> 关于我</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/images/cover/mysql.png')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">二十</a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/%E5%85%B3%E4%BA%8E%E6%88%91/"><i class="fa-fw fas fa-user"></i><span> 关于我</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">MySQL[十八]锁分析</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-01-17T16:00:00.000Z" title="发表于 2022-01-18 00:00:00">2022-01-18</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2022-01-13T01:58:52.473Z" title="更新于 2022-01-13 09:58:52">2022-01-13</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/MySQL/">MySQL</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">13.3k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>43分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="MySQL[十八]锁分析"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="一，语句加锁分析"><a href="#一，语句加锁分析" class="headerlink" title="一，语句加锁分析"></a>一，语句加锁分析</h1><p>先给上一篇的hero表建立一个二级索引。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">alert table hero add index <span class="title">idx_name</span><span class="params">(name)</span></span>;</span><br></pre></td></tr></table></figure>
+<p>现在hero表就有了两个索引，主键聚簇索引&amp;普通二级索引。<br>​</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641351003578-fc2dea96-acc4-4404-9ccf-f91eee1430fc.png#clientId=ub5252800-37c9-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=628&id=u8aba4016&margin=%5Bobject%20Object%5D&name=image.png&originHeight=1256&originWidth=1618&originalType=binary&ratio=1&rotation=0&showTitle=false&size=186693&status=done&style=none&taskId=u5e6e7591-a564-4155-8920-318a29833e7&title=&width=809" alt="image.png"></p>
+<hr>
+<h2 id="1-普通的select语句"><a href="#1-普通的select语句" class="headerlink" title="1.普通的select语句"></a>1.普通的select语句</h2><p>在不同的隔离级别下，普通的select语句具有不同的表现。<br>​</p>
+<ol>
+<li>在读未提交隔离级别下，不加锁，直接读取记录的最新版本；可能出现脏读，不可重复读，幻读。</li>
+<li>在读已提交隔离级别下，不加锁，每次执行普通的select都会生成一个readview，避免脏读，但是没有避免幻读和不可重复读。</li>
+<li>在可重复度隔离级别下，不加锁，只有在第一次执行普通的select语句时生成一个readview，这样就把脏读，不可重复读，幻读都避免了。</li>
+</ol>
+<p>​</p>
+<p>注意：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"># 事务T1，在可重复读隔离级别下：</span><br><span class="line">begin;</span><br><span class="line">select * from hero where number =<span class="number">30</span>;</span><br><span class="line"># empty set</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"># 此时事务T2执行了：</span><br><span class="line"><span class="function">insert into hero <span class="title">values</span><span class="params">(<span class="number">30</span>,<span class="string">&#x27;g关羽&#x27;</span>,<span class="string">&#x27;魏&#x27;</span>)</span></span>;</span><br><span class="line"># 语句，并提交</span><br><span class="line"></span><br><span class="line">update hero set country = <span class="string">&#x27;蜀&#x27;</span> where number =<span class="number">30</span>;</span><br><span class="line"></span><br><span class="line">select * from hero where number =<span class="number">30</span>;</span><br><span class="line"></span><br><span class="line"># 查到了一条记录</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>在可重复读隔离级别下，T1第一次执行普通的select语句时生成了一个readview，之后T2向hero表中插入一条新记录并提交。readview并不能阻止T1执行update或者delete语句来改动这个新插入的记录（由于t2已经提交，因此改动该记录并不会造成阻塞），但是这样一来，这条新记录的事务id隐藏列的值就变成了T1的事务id。之后T1在使用普通的select语句去查询这条记录就可以看到这条记录了，也就可以把这条记录返回给客户端。因为这个特殊现象的存在，我们可以认为MVCC并不能完全禁止幻读。</p>
+</blockquote>
+<ol start="4">
+<li>在串行化隔离级别下，需要分两种情况看：<ol>
+<li>在禁止自动提交的时候，普通的select语句会被转化为 select…lock in share mode ,也就是读取记录前需要先获得记录的S锁。</li>
+<li>在允许自动提交的时候，普通的select语句并不会加锁，只是利用MVCC生成一个readview来读取记录。为啥不加锁呢？因为启用自动提交意味着一个事物中只包含一条语句，而只执行一条语句也就不会出现不可重复读，幻读这样的现象了。</li>
+</ol>
+</li>
+</ol>
+<hr>
+<h2 id="2-锁定读的语句"><a href="#2-锁定读的语句" class="headerlink" title="2.锁定读的语句"></a>2.锁定读的语句</h2><p>我们把下边四种语句放到一起讨论：<br>​</p>
+<ul>
+<li>语句一：SELECT … LOCK IN SHARE MODE;</li>
+<li>语句二：SELECT … FOR UPDATE;</li>
+<li>语句三：UPDATE …</li>
+<li>语句四：DELETE …</li>
+</ul>
+<p>​</p>
+<p>语句一和语句二是MySQL中规定的两种锁定读的语法格式，而语句三和语句四由于在执行过程需要首先定位到被改动的记录并给记录加锁，也可以被认为是一种锁定读。<br>​</p>
+<h3 id="2-1-READ-UNCOMMITTED-READ-COMMITTED隔离级别下"><a href="#2-1-READ-UNCOMMITTED-READ-COMMITTED隔离级别下" class="headerlink" title="2.1 READ UNCOMMITTED/READ COMMITTED隔离级别下"></a>2.1 READ UNCOMMITTED/READ COMMITTED隔离级别下</h3><p>​</p>
+<p>在READ UNCOMMITTED下语句的加锁方式和READ COMMITTED隔离级别下语句的加锁方式基本一致，所以就放到一块儿说了。值得注意的是，采用加锁方式解决并发事务带来的问题时，其实脏读和不可重复读在任何一个隔离级别下都不会发生（因为读-写操作需要排队进行）。<br>​</p>
+<h4 id="1）使用主键进行等值查询"><a href="#1）使用主键进行等值查询" class="headerlink" title="1）使用主键进行等值查询"></a>1）使用主键进行等值查询</h4><ul>
+<li>使用SELECT … LOCK IN SHARE MODE来为记录加锁，比方说：<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> hero <span class="keyword">WHERE</span> number <span class="operator">=</span> <span class="number">8</span> LOCK <span class="keyword">IN</span> SHARE MODE;</span><br></pre></td></tr></table></figure></li>
+</ul>
+<p>这个语句执行时只需要访问一下聚簇索引中number值为8的记录，所以只需要给它加一个S型正经记录锁就好了，如图所示：<br><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641394594739-71e53371-3994-460e-87e9-c631cd1f3ba0.png#clientId=u0594d206-52d6-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=273&id=uc8e4eced&margin=%5Bobject%20Object%5D&name=image.png&originHeight=546&originWidth=1706&originalType=binary&ratio=1&rotation=0&showTitle=false&size=75389&status=done&style=none&taskId=u79eb071e-4409-46a4-838a-347f2051aea&title=&width=853" alt="image.png"></p>
+<ul>
+<li>使用SELECT … FOR UPDATE来为记录加锁，比方说：<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> hero <span class="keyword">WHERE</span> number <span class="operator">=</span> <span class="number">8</span> <span class="keyword">FOR</span> UPDATE;</span><br></pre></td></tr></table></figure>
+这个语句执行时只需要访问一下聚簇索引中number值为8的记录，所以只需要给它加一个X型正经记录锁就好了，如图所示：<br><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641394634515-51f1a6d3-cd75-4ad6-b14b-e4207afee2b1.png#clientId=u0594d206-52d6-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=332&id=u924dcf0d&margin=%5Bobject%20Object%5D&name=image.png&originHeight=664&originWidth=1710&originalType=binary&ratio=1&rotation=0&showTitle=false&size=84120&status=done&style=none&taskId=u3a53df6e-e44c-4636-9b55-362ea616737&title=&width=855" alt="image.png"><br>​</li>
+</ul>
+<ul>
+<li>使用UPDATE …来为记录加锁，比方说：<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">UPDATE hero <span class="keyword">SET</span> country <span class="operator">=</span> <span class="string">&#x27;汉&#x27;</span> <span class="keyword">WHERE</span> number <span class="operator">=</span> <span class="number">8</span>;</span><br></pre></td></tr></table></figure>
+这条UPDATE语句并没有更新二级索引列，加锁方式和上边所说的SELECT … FOR UPDATE语句一致。如果UPDATE语句中更新了二级索引列，比方说：<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">UPDATE hero <span class="keyword">SET</span> name <span class="operator">=</span> <span class="string">&#x27;cao曹操&#x27;</span> <span class="keyword">WHERE</span> number <span class="operator">=</span> <span class="number">8</span>;</span><br></pre></td></tr></table></figure>
+​</li>
+</ul>
+<p>该语句的实际执行步骤是首先更新对应的number值为8的聚簇索引记录，再更新对应的二级索引记录，所以加锁的步骤就是：<br>​</p>
+<ol>
+<li>为number值为8的聚簇索引记录加上X型正经记录锁（该记录对应的）。</li>
+<li>为该聚簇索引记录对应的idx_name二级索引记录（也就是name值为’c曹操’，number值为8的那条二级索引记录）加上X型正经记录锁。</li>
+</ol>
+<p><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641394689203-89de5254-ac98-4d7f-a26a-eac03f532755.png#clientId=u0594d206-52d6-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=616&id=ue210a6b8&margin=%5Bobject%20Object%5D&name=image.png&originHeight=1232&originWidth=1614&originalType=binary&ratio=1&rotation=0&showTitle=false&size=163712&status=done&style=none&taskId=u85eb8638-9809-4e75-9ea1-29a0e6e0cea&title=&width=807" alt="image.png"></p>
+<blockquote>
+<p>用带圆圈的数字来表示为各条记录加锁的顺序。</p>
+</blockquote>
+<p>​</p>
+<ul>
+<li>使用DELETE …来为记录加锁，比方说：<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">DELETE</span> <span class="keyword">FROM</span> hero <span class="keyword">WHERE</span> number <span class="operator">=</span> <span class="number">8</span>;</span><br></pre></td></tr></table></figure>
+“DELETE表中的一条记录”其实意味着对聚簇索引和所有的二级索引中对应的记录做DELETE操作，本例子中就是要先把number值为8的聚簇索引记录执行DELETE操作，然后把对应的idx_name二级索引记录删除，所以加锁的步骤和上边更新带有二级索引列的UPDATE语句一致。</li>
+</ul>
+<h4 id="2）使用主键进行范围查询"><a href="#2）使用主键进行范围查询" class="headerlink" title="2）使用主键进行范围查询"></a>2）使用主键进行范围查询</h4><ul>
+<li>使用SELECT … LOCK IN SHARE MODE来为记录加锁，比方说：<code>SELECT * FROM hero WHERE number &lt;= 8 LOCK IN SHARE MODE;</code></li>
+</ul>
+<p>这个语句看起来十分简单，但它的执行过程还是有点复杂的：<br>​</p>
+<ol>
+<li>先到聚簇索引中定位到满足number &lt;= 8的第一条记录，也就是number值为1的记录，然后为其加锁。</li>
+<li>判断一下该记录是否符合索引条件下推中的条件。不过需要注意的是，索引条件下推只是为了减少回表次数，也就是减少读取完整的聚簇索引记录的次数，从而减少IO操作。而对于聚簇索引而言不需要回表，它本身就包含着全部的列，也起不到减少IO操作的作用，所以InnoDB规定这个索引条件下推特性只适用于二级索引。也就是说在本例中与被使用索引有关的条件是：number &lt;= 8，而number列又是聚簇索引列，所以本例中并没有符合索引条件下推的查询条件，自然也就不需要判断该记录是否符合索引条件下推中的条件。</li>
+<li>判断一下该记录是否符合范围查询的边界条件因为在本例中是利用主键number进行范围查询，InnoDB规定每从聚簇索引中取出一条记录时都要判断一下该记录是否符合范围查询的边界条件，也就是number &lt;= 8这个条件。如果符合的话将其返回给server层继续处理，否则的话需要释放掉在该记录上加的锁，并给server层返回一个查询完毕的信息。对于number值为1的记录是符合这个条件的，所以会将其返回到server层继续处理。</li>
+<li>将该记录返回到server层继续判断。server层如果收到存储引擎层提供的查询完毕的信息，就结束查询，否则继续判断那些没有进行索引条件下推的条件，在本例中就是继续判断number &lt;= 8这个条件是否成立。不是在第3步中已经判断过了么，怎么在这又判断一回？InnoDB把凡是没有经过索引条件下推的条件都需要放到server层再判断一遍。如果该记录符合剩余的条件（没有进行索引条件下推的条件），那么就把它发送给客户端，不然的话需要释放掉在该记录上加的锁。</li>
+<li>然后刚刚查询得到的这条记录（也就是number值为1的记录）组成的单向链表继续向后查找，得到了number值为3的记录，然后重复第2，3，4、5这几个步骤。</li>
+</ol>
+<p>​</p>
+<p>但是这个过程有个问题，就是当找到number值为8的那条记录的时候，还得向后找一条记录（也就是number值为15的记录），在存储引擎读取这条记录的时候，也就是上述的第1步中，就得为这条记录加锁，然后在第3步时，判断该记录不符合number &lt;= 8这个条件，又要释放掉这条记录的锁，这个过程导致number值为15的记录先被加锁，然后把锁释放掉，过程就是这样：<br><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641394899473-5b2af810-3ae2-4fe8-ba41-070f2ef1488c.png#clientId=u0594d206-52d6-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=631&id=ud3616d4a&margin=%5Bobject%20Object%5D&name=image.png&originHeight=1262&originWidth=1650&originalType=binary&ratio=1&rotation=0&showTitle=false&size=189622&status=done&style=none&taskId=u1af3d1b9-804e-46ed-bc14-7bd333c170b&title=&width=825" alt="image.png"><br>​</p>
+<p>如果先在事务T1中执行：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"># 事务T1</span><br><span class="line"><span class="keyword">BEGIN</span>;</span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> hero <span class="keyword">WHERE</span> number <span class="operator">&lt;=</span> <span class="number">8</span> LOCK <span class="keyword">IN</span> SHARE MODE;</span><br></pre></td></tr></table></figure>
+
+
+<p>然后再到事务T2中执行：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"># 事务T2</span><br><span class="line"><span class="keyword">BEGIN</span>;</span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> hero <span class="keyword">WHERE</span> number <span class="operator">=</span> <span class="number">15</span> <span class="keyword">FOR</span> UPDATE;</span><br></pre></td></tr></table></figure>
+<p>​</p>
+<p>是没有问题的，因为在T2执行时，事务T1已经释放掉了number值为15的记录的锁，但是如果你先执行T2，再执行T1，由于T2已经持有了number值为15的记录的锁，事务T1将因为获取不到这个锁而等待。<br>​</p>
+<p>我们再看一个使用主键进行范围查询的例子：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> hero <span class="keyword">WHERE</span> number <span class="operator">&gt;=</span> <span class="number">8</span> LOCK <span class="keyword">IN</span> SHARE MODE;</span><br></pre></td></tr></table></figure>
+<p>​</p>
+<p>这个语句的执行过程其实和我们举的上一个例子类似。也是先到聚簇索引中定位到满足number &gt;= 8这个条件的第一条记录，也就是number值为8的记录，然后就可以沿着由记录组成的单向链表一路向后找，每找到一条记录，就会为其加上锁，然后判断该记录符不符合范围查询的边界条件，不过这里的边界条件比较特殊：number &gt;= 8，只要记录不小于8就算符合边界条件，所以判断和没判断是一样一样的。最后把这条记录返回给server层，server层再判断number &gt;= 8这个条件是否成立，如果成立的话就发送给客户端，否则的话就结束查询。不过InnoDB存储引擎找到索引中的最后一条记录，也就是Supremum伪记录之后，在存储引擎内部就可以立即判断这是一条伪记录，不必要返回给server层处理，也没必要给它也加上锁（也就是说在第1步中就压根儿没给这条记录加锁）。整个过程会给number值为8、15、20这三条记录加上S型正经记录锁，画个图表示一下就是这样：<br><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641993640419-48826ff9-bd68-497d-aa01-3f8a5e52dc8a.png#clientId=uba0b1d11-1ea1-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=340&id=ud80a919b&margin=%5Bobject%20Object%5D&name=image.png&originHeight=680&originWidth=1374&originalType=binary&ratio=1&rotation=0&showTitle=false&size=61811&status=done&style=none&taskId=ud3d0da1c-ed15-49e1-8d72-7a1e6fd309c&title=&width=687" alt="image.png"></p>
+<ul>
+<li><p>使用SELECT … FOR UPDATE语句来为记录加锁：和SELECT … FOR UPDATE语句类似，只不过加的是X型正经记录锁。</p>
+</li>
+<li><p>使用UPDATE …来为记录加锁，比方说：<code>UPDATE hero SET country = &#39;汉&#39; WHERE number &gt;= 8;</code><br>这条UPDATE语句并没有更新二级索引列，加锁方式和上边所说的SELECT … FOR UPDATE语句一致。如果UPDATE语句中更新了二级索引列，比方说：<code>UPDATE hero SET name = &#39;cao曹操&#39; WHERE number &gt;= 8;</code></p>
+</li>
+<li><p>这时候会首先更新聚簇索引记录，再更新对应的二级索引记录，所以加锁的步骤就是：</p>
+<ol>
+<li>为number值为8的聚簇索引记录加上X型正经记录锁。</li>
+<li>然后为上一步中的记录索引记录对应的idx_name二级索引记录加上X型正经记录锁。</li>
+<li>为number值为15的聚簇索引记录加上X型正经记录锁。</li>
+<li>然后为上一步中的记录索引记录对应的idx_name二级索引记录加上X型正经记录锁。</li>
+<li>为number值为20的聚簇索引记录加上X型正经记录锁。</li>
+<li>然后为上一步中的记录索引记录对应的idx_name二级索引记录加上X型正经记录锁。</li>
+</ol>
+</li>
+</ul>
+<p>​</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641994337898-9d9afce6-7829-4b27-8481-f846ab02af29.png#clientId=uba0b1d11-1ea1-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=638&id=u4989ac35&margin=%5Bobject%20Object%5D&name=image.png&originHeight=1276&originWidth=1770&originalType=binary&ratio=1&rotation=0&showTitle=false&size=161173&status=done&style=none&taskId=u1b3884be-ae23-4677-8866-f5be9019e39&title=&width=885" alt="image.png"><br>如果是下边这个语句：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">UPDATE hero <span class="keyword">SET</span> name <span class="operator">=</span> <span class="string">&#x27;汉&#x27;</span> <span class="keyword">WHERE</span> number <span class="operator">&lt;=</span> <span class="number">8</span>;</span><br></pre></td></tr></table></figure>
+<p>则会对number值为1、3、8聚簇索引记录以及它们对应的二级索引记录加X型正经记录锁，加锁顺序和上边语句中的加锁顺序类似，都是先对一条聚簇索引记录加锁后，再给对应的二级索引记录加锁。之后会继续对number值为15的聚簇索引记录加锁，但是随后InnoDB存储引擎判断它不符合边界条件，随即会释放掉该聚簇索引记录上的锁（注意这个过程中没有对number值为15的聚簇索引记录对应的二级索引记录加锁）。<br>​</p>
+<ul>
+<li>使用DELETE …来为记录加锁，比方说：<code>DELETE FROM hero WHERE number &gt;= 8; 和DELETE FROM hero WHERE number &lt;= 8;</code><br>这两个语句的加锁情况和更新带有二级索引列的UPDATE语句一致。</li>
+</ul>
+<p>​</p>
+<h4 id="3）使用二级索引进行等值查询"><a href="#3）使用二级索引进行等值查询" class="headerlink" title="3）使用二级索引进行等值查询"></a>3）使用二级索引进行等值查询</h4><blockquote>
+<p>在READ UNCOMMITTED和READ COMMITTED隔离级别下，使用普通的二级索引和唯一二级索引进行加锁的过程是一样的。</p>
+</blockquote>
+<p>​</p>
+<ul>
+<li><p>使用SELECT … LOCK IN SHARE MODE来为记录加锁，比方说：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> hero <span class="keyword">WHERE</span> name <span class="operator">=</span> <span class="string">&#x27;c曹操&#x27;</span> LOCK <span class="keyword">IN</span> SHARE MODE;</span><br></pre></td></tr></table></figure>
+<p>这个语句的执行过程是先通过二级索引idx_name定位到满足name = ‘c曹操’条件的二级索引记录，然后进行回表操作。所以先要对二级索引记录加S型正经记录锁，然后再给对应的聚簇索引记录加S型正经记录锁，示意图如下：<br><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641994449373-4a1debd8-6aed-46c6-a86b-a856fdf2da60.png#clientId=uba0b1d11-1ea1-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=649&id=u10f70dd8&margin=%5Bobject%20Object%5D&name=image.png&originHeight=1298&originWidth=1846&originalType=binary&ratio=1&rotation=0&showTitle=false&size=152833&status=done&style=none&taskId=ua1b8293f-2a09-40f8-b675-bf663726a2a&title=&width=923" alt="image.png"><br>这里需要再次强调一下这个语句的加锁顺序：</p>
+<ol>
+<li>先对name列为’c曹操’二级索引记录进行加锁。</li>
+<li>再对相应的聚簇索引记录进行加锁</li>
+</ol>
+</li>
+</ul>
+<blockquote>
+<p>idx_name是一个普通的二级索引，到idx_name索引中定位到满足name= ‘c曹操’这个条件的第一条记录后，就可以沿着这条记录一路向后找。可是从上边的描述中可以看出来，并没有对下一条二级索引记录进行加锁，这是为什么呢？因为InnoDB对等值匹配的条件有特殊处理，他们规定在InnoDB存储引擎层查找到当前记录的下一条记录时，在对其加锁前就直接判断该记录是否满足等值匹配的条件，如果不满足直接返回（也就是不加锁了），否则的话需要将其加锁后再返回给server层。所以这里也就不需要对下一条二级索引记录进行加锁了。</p>
+</blockquote>
+<p>​</p>
+<p>我们假设上边这个语句在事务T1中运行，然后事务T2中运行下边一个我们之前介绍过的语句：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">UPDATE hero <span class="keyword">SET</span> name <span class="operator">=</span> <span class="string">&#x27;曹操&#x27;</span> <span class="keyword">WHERE</span> number <span class="operator">=</span> <span class="number">8</span>;</span><br></pre></td></tr></table></figure>
+<p>​</p>
+<p>这两个语句都是要对number值为8的聚簇索引记录和对应的二级索引记录加锁，但是不同点是加锁的顺序不一样。这个UPDATE语句是先对聚簇索引记录进行加锁，后对二级索引记录进行加锁，如果在不同事务中运行上述两个语句:<br>​</p>
+<ul>
+<li>事务T2持有了聚簇索引记录的锁，事务T1持有了二级索引记录的锁。</li>
+<li>事务T2在等待获取二级索引记录上的锁，事务T1在等待获取聚簇索引记录上的锁。</li>
+</ul>
+<p>​</p>
+<p>两个事务都分别持有一个锁，而且都在等待对方已经持有的那个锁，这种情况就是所谓的死锁，两个事务都无法运行下去，必须选择一个进行回滚，对性能影响比较大。 </p>
+<ul>
+<li><p>使用SELECT … FOR UPDATE语句时，比如：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> hero <span class="keyword">WHERE</span> name <span class="operator">=</span> <span class="string">&#x27;c曹操&#x27;</span> <span class="keyword">FOR</span> UPDATE;</span><br></pre></td></tr></table></figure></li>
+<li><p>这种情况下与SELECT … LOCK IN SHARE MODE语句的加锁情况类似，都是给访问到的二级索引记录和对应的聚簇索引记录加锁，只不过加的是X型正经记录锁罢了。</p>
+</li>
+<li><p>使用UPDATE …来为记录加锁，比方说：与更新二级索引记录的SELECT … FOR UPDATE的加锁情况类似，不过如果被更新的列中还有别的二级索引列的话，对应的二级索引记录也会被加锁。</p>
+</li>
+<li><p>使用DELETE …来为记录加锁，比方说：与SELECT … FOR UPDATE的加锁情况类似，不过如果表中还有别的二级索引列的话，对应的二级索引记录也会被加锁。</p>
+</li>
+</ul>
+<p>​</p>
+<h4 id="4）使用二级索引进行范围查询"><a href="#4）使用二级索引进行范围查询" class="headerlink" title="4）使用二级索引进行范围查询"></a>4）使用二级索引进行范围查询</h4><ul>
+<li>使用SELECT … LOCK IN SHARE MODE来为记录加锁，比方说：<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> hero FORCE INDEX(idx_name)  <span class="keyword">WHERE</span> name <span class="operator">&gt;=</span> <span class="string">&#x27;c曹操&#x27;</span> LOCK <span class="keyword">IN</span> SHARE MODE;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>因为优化器会计算使用二级索引进行查询的成本，在成本较大时可能选择以全表扫描的方式来执行查询，所以我们这里使用FORCE INDEX(idx_name)来强制使用二级索引idx_name来执行查询。这个语句的执行过程其实是先到二级索引中定位到满足name &gt;= ‘c曹操’的第一条记录，也就是name值为c曹操的记录，然后就可以沿着这条记录的链表一路向后找，从二级索引idx_name的示意图中可以看出，所有的用户记录都满足name &gt;= ‘c曹操’的这个条件，所以所有的二级索引记录都会被加S型正经记录锁，它们对应的聚簇索引记录也会被加S型正经记录锁。不过需要注意一下加锁顺序，对一条二级索引记录加锁完后，会接着对它相应的聚簇索引记录加锁，完后才会对下一条二级索引记录进行加锁，以此类推。<br><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641994546208-1ce98bc7-4853-48dd-9db5-01258ef274e1.png#clientId=uba0b1d11-1ea1-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=648&id=u07e985da&margin=%5Bobject%20Object%5D&name=image.png&originHeight=1296&originWidth=1810&originalType=binary&ratio=1&rotation=0&showTitle=false&size=230043&status=done&style=none&taskId=uae4e66db-5455-42d0-a723-3bd4891afa4&title=&width=905" alt="image.png"></p>
+</blockquote>
+</li>
+</ul>
+<p>再来看下边这个语句：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> hero FORCE INDEX(idx_name) <span class="keyword">WHERE</span> name <span class="operator">&lt;=</span> <span class="string">&#x27;c曹操&#x27;</span> LOCK <span class="keyword">IN</span> SHARE MODE;</span><br></pre></td></tr></table></figure>
+
+<p>在使用number &lt;= 8这个条件的语句中，需要把number值为15的记录也加一个锁，之后又判断它不符合边界条件而把锁释放掉。而对于查询条件name &lt;= ‘c曹操’的语句来说，执行该语句需要使用到二级索引，而与二级索引相关的条件是可以使用索引条件下推这个特性的。InnoDB规定，如果一条记录不符合索引条件下推中的条件的话，直接跳到下一条记录（这个过程根本不将其返回到server层），如果这已经是最后一条记录，那么直接向server层报告查询完毕。<br>​</p>
+<p>但是这里头有个问题：先对一条记录加了锁，然后再判断该记录是不是符合索引条件下推的条件，如果不符合直接跳到下一条记录或者直接向server层报告查询完毕，这个过程中并没有把那条被加锁的记录上的锁释放掉！！！。本例中使用的查询条件是name &lt;= ‘c曹操’，在为name值为’c曹操’的二级索引记录以及它对应的聚簇索引加锁之后，会接着二级索引中的下一条记录，也就是name值为’l刘备’的那条二级索引记录，由于该记录不符合索引条件下推的条件，而且是范围查询的最后一条记录，会直接向server层报告查询完毕，重点是这个过程中并不会释放name值为’l刘备’的二级索引记录上的锁，也就导致了语句执行完毕时的加锁情况如下所示：<br><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641994650169-1b1a460b-fec6-48b4-86a4-8c6479063402.png#clientId=uba0b1d11-1ea1-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=650&id=ud1233e7d&margin=%5Bobject%20Object%5D&name=image.png&originHeight=1300&originWidth=1802&originalType=binary&ratio=1&rotation=0&showTitle=false&size=152504&status=done&style=none&taskId=u3875d050-6170-4557-a63d-0adb6c288d2&title=&width=901" alt="image.png"><br>这样子会造成一个尴尬情况，假如T1执行了上述语句并且尚未提交，T2再执行这个语句：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> hero <span class="keyword">WHERE</span> name <span class="operator">=</span> <span class="string">&#x27;l刘备&#x27;</span> <span class="keyword">FOR</span> UPDATE;</span><br></pre></td></tr></table></figure>
+
+<p>T2中的语句需要获取name值为l刘备的二级索引记录上的X型正经记录锁，而T1中仍然持有name值为l刘备的二级索引记录上的S型正经记录锁，这就造成了T2获取不到锁而进入等待状态。<br>​</p>
+<blockquote>
+<p>为啥不能释放不符合索引条件下推中的条件的二级索引记录上的锁呢？我也不知道，人家就是这么规定的。</p>
+</blockquote>
+<p>​</p>
+<ul>
+<li>使用SELECT … FOR UPDATE语句时：和SELECT … FOR UPDATE语句类似，只不过加的是X型正经记录锁。</li>
+<li>使用UPDATE …来为记录加锁，比方说：<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">UPDATE hero <span class="keyword">SET</span> country <span class="operator">=</span> <span class="string">&#x27;汉&#x27;</span> <span class="keyword">WHERE</span> name <span class="operator">&gt;=</span> <span class="string">&#x27;c曹操&#x27;</span>;</span><br></pre></td></tr></table></figure>
+​</li>
+</ul>
+<p>FORCE INDEX只对SELECT语句起作用，UPDATE语句虽然支持该语法，但实质上不起作用，DELETE语句压根儿不支持该语法。<br>​</p>
+<p>假设该语句执行时使用了idx_name二级索引来进行锁定读，那么它的加锁方式和上边所说的SELECT … FOR UPDATE语句一致。如果有其他二级索引列也被更新，那么也会为对应的二级索引记录进行加锁。<br>​</p>
+<p>还有一个情况：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">UPDATE hero <span class="keyword">SET</span> country <span class="operator">=</span> <span class="string">&#x27;汉&#x27;</span> <span class="keyword">WHERE</span> name <span class="operator">&lt;=</span> <span class="string">&#x27;c曹操&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+<p>索引条件下推这个特性只适用于SELECT语句，也就是说UPDATE语句中无法使用，那么这个语句就会为name值为’c曹操’和’l刘备’的二级索引记录以及它们对应的聚簇索引进行加锁，之后在判断边界条件时发现name值为’l刘备’的二级索引记录不符合name &lt;= ‘c曹操’条件，再把该二级索引记录和对应的聚簇索引记录上的锁释放掉。这个过程如下图所示：<br><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641994871621-3188fb79-4c66-4194-ab32-da5869c793d0.png#clientId=uba0b1d11-1ea1-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=496&id=ud3d46c94&margin=%5Bobject%20Object%5D&name=image.png&originHeight=992&originWidth=2836&originalType=binary&ratio=1&rotation=0&showTitle=false&size=207485&status=done&style=none&taskId=u921bebbb-d12b-4788-b5f9-33c19ad1648&title=&width=1418" alt="image.png"></p>
+<ul>
+<li>使用DELETE …来为记录加锁，比方说：<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">DELETE</span> <span class="keyword">FROM</span> hero <span class="keyword">WHERE</span> name <span class="operator">&gt;=</span> <span class="string">&#x27;c曹操&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">DELETE</span> <span class="keyword">FROM</span> hero <span class="keyword">WHERE</span> name <span class="operator">&lt;=</span> <span class="string">&#x27;c曹操&#x27;</span>;</span><br></pre></td></tr></table></figure></li>
+</ul>
+<p>如果这两个语句采用二级索引来进行锁定读，那么它们的加锁情况和更新带有二级索引列的UPDATE语句一致。</p>
+<h4 id="5）全表扫描"><a href="#5）全表扫描" class="headerlink" title="5）全表扫描"></a>5）全表扫描</h4><p>比方说：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> hero <span class="keyword">WHERE</span> country  <span class="operator">=</span> <span class="string">&#x27;魏&#x27;</span> LOCK <span class="keyword">IN</span> SHARE MODE;</span><br></pre></td></tr></table></figure>
+<p>​</p>
+<p>由于country列上未建索引，所以只能采用全表扫描的方式来执行这条查询语句，存储引擎每读取一条聚簇索引记录，就会为这条记录加锁一个S型正常记录锁，然后返回给server层，如果server层判断country = ‘魏’这个条件是否成立，如果成立则将其发送给客户端，否则会释放掉该记录上的锁，画个图就像这样：</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641995096530-e47afff8-8dcb-4a0c-8e33-b5298bb92176.png#clientId=uba0b1d11-1ea1-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=630&id=uc84e92e6&margin=%5Bobject%20Object%5D&name=image.png&originHeight=1260&originWidth=1202&originalType=binary&ratio=1&rotation=0&showTitle=false&size=143458&status=done&style=none&taskId=ufa779088-a81a-4041-93e5-5e77c58f1c2&title=&width=601" alt="image.png"></p>
+<p>使用SELECT … FOR UPDATE进行加锁的情况与上边类似，只不过加的是X型正经记录锁。<br>​</p>
+<p>对于UPDATE …和DELETE …的语句来说，在遍历聚簇索引中的记录，都会为该聚簇索引记录加上X型正经记录锁，然后：<br>​</p>
+<ul>
+<li>如果该聚簇索引记录不满足条件，直接把该记录上的锁释放掉。</li>
+<li>如果该聚簇索引记录满足条件，则会对相应的二级索引记录加上X型正经记录锁（DELETE语句会对所有二级索引列加锁，UPDATE语句只会为更新的二级索引列对应的二级索引记录加锁）。<h3 id="2-2-REPEATABLE-READ隔离级别下"><a href="#2-2-REPEATABLE-READ隔离级别下" class="headerlink" title="2.2 REPEATABLE READ隔离级别下"></a>2.2 REPEATABLE READ隔离级别下</h3>​</li>
+</ul>
+<p>采用加锁的方式解决并发事务产生的问题时，REPEATABLE READ隔离级别与READ UNCOMMITTED和READ COMMITTED这两个隔离级别相比，最主要的就是要解决幻读问题，幻读问题的解决还得靠gap锁。</p>
+<h4 id="1）使用主键进行等值查询-1"><a href="#1）使用主键进行等值查询-1" class="headerlink" title="1）使用主键进行等值查询"></a>1）使用主键进行等值查询</h4><ul>
+<li>使用SELECT … LOCK IN SHARE MODE来为记录加锁，比方说：<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> hero <span class="keyword">WHERE</span> number <span class="operator">=</span> <span class="number">8</span> LOCK <span class="keyword">IN</span> SHARE MODE;</span><br></pre></td></tr></table></figure>
+主键具有唯一性，如果在一个事务中第一次执行上述语句时将得到的结果集中包含一条记录，第二次执行上述语句前肯定不会有别的事务插入多条number值为8的记录（主键具有唯一性），也就是说一个事务中两次执行上述语句并不会发生幻读，这种情况下和READ UNCOMMITTED／READ COMMITTED隔离级别下一样，我们只需要为这条number值为8的记录加一个S型正经记录锁就好了，如图所示：<br><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641995144988-0b11a04a-e5ed-4c50-b92b-5eaee8258762.png#clientId=uba0b1d11-1ea1-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=351&id=u14b6851b&margin=%5Bobject%20Object%5D&name=image.png&originHeight=702&originWidth=976&originalType=binary&ratio=1&rotation=0&showTitle=false&size=61196&status=done&style=none&taskId=ue80ad289-b648-4a54-836b-d3ef5501037&title=&width=488" alt="image.png"><br>但是如果我们要查询主键值不存在的记录，比方说：<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> hero <span class="keyword">WHERE</span> number <span class="operator">=</span> <span class="number">7</span> LOCK <span class="keyword">IN</span> SHARE MODE;</span><br></pre></td></tr></table></figure></li>
+</ul>
+<p>由于number值为7的记录不存在，为了禁止幻读现象（也就是避免在同一事务中下一次执行相同语句时得到的结果集中包含number值为7的记录），在当前事务提交前我们需要预防别的事务插入number值为7的新记录，所以需要在number值为8的记录上加一个gap锁，也就是不允许别的事务插入number值在(3, 8)这个区间的新记录。<br><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641995259563-ee034bac-371b-47a6-8284-1fdf4d0180d0.png#clientId=uba0b1d11-1ea1-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=306&id=ua7a34eab&margin=%5Bobject%20Object%5D&name=image.png&originHeight=612&originWidth=1048&originalType=binary&ratio=1&rotation=0&showTitle=false&size=64675&status=done&style=none&taskId=ud689060d-b7d0-4e32-a3b4-cc4e3d06c97&title=&width=524" alt="image.png"><br>如果在READ UNCOMMITTED／READ COMMITTED隔离级别下一样查询了一条主键值不存在的记录，那么什么锁也不需要加，因为在READ UNCOMMITTED／READ COMMITTED隔离级别下，并不需要禁止幻读问题。</p>
+<ul>
+<li>其余语句使用主键进行等值查询的情况与READ UNCOMMITTED／READ COMMITTED隔离级别下的情况类似。</li>
+</ul>
+<h4 id="2）使用主键进行范围查询-1"><a href="#2）使用主键进行范围查询-1" class="headerlink" title="2）使用主键进行范围查询"></a>2）使用主键进行范围查询</h4><ul>
+<li>使用SELECT … LOCK IN SHARE MODE语句来为记录加锁，比方说：<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> hero <span class="keyword">WHERE</span> number <span class="operator">&gt;=</span> <span class="number">8</span> LOCK <span class="keyword">IN</span> SHARE MODE;</span><br></pre></td></tr></table></figure>
+因为要解决幻读问题，所以需要禁止别的事务插入number值符合number &gt;= 8的记录，又因为主键本身就是唯一的，所以不用担心在number值为8的前边有新记录插入，只需要保证不要让新记录插入到number值为8的后边就好了，所以：<br>​</li>
+</ul>
+<ul>
+<li>为number值为8的聚簇索引记录加一个S型正经记录锁。</li>
+<li>为number值大于8的所有聚簇索引记录都加一个S型next-key锁（包括Supremum伪记录）。</li>
+</ul>
+<p><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641995501052-cde72d39-8ba0-4164-93c6-6b63d92de228.png#clientId=uba0b1d11-1ea1-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=356&id=ubd3cb914&margin=%5Bobject%20Object%5D&name=image.png&originHeight=712&originWidth=1156&originalType=binary&ratio=1&rotation=0&showTitle=false&size=89683&status=done&style=none&taskId=u2c56df4d-3908-4402-9510-7cb7608d423&title=&width=578" alt="image.png"></p>
+<blockquote>
+<p>为什么不给Supremum记录加gap锁，而要加next-key锁呢？其实InnoDB在处理Supremum记录上加的next-key锁时就是当作gap锁看待的，为了节省锁结构（锁的类型不一样的话不能被放到一个锁结构中）。</p>
+</blockquote>
+<p>​</p>
+<p>与READ UNCOMMITTED/READ COMMITTED隔离级别类似，在REPEATABLE READ隔离级别下，下边这个范围查询也是有点特殊：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> hero <span class="keyword">WHERE</span> number <span class="operator">&lt;=</span> <span class="number">8</span> LOCK <span class="keyword">IN</span> SHARE MODE;</span><br></pre></td></tr></table></figure>
+<p>​</p>
+<p>这个语句在READ UNCOMMITTED/READ COMMITTED隔离级别下，这个语句会为number值为1、3、8、15这4条记录都加上S型正经记录锁，然后由于number值为15的记录不满足边界条件number &lt;= 8，随后便把这条记录的锁释放掉。在REPEATABLE READ隔离级别下的加锁过程与之类似，不过会为1、3、8、15这4条记录都加上S型next-key锁，但是注意：REPEATABLE READ隔离级别下，在判断number值为15的记录不满足边界条件 number &lt;= 8 后，并不会去释放加在该记录上的锁！！！ 所以在REPEATABLE READ隔离级别下，该语句的加锁示意图就如下所示：</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641995788957-c5140d07-0ec9-4fc9-98d2-6a2c325e1a49.png#clientId=uba0b1d11-1ea1-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=328&id=u2cbecba7&margin=%5Bobject%20Object%5D&name=image.png&originHeight=656&originWidth=1182&originalType=binary&ratio=1&rotation=0&showTitle=false&size=80113&status=done&style=none&taskId=ufa0c6c92-e5ce-4b3c-89b7-ecd8814b043&title=&width=591" alt="image.png"></p>
+<p>这样如果别的事务想要插入的新记录的number值在(-∞, 1)、(1, 3)、(3, 8)、(8, 15)之间的话，是会进入等待状态的。<br>​</p>
+<blockquote>
+<p>很显然这么粗暴的做法导致的一个后果就是别的事务竟然不允许插入number值在(8, 15)这个区间中的新记录，甚至不允许别的事务再获取number值为15的记录上的锁，而理论上只需要禁止别的事务插入number值在(-∞, 8)之间的新记录就好。</p>
+</blockquote>
+<p>​</p>
+<ul>
+<li>使用SELECT … FOR UPDATE语句来为记录加锁：和SELECT … LOCK IN SHARE MODE语句类似，只不过需要将上边提到的S型next-key锁替换成X型next-key锁。</li>
+<li>使用UPDATE …来为记录加锁：如果UPDATE语句未更新二级索引列，比方说：<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">UPDATE hero <span class="keyword">SET</span> country <span class="operator">=</span> <span class="string">&#x27;汉&#x27;</span> <span class="keyword">WHERE</span> number <span class="operator">&gt;=</span> <span class="number">8</span>;</span><br></pre></td></tr></table></figure>
+这条UPDATE语句并没有更新二级索引列，加锁方式和上边所说的SELECT … FOR UPDATE语句一致。如果UPDATE语句中更新了二级索引列，比方说：<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">UPDATE hero <span class="keyword">SET</span> name <span class="operator">=</span> <span class="string">&#x27;cao曹操&#x27;</span> <span class="keyword">WHERE</span> number <span class="operator">&gt;=</span> <span class="number">8</span>;</span><br></pre></td></tr></table></figure></li>
+</ul>
+<p>对聚簇索引记录加锁的情况和SELECT … FOR UPDATE语句一致，也就是对number值为8的聚簇索引记录加X型正经记录锁，对number值15、20的聚簇索引记录以及Supremum记录加X型next-key锁。但是因为也要更新二级索引idx_name，所以也会对number值为8、15、20的聚簇索引记录对应的idx_name二级索引记录加X型正经记录锁，画个图表示一下：<br><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641996422804-65ec7018-5cd9-4409-b07a-16f4b64ccb0a.png#clientId=uba0b1d11-1ea1-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=443&id=ua4576e34&margin=%5Bobject%20Object%5D&name=image.png&originHeight=886&originWidth=1262&originalType=binary&ratio=1&rotation=0&showTitle=false&size=107508&status=done&style=none&taskId=uf534bd3e-01b7-4bfe-8abc-35127d3b93b&title=&width=631" alt="image.png"><br>如果是下边这个语句：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">UPDATE hero <span class="keyword">SET</span> name <span class="operator">=</span> <span class="string">&#x27;cao曹操&#x27;</span> <span class="keyword">WHERE</span> number <span class="operator">&lt;=</span> <span class="number">8</span>;</span><br></pre></td></tr></table></figure>
+
+<p>则会对number值为1、3、8、15的聚簇索引记录加X型next-key，其中number值为15的聚簇索引记录不满足number &lt;= 8的边界条件，虽然在REPEATABLE READ隔离级别下不会将它的锁释放掉，但是也并不会对这条聚簇索引记录对应的二级索引记录加锁，也就是说只会为number值为1、3、8的聚簇索引记录对应的idx_name二级索引记录加X型正经记录锁，加锁示意图如下所示：<br><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641996513545-07b17fbf-59f0-4a4c-bed3-44479a660596.png#clientId=uba0b1d11-1ea1-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=450&id=u1fc77f23&margin=%5Bobject%20Object%5D&name=image.png&originHeight=900&originWidth=1288&originalType=binary&ratio=1&rotation=0&showTitle=false&size=123473&status=done&style=none&taskId=uba0744ed-a6d9-4c24-a786-5ff2d14f27b&title=&width=644" alt="image.png"></p>
+<ul>
+<li>使用DELETE …来为记录加锁，比方说：<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">DELETE</span> <span class="keyword">FROM</span> hero <span class="keyword">WHERE</span> number <span class="operator">&gt;=</span> <span class="number">8</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">DELETE</span> <span class="keyword">FROM</span> hero <span class="keyword">WHERE</span> number <span class="operator">&lt;=</span> <span class="number">8</span>;</span><br></pre></td></tr></table></figure>
+这两个语句的加锁情况和更新带有二级索引列的UPDATE语句一致。<br>​</li>
+</ul>
+<h4 id="3）使用唯一二级索引进行等值查询"><a href="#3）使用唯一二级索引进行等值查询" class="headerlink" title="3）使用唯一二级索引进行等值查询"></a>3）使用唯一二级索引进行等值查询</h4><p>​</p>
+<p>由于hero表并没有唯一二级索引，我们把原先的idx_name修改为一个唯一二级索引uk_name：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">ALTER</span> <span class="keyword">TABLE</span> hero <span class="keyword">DROP</span> INDEX idx_name, <span class="keyword">ADD</span> <span class="keyword">UNIQUE</span> KEY uk_name (name);</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>使用SELECT … LOCK IN SHARE MODE语句来为记录加锁，比方说：<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> hero <span class="keyword">WHERE</span> name <span class="operator">=</span> <span class="string">&#x27;c曹操&#x27;</span> LOCK <span class="keyword">IN</span> SHARE MODE;</span><br></pre></td></tr></table></figure>
+由于唯一二级索引具有唯一性，如果在一个事务中第一次执行上述语句时将得到一条记录，第二次执行上述语句前肯定不会有别的事务插入多条name值为’c曹操’的记录（二级索引具有唯一性），也就是说一个事务中两次执行上述语句并不会发生幻读，这种情况下和READ UNCOMMITTED／READ COMMITTED隔离级别下一样，我们只需要为这条name值为’c曹操’的二级索引记录加一个S型正经记录锁，然后再为它对应的聚簇索引记录加一个S型正经记录锁就好了。<br><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641996563528-f5d93f94-ca12-48e5-ba1e-743a2fc76193.png#clientId=uba0b1d11-1ea1-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=450&id=ue0b2a8b0&margin=%5Bobject%20Object%5D&name=image.png&originHeight=900&originWidth=1348&originalType=binary&ratio=1&rotation=0&showTitle=false&size=103764&status=done&style=none&taskId=u98810cbd-8533-4e7f-bd8f-f752c548640&title=&width=674" alt="image.png"><br>注意加锁顺序，是先对二级索引记录加锁，再对聚簇索引加锁。如果对唯一二级索引列进行等值查询的记录并不存在，比如：<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> hero <span class="keyword">WHERE</span> name <span class="operator">=</span> <span class="string">&#x27;g关羽&#x27;</span> LOCK <span class="keyword">IN</span> SHARE MODE;</span><br></pre></td></tr></table></figure></li>
+</ul>
+<p>为了禁止幻读，所以需要保证别的事务不能再插入name值为’g关羽’的新记录。在唯一二级索引uk_name中，键值比’g关羽’大的第一条记录的键值为l刘备，所以需要在这条二级索引记录上加一个gap锁，如图所示：<br><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641996653174-d811bda8-40bb-4c7f-89e8-4f7579fef968.png#clientId=uba0b1d11-1ea1-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=207&id=uba1f6206&margin=%5Bobject%20Object%5D&name=image.png&originHeight=414&originWidth=980&originalType=binary&ratio=1&rotation=0&showTitle=false&size=41980&status=done&style=none&taskId=uc05e130d-e3de-4440-8ad3-d3283adfe5e&title=&width=490" alt="image.png"><br>注意，这里只对二级索引记录进行加锁，并不会对聚簇索引记录进行加锁。</p>
+<ul>
+<li>使用SELECT … FOR UPDATE语句来为记录加锁，比如：和SELECT … LOCK IN SHARE MODE语句类似，只不过加的是X型正经记录锁。</li>
+<li>使用UPDATE …来为记录加锁，比方说：与SELECT … FOR UPDATE的加锁情况类似，不过如果被更新的列中还有别的二级索引列的话，这些对应的二级索引记录也会被加X型正经记录锁。</li>
+<li>使用DELETE …来为记录加锁，比方说：与SELECT … FOR UPDATE的加锁情况类似，不过如果表中还有别的二级索引列的话，这些对应的二级索引记录也会被加X型正经记录锁。<h4 id="4）使用唯一二级索引进行范围查询"><a href="#4）使用唯一二级索引进行范围查询" class="headerlink" title="4）使用唯一二级索引进行范围查询"></a>4）使用唯一二级索引进行范围查询</h4></li>
+</ul>
+<ul>
+<li>使用SELECT … LOCK IN SHARE MODE语句来为记录加锁，比方说：<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> hero FORCE INDEX(uk_name) <span class="keyword">WHERE</span> name <span class="operator">&gt;=</span> <span class="string">&#x27;c曹操&#x27;</span> LOCK <span class="keyword">IN</span> SHARE MODE;</span><br></pre></td></tr></table></figure>
+这个语句的执行过程其实是先到二级索引中定位到满足name &gt;= ‘c曹操’的第一条记录，也就是name值为c曹操的记录，然后就可以沿着由记录组成的单向链表一路向后找。从二级索引idx_name的示意图中可以看出，所有的用户记录都满足name &gt;= ‘c曹操’的这个条件，所以所有的二级索引记录都会被加S型next-key锁，它们对应的聚簇索引记录也会被加S型正经记录锁，二级索引的最后一条Supremum记录也会被加S型next-key锁。不过需要注意一下加锁顺序，对一条二级索引记录加锁完后，会接着对它响应的聚簇索引记录加锁，完后才会对下一条二级索引记录进行加锁，以此类推～ 画个图表示一下就是这样：<br><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641996789761-6547ffe5-6ef7-48e8-a635-3e3cbfc3c155.png#clientId=uba0b1d11-1ea1-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=445&id=ue987f475&margin=%5Bobject%20Object%5D&name=image.png&originHeight=890&originWidth=1360&originalType=binary&ratio=1&rotation=0&showTitle=false&size=140521&status=done&style=none&taskId=u52ce3c33-da21-4c8a-b8ad-a8371756485&title=&width=680" alt="image.png"><br>唯一二级索引本身就能保证其自身的值是唯一的，那为啥还要给name值为’c曹操’的记录加上S型next-key锁，而不是S型正经记录锁呢？其实我也不知道，按理说只需要给这条二级索引记录加S型正经记录锁就好了，我也没想明白InnoDB是怎么想的。<br>​</li>
+</ul>
+<p>再来看下边这个语句：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> hero <span class="keyword">WHERE</span> name <span class="operator">&lt;=</span> <span class="string">&#x27;c曹操&#x27;</span> LOCK <span class="keyword">IN</span> SHARE MODE;</span><br></pre></td></tr></table></figure>
+
+<p>这个语句先会为name值为’c曹操’的二级索引记录加S型next-key锁以及它对应的聚簇索引记录加S型正经记录锁。然后还要给name值为’l刘备’的二级索引记录加S型next-key锁，name值为’l刘备’的二级索引记录不满足索引条件下推的name &lt;= ‘c曹操’条件，压根儿不会释放掉该记录的锁就直接报告server层查询完毕了。这样可以禁止其他事务插入name值在(‘c曹操’, ‘l刘备’)之间的新记录，从而防止幻读产生。所以这个过程的加锁示意图如下：<br><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641996850882-47d04d1e-d22f-448f-9d40-f6fce66cf23f.png#clientId=uba0b1d11-1ea1-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=459&id=u7d412cce&margin=%5Bobject%20Object%5D&name=image.png&originHeight=918&originWidth=1254&originalType=binary&ratio=1&rotation=0&showTitle=false&size=97587&status=done&style=none&taskId=u1a02aa78-4920-486d-b030-dc1012a8233&title=&width=627" alt="image.png"><br>InnoDB在这里给name值为’l刘备’的二级索引记录加的是S型next-key锁，而不是简单的gap锁。</p>
+<ul>
+<li>使用SELECT … FOR UPDATE语句来为记录加锁：和SELECT … LOCK IN SHARE MODE语句类似，只不过加的是X型正经记录锁。</li>
+<li>使用UPDATE …来为记录加锁，比方说：<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">UPDATE hero <span class="keyword">SET</span> country <span class="operator">=</span> <span class="string">&#x27;汉&#x27;</span> <span class="keyword">WHERE</span> name <span class="operator">&gt;=</span> <span class="string">&#x27;c曹操&#x27;</span>;</span><br></pre></td></tr></table></figure>
+假设该语句执行时使用了uk_name二级索引来进行锁定读（如果二级索引扫描的记录太多，也可能因为成本过大直接使用全表扫描的方式进行锁定读），而这条UPDATE语句并没有更新二级索引列，那么它的加锁方式和上边所说的SELECT … FOR UPDATE语句一致。如果有其他二级索引列也被更新，那么也会为这些二级索引记录进行加锁，就不赘述了。不过还需要强调一种情况，比方说：<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">UPDATE hero <span class="keyword">SET</span> country <span class="operator">=</span> <span class="string">&#x27;汉&#x27;</span> <span class="keyword">WHERE</span> name <span class="operator">&lt;=</span> <span class="string">&#x27;c曹操&#x27;</span>;</span><br></pre></td></tr></table></figure></li>
+</ul>
+<p>索引条件下推这个特性只适用于SELECT语句，也就是说UPDATE语句中无法使用，无法使用索引条件下推这个特性时需要先进行回表操作，那么这个语句就会为name值为’c曹操’和’l刘备’的二级索引记录加X型next-key锁，对它们对应的聚簇索引记录进行加X型正经记录锁。不过之后在判断边界条件时，虽然name值为’l刘备’的二级索引记录不符合name &lt;= ‘c曹操’的边界条件，但是在REPEATABLE READ隔离级别下并不会释放该记录上加的锁，整个过程的加锁示意图就是：<br><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641996881927-5d6ff57f-3e3d-4d71-9fe1-56a4fb5eae30.png#clientId=uba0b1d11-1ea1-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=444&id=u55ac7816&margin=%5Bobject%20Object%5D&name=image.png&originHeight=888&originWidth=1202&originalType=binary&ratio=1&rotation=0&showTitle=false&size=103484&status=done&style=none&taskId=u70428641-196a-4f24-ab9b-4ca78a6c5f9&title=&width=601" alt="image.png"></p>
+<ul>
+<li>使用DELETE …来为记录加锁，比方说：<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">DELETE</span> <span class="keyword">FROM</span> hero <span class="keyword">WHERE</span> name <span class="operator">&gt;=</span> <span class="string">&#x27;c曹操&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">DELETE</span> <span class="keyword">FROM</span> hero <span class="keyword">WHERE</span> name <span class="operator">&lt;=</span> <span class="string">&#x27;c曹操&#x27;</span>;</span><br></pre></td></tr></table></figure></li>
+</ul>
+<p>如果这两个语句采用二级索引来进行锁定读，那么它们的加锁情况和更新带有二级索引列的UPDATE语句一致。</p>
+<h4 id="5）使用普通二级索引进行等值查询"><a href="#5）使用普通二级索引进行等值查询" class="headerlink" title="5）使用普通二级索引进行等值查询"></a>5）使用普通二级索引进行等值查询</h4><p>​</p>
+<p>我们再把上边的唯一二级索引uk_name改回普通二级索引idx_name：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">ALTER</span> <span class="keyword">TABLE</span> hero <span class="keyword">DROP</span> INDEX uk_name, <span class="keyword">ADD</span> INDEX idx_name (name);</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>使用SELECT … LOCK IN SHARE MODE语句来为记录加锁，比方说：<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> hero <span class="keyword">WHERE</span> name <span class="operator">=</span> <span class="string">&#x27;c曹操&#x27;</span> LOCK <span class="keyword">IN</span> SHARE MODE;</span><br></pre></td></tr></table></figure></li>
+</ul>
+<p>由于普通的二级索引没有唯一性，所以一个事务在执行上述语句之后，要阻止别的事务插入name值为’c曹操’的新记录，InnoDB采用下边的方式对上述语句进行加锁：<br>​</p>
+<ul>
+<li>对所有name值为’c曹操’的二级索引记录加S型next-key锁，它们对应的聚簇索引记录加S型正经就锁。</li>
+<li>对最后一个name值为’c曹操’的二级索引记录的下一条二级索引记录加gap锁。</li>
+</ul>
+<p>​</p>
+<p>所以整个加锁示意图就如下所示：</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641996916758-34f8909a-6c7f-43df-8b43-7bf9231286c6.png#clientId=uba0b1d11-1ea1-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=452&id=ud07ea2a7&margin=%5Bobject%20Object%5D&name=image.png&originHeight=904&originWidth=1322&originalType=binary&ratio=1&rotation=0&showTitle=false&size=99647&status=done&style=none&taskId=udb0270c8-29d7-4289-b228-dae4b7cea97&title=&width=661" alt="image.png"></p>
+<p>如果对普通二级索引等值查询的值并不存在，比如：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> hero <span class="keyword">WHERE</span> name <span class="operator">=</span> <span class="string">&#x27;g关羽&#x27;</span> LOCK <span class="keyword">IN</span> SHARE MODE;</span><br></pre></td></tr></table></figure>
+<p>加锁方式和我们上边介绍过的唯一二级索引的情况是一样的。</p>
+<ul>
+<li>使用SELECT … FOR UPDATE语句来为记录加锁，比如：和SELECT … LOCK IN SHARE MODE语句类似，只不过加的是X型正经记录锁。</li>
+<li>使用UPDATE …来为记录加锁，比方说：与SELECT … FOR UPDATE的加锁情况类似，不过如果被更新的列中还有别的二级索引列的话，这些对应的二级索引记录也会被加锁。</li>
+<li>使用DELETE …来为记录加锁，比方说：与SELECT … FOR UPDATE的加锁情况类似，不过如果表中还有别的二级索引列的话，这些对应的二级索引记录也会被加锁。</li>
+</ul>
+<p>​</p>
+<h4 id="6）使用普通二级索引进行范围查询"><a href="#6）使用普通二级索引进行范围查询" class="headerlink" title="6）使用普通二级索引进行范围查询"></a>6）使用普通二级索引进行范围查询</h4><p>​</p>
+<p>与唯一二级索引的加锁情况类似。<br>​</p>
+<h4 id="7）全表扫描"><a href="#7）全表扫描" class="headerlink" title="7）全表扫描"></a>7）全表扫描</h4><p>比方说：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> hero <span class="keyword">WHERE</span> country  <span class="operator">=</span> <span class="string">&#x27;魏&#x27;</span> LOCK <span class="keyword">IN</span> SHARE MODE;</span><br></pre></td></tr></table></figure>
+<p>​</p>
+<p>由于country列上未建索引，所以只能采用全表扫描的方式来执行这条查询语句，存储引擎每读取一条聚簇索引记录，就会为这条记录加锁一个S型next-key锁，然后返回给server层，如果server层判断country = ‘魏’这个条件是否成立，如果成立则将其发送给客户端，否则会向InnoDB存储引擎发送释放掉该记录上的锁的消息，不过在REPEATABLE READ隔离级别下，InnoDB存储引擎并不会真正的释放掉锁，所以聚簇索引的全部记录都会被加锁，并且在事务提交前不释放。</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1641996977302-fc615df9-61d1-434b-9baf-3455e5f36a34.png#clientId=uba0b1d11-1ea1-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=297&id=u62c72e3e&margin=%5Bobject%20Object%5D&name=image.png&originHeight=594&originWidth=1110&originalType=binary&ratio=1&rotation=0&showTitle=false&size=64016&status=done&style=none&taskId=u05b04ccf-a428-4d9e-a66f-e68749dfc7d&title=&width=555" alt="image.png"></p>
+<p>全部记录都被加了next-key锁！此时别的事务别说想向表中插入啥新记录了，就是对某条记录加X锁都不可以，这种情况下会极大影响访问该表的并发事务处理能力，所以如果可能的话，尽可能为表建立合适的索引。<br>​</p>
+<p>使用SELECT … FOR UPDATE进行加锁的情况与上边类似，只不过加的是X型正经记录锁，就不赘述了。<br>对于UPDATE …语句来说，加锁情况与SELECT … FOR UPDATE类似，不过如果被更新的列中还有别的二级索引列的话，这些对应的二级索引记录也会被加X型正经记录锁。<br>和DELETE …的语句来说，加锁情况与SELECT … FOR UPDATE类似，不过如果表中还有别的二级索引列的话，这些对应的二级索引记录也会被加X型正经记录锁。</p>
+<hr>
+<h2 id="3-半一致读的语句"><a href="#3-半一致读的语句" class="headerlink" title="3.半一致读的语句"></a>3.半一致读的语句</h2><p>​</p>
+<p>半一致性读是一种夹在一致性读和锁定读之间的读取方式。当隔离级别不大于读已提交且执行update语句时将使用半一致性读。所谓半一致性读，就是当update语句读取到已经被其他记录加了X锁的记录的时候，InnoDB会将该记录的最新提交版本读出来，然后判断该版本是否与update语句中的搜索条件相匹配。如果不匹配，则不对该记录加锁，从而跳到下一条记录；如果匹配，则再次读取该记录并对其进行加锁。这样处理只是为了让update语句尽量少被别的语句阻塞。<br>​</p>
+<p>假如事务T1的隔离级别为读已提交，T1执行了下面这条语句：<br>​</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">select * from hero where number =<span class="number">8</span> <span class="keyword">for</span> update;</span><br></pre></td></tr></table></figure>
+<p>该语句在执行时对number值为8的聚簇索引记录加了X型记录锁，此时隔离级别也为读已提交的事务T2执行了如下语句：<br>​</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">update hero set name = <span class="string">&#x27;cao曹操&#x27;</span> where number &gt;=<span class="number">8</span> and number &lt;<span class="number">20</span> and country !=<span class="string">&#x27;魏&#x27;</span>；</span><br></pre></td></tr></table></figure>
+
+
+<p>该语句在执行时需要依次获取number值为8，15，20的聚簇索引记录的X型记录锁。由于T1已经获取了number值为8的聚簇索引记录的X型锁，按理说此时事务T2应该由于获取不到number值为8的聚簇索引的X型记录锁而阻塞。但是由于进行的是半一致读，所以存储引擎会先获取number=8的聚簇索引记录最新提交的版本并返回server层。该版本的country =’魏’,很显然不符合country!=’魏’的条件，所以server层决定放弃获取number=8的聚簇索引记录上的X锁，转而让存储引擎读取下一条记录。</p>
+<hr>
+<h2 id="4-insert语句"><a href="#4-insert语句" class="headerlink" title="4.insert语句"></a>4.insert语句</h2><p>​</p>
+<p>insert语句在一般情况下不需要在内存中生成锁结构，并单纯依靠隐式锁保护插入的记录。不过当事务在插入一条记录前，需要先定位到该记录在B+树中的位置。如果该位置的下一条记录已经被加了意向锁，那么当前事务会为该记录加上一种类型为插入意向锁的锁，并且事务进入等待状态。<br>​</p>
+<p>分析下在执行insert语句的时候，在内存中生成锁结构的两种特殊情况。<br>​</p>
+<h3 id="4-1-遇到重复键"><a href="#4-1-遇到重复键" class="headerlink" title="4.1 遇到重复键"></a>4.1 遇到重复键</h3><p>在插入一条新记录的时候，首先要做的就是确定这条记录应该插入到B+树的哪个位置。如果在确定位置时发现现有记录的主键或者唯一二级索引与待插入记录的主键或者唯一二级索引列相同，此时会报错。<br>​</p>
+<p>当然在生成报错信息前，其实会对聚簇索引中number值为20的记录加S锁。不过加的锁的具体类型在不同隔离级别下是不一样的：<br>​</p>
+<ul>
+<li>当隔离级别&lt;=读未提交时，加的是S记录锁</li>
+<li>当隔离级别&gt;=可重复读时，加的是S型 next-key锁</li>
+</ul>
+<p>​</p>
+<p>如果是唯一索引列的值重复，也会报错。不过在报错之前会为已经存在的那条记录的二级索引记录加一个S锁。不论是什么隔离级别，如果再插入新记录的时候遇到唯一二级索引列重复，都会对已经在B+树中的那条唯一二级索引记录加next-key锁。</p>
+<blockquote>
+<p>按理来说，在读未提交&amp;读已提交隔离级别下，不应该出现next-key锁，这主要是考虑到如果只加记录锁，可能出现多条记录的唯一二级索引列值都相同的情况。</p>
+</blockquote>
+<p>另外，在使用<code>insert...on duplicate key </code>这样的语法来插入记录的时候，如果遇到的主键或者唯一二级索引列的值重复，会对B+树中已经存在的相同键值的记录加X锁，而不是S锁。<br>​</p>
+<h3 id="4-2-外键检查"><a href="#4-2-外键检查" class="headerlink" title="4.2 外键检查"></a>4.2 外键检查</h3><ol>
+<li><p>待插入记录的外键值在主表能找到</p>
+<blockquote>
+<p>在插入成功之前，无论当前事务的隔离级别是什么，只需要直接给主表外键值对应的记录加一个S型记录锁即可。</p>
+</blockquote>
+</li>
+<li><p>待插入记录的外键值在主表找不到</p>
+<blockquote>
+<p>此时会插入失败，但是在这个过程中需要根据隔离级别对主表中外键的值的聚簇索引记录进行加锁：</p>
+<ul>
+<li>当隔离级别&lt;=读已提交的时候，并不对记录加锁</li>
+<li>当隔离级别&gt;=可重复读的时候，加的是意向锁。</li>
+</ul>
+</blockquote>
+</li>
+</ol>
+<hr>
+<h1 id="二，查看事务加锁情况"><a href="#二，查看事务加锁情况" class="headerlink" title="二，查看事务加锁情况"></a>二，查看事务加锁情况</h1><h2 id="1-获取锁信息-information-schema"><a href="#1-获取锁信息-information-schema" class="headerlink" title="1.获取锁信息-information_schema"></a>1.获取锁信息-information_schema</h2><p>在 <code>information_schema</code>数据库中，有几个与事务和锁紧密相关的表，具体如下。<br>​</p>
+<ul>
+<li>INNODB_TRX:该表存储了InnoDB 存储引擎当前正在执行的事务信息，包括事务id (如果没有为该事务分配唯一的事务id 则会输出该事务对应的内存结构的指针)、事务状态(比如事务是正在运行还是在等拿待获取某个锁、事务正在执行的语句、事务是何时开启的)等。</li>
+</ul>
+<p>​</p>
+<p>比如我们可以在一个会话中执行事务T1:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"># 事务T1</span><br><span class="line">begin;</span><br><span class="line"></span><br><span class="line">select * from hero where number =<span class="number">8</span> <span class="keyword">for</span> update;</span><br></pre></td></tr></table></figure>
+<table>
+<thead>
+<tr>
+<th>number</th>
+<th>name</th>
+<th>country</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>8</td>
+<td>c曹操</td>
+<td>魏</td>
+</tr>
+</tbody></table>
+<p>然后再到另一个会话中查询INNODB_TRX表：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">select * from information_schema.INNODB_TRX\G</span><br></pre></td></tr></table></figure>
+<p>从执行结果可以看到，当前系统中有一个事务id = 46671的事务，他的状态为正在运行，隔离级别为可重复读。<br>​</p>
+<ul>
+<li>innodb_locks :该表记录了一些锁信息，主要包括下面两个方面的锁信息；<ul>
+<li>如果一个事务想要获得某个锁但是没获取到，则记录该锁的信息</li>
+<li>如果一个事务获取到了某个锁，但是这个锁阻塞了别的事务，则记录该锁信息</li>
+</ul>
+</li>
+</ul>
+<p>​</p>
+<p>刚好刚才在事务T1中执行了一个加锁语句，现在来查询下innodb_locks：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">select * from information_schema.innodb_locks;</span><br></pre></td></tr></table></figure>
+<p>结果什么都没有！只有当系统中发生了某个事务因为获取不到锁而被阻塞的情况时，该表中才会有记录。<br>​</p>
+<p>再到另一个会话中开启事务T2，然后执行：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">begin;</span><br><span class="line"></span><br><span class="line">select * from hero where number =<span class="number">8</span> <span class="keyword">for</span> update; # 进入阻塞状态</span><br></pre></td></tr></table></figure>
+<p>此时再次查询innodb_locks，可以看到trx_id=46672&amp;46671的两个事务被显示出来了，但是我们无法仅凭上述内容区分到底是谁获取到了其他事物需要的锁，以及谁因为没有获取到锁而阻塞。可以到innodb_lock_waits表查看更多信息。<br>​</p>
+<ul>
+<li>innodb_lock_waits：表明每一个阻塞的事务是因为获取不到哪个事务持有的锁而阻塞。接着上面T2因为获取不到T1的锁而阻塞的例子，查询一下innodb_lock_waits表：<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">select * from information_schema.innodb_lock_waits;</span><br></pre></td></tr></table></figure>
+<table>
+<thead>
+<tr>
+<th>requesting_trx_id</th>
+<th>requested_lock_id</th>
+<th>blocking_trx_id</th>
+<th>blocking_lock_id</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>46672</td>
+<td>46672:202:3:4</td>
+<td>46671</td>
+<td>46671:202:3:4</td>
+</tr>
+</tbody></table>
+</li>
+</ul>
+<blockquote>
+<p> requesting_trx_id:因为获取不到锁而被阻塞的事务的事务id<br>blocking_trx_id：表示因为获取不到别的事务需要的锁而导致其被阻塞的事务的事务id<br>​</p>
+</blockquote>
+<blockquote>
+<p>在本例中：requesting_trx_id = T2，blocking_trx_id=T1。</p>
+</blockquote>
+<p>​</p>
+<p>这两张表在MySQL8.0被干掉了。</p>
+<hr>
+<h2 id="2-获取锁信息-show-eninge-innodb-status"><a href="#2-获取锁信息-show-eninge-innodb-status" class="headerlink" title="2.获取锁信息-show eninge innodb status"></a>2.获取锁信息-show eninge innodb status</h2><p>现在假设前文使用的T1，T2事务都提交了，我们在新开启几个事务：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"># 可重复读隔离级别</span><br><span class="line"></span><br><span class="line">begin;</span><br><span class="line"></span><br><span class="line">select * <span class="function">from hero force <span class="title">index</span><span class="params">(idx_name)</span> where name &gt; &#x27;c曹操&#x27; and name &lt;</span>=<span class="string">&#x27;x荀彧&#x27;</span> and country != <span class="string">&#x27;吴&#x27;</span> order by name desc <span class="keyword">for</span> update;</span><br></pre></td></tr></table></figure>
+<table>
+<thead>
+<tr>
+<th>number</th>
+<th>name</th>
+<th>country</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>15</td>
+<td>x荀彧</td>
+<td>魏</td>
+</tr>
+<tr>
+<td>1</td>
+<td>l刘备</td>
+<td>蜀</td>
+</tr>
+</tbody></table>
+<p>​</p>
+<p>可以直接通过<code>show eninge innodb status</code> 语句获取当前系统中各个事务的加锁情况。<br>​</p>
+<p>上述命令输出信息过多，可以使用<code> set global innodb_status_output_locks = on;</code><br>​</p>
+<p>如果某个事务没有被分配唯一的事务id，则执行<code>SHOW ENGINE INNODB STATUS </code>语句时并不会显示该事务在执行过程中持有的锁。比如，事务T4只执行了<code>SELECT*FROM hero WHERE number=1 LOCK IN SHARE MODE </code>语句，那么事务T4所持有的锁是不显示 的。另外，<code>SHOW ENGINE INNODB STATUS</code> 不显示隐式锁。<br>​</p>
+<p>另外，我们在<code>SHOW ENGINE INNODB TATUS</code>的输出中可以看到，hero表的 number列的值都是“800000XX”的形式，这是 因为number列是存储有符号数的(也就是既可以存储负数，也可以存储非负数)，InnoDB规定在储存有符号数的时候需要将首位置为1。</p>
+<hr>
+<h1 id="三，死锁"><a href="#三，死锁" class="headerlink" title="三，死锁"></a>三，死锁</h1><p>假设我们开启了两个事物T1&amp;T2，他们的具体执行流程如下：<br>​</p>
+<table>
+<thead>
+<tr>
+<th>发生时间编号</th>
+<th>T1</th>
+<th>T2</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>①</td>
+<td>begin</td>
+<td></td>
+</tr>
+<tr>
+<td>②</td>
+<td></td>
+<td>begin</td>
+</tr>
+<tr>
+<td>③</td>
+<td>select * from hero where number=1 for update;</td>
+<td></td>
+</tr>
+<tr>
+<td>④</td>
+<td></td>
+<td>select * from hero where number=3 for update;</td>
+</tr>
+<tr>
+<td>⑤</td>
+<td>select * from hero where number=3 for update;(此操作阻塞)</td>
+<td></td>
+</tr>
+<tr>
+<td>⑥</td>
+<td></td>
+<td>select * from hero where number=1 for update;（死锁发生，记录日志，服务器回滚一个事务）</td>
+</tr>
+</tbody></table>
+<p>​</p>
+<p>innodb有一个死锁检测机制，当它检测到死锁发生时，会选择一个较小的事务进行回滚，并向客户端发送一条消息：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">尝试获取锁的时候发生死锁，重启事务。</span><br></pre></td></tr></table></figure>
+<p>从上面的例子可以看出：当不同的事务以不同的顺序获取某些记录的锁时，可能会发生死锁。当死锁发生时，InnoDB会回滚一个事务以释放掉该事务所获取的锁。<br>​</p>
+<p>我们有必要找出那些发生死锁的语句，通过优化语句来改变加锁顺序，或者建立合适的索引以改变加锁过程，从而避免死锁问题。不过，在实际应用中我们可能压根儿不知道哪些语句发生了死锁，因此需要根据死锁发生时的死锁日志来逆向定位产生死锁的语句，然后再优化业务。<br>​</p>
+<blockquote>
+<p>show engine innodb status 只会显示最近一次发生的死锁信息。如果死锁频繁出现，可以将全局系统变量innodb_print_all_deadlocks设置为ON,这样可以将每个死锁发生时的信息都记录在MySQL的错误日志中，然后就可以通过查看错误日志来分析更多的死锁情况了。</p>
+</blockquote>
+<hr>
+<h1 id="四，总结"><a href="#四，总结" class="headerlink" title="四，总结"></a>四，总结</h1><p>​</p>
+<p>MVCC 和加锁是解决并发事务带来的一致性问题的两种方式。<br>​</p>
+<p>共享锁简称为S锁，独占锁简称为X锁。S锁与S锁兼容;锁与S锁不兼容，与X锁也不兼容。<br>​</p>
+<p>事务利用 MVCC 进行的读取操作称为一致性读，在读取记录前加锁的读取操作称为锁定读。InnoDB 规定下面两种语法来进行锁定读:<br>​</p>
+<ul>
+<li>SELECT..LOCK IN SHARE MODE 语句为读取的记录加S锁; </li>
+<li>SELECT…FOR UPDATE 语句为读取的记录加X锁。</li>
+</ul>
+<p>​</p>
+<p>INSERT语句一般情况下不需要在内存中生成锁结构，并单纯依靠隐式锁保护插入的记录。UPDATE和DELETE语句在执行过程中，在B+树中定位到待改动记录并给该记录加锁的过程也算是一个锁定读。<br>​</p>
+<p>IS、IX锁是表级锁，它们的提出仅仅为了在之后加表级别的S锁和X锁时，可以快速判断表中的记录是否被上锁，以避免用遍历的方式来查看表中有没有上锁的记录。<br>​</p>
+<p>InnoDB 中的行级锁类型有下面这些。</p>
+<ul>
+<li>Record Lock:被我们称为正经记录锁，只对记录本身加锁。</li>
+<li>Gap Lock:锁住记录前的间隙，防止别的事务向该间隙插入新记录。</li>
+<li>Next-Key Lock: Record Lock 和Gap Lock的结合体，既保护记录本身，也防止别的事务向该间隙插入新记录。</li>
+<li>Insert Intention Lock:很“鸡肋”的锁，仅仅是为了解决“在当前事务插入记录时因碰到别的事务加的gap锁而进入等待状态时，也生成一个锁结构”而提出的。某个事务获取一条记录的该类型的锁后，不会阻止别的事务继续获取该记录上任何类型的锁。</li>
+<li>隐式锁:依靠记录的trx_id属性来保护不被别的事务改动该记录。</li>
+</ul>
+<p>​</p>
+<p>InnoDB存储引擎的锁都在内存中对应着一个锁结构。有时为了节省锁结构，会把符合下面条件的锁放到同一个锁结构中:</p>
+<ul>
+<li>在同一个事务中进行加锁操作</li>
+<li>被加锁的记录在同一个页面中</li>
+<li>加锁的类型是一样的</li>
+<li>等待状态是一样的</li>
+</ul>
+<p>​</p>
+<p>语句加锁的情况受到所在事务的隔离级别、语句执行时使用的索引类型、是否是精确匹配、是否是唯一性搜索、具体执行的语句类型等情况的制约，需要具体情况具体分析。<br>​</p>
+<p>可以通过information_schema 数据库下的 INNODB_TRX、INNODB LOCKS、INNODB LOCK WAITS 表来查看事务和锁的相关信息，也可以通过 SHOW ENGINE INNODB STATUS语句查看事务和锁的相关信息。<br>​</p>
+<p>不同事务由于互相持有对方需要的锁而导致事务都无法继续执行的情况称为死锁。死锁发生时，InnoDB会选择一个较小的事务进行回滚。可以通过查看死锁日志来分析死锁发生过程。</p>
+<hr>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">二十</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://yinhuidong.github.io/2022/01/18/MySQL/MySQL[%E5%8D%81%E5%85%AB]%E9%94%81%E5%88%86%E6%9E%90/">https://yinhuidong.github.io/2022/01/18/MySQL/MySQL[十八]锁分析/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://yinhuidong.github.io" target="_blank">二十</a> 许可协议。转载请注明来自 <a href="https://yinhuidong.github.io" target="_blank">二十</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/MySQL/">MySQL</a></div><div class="post_share"><div class="social-share" data-image="/images/cover/mysql.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js" defer></script></div></div><div class="post-reward"><div class="reward-button button--animated"><i class="fas fa-qrcode"></i> 打赏</div><div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/img/wechat_pay.jpg" target="_blank"><img class="post-qr-code-img" src="/img/wechat_pay.jpg" alt="微信"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="/img/alipay.jpg" target="_blank"><img class="post-qr-code-img" src="/img/alipay.jpg" alt="支付宝"/></a><div class="post-qr-code-desc">支付宝</div></li></ul></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2022/01/20/MySQL/MySQL%5B%E4%BA%8C%E5%8D%81%5D%E6%B5%B7%E9%87%8F%E6%95%B0%E6%8D%AE%E5%A4%84%E7%90%86%E6%80%BB%E7%BB%93/"><img class="prev-cover" src="/images/cover/mysql.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">MySQL[二十]海量数据处理</div></div></a></div><div class="next-post pull-right"><a href="/2022/01/17/MySQL/MySQL%5B%E5%8D%81%E4%B8%83%5D%E9%94%81%E6%A6%82%E8%BF%B0/"><img class="next-cover" src="/images/cover/mysql.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">MySQL[十七]锁概述</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2022/01/01/MySQL/MySQL%5B%E4%B8%80%5D%E5%85%A5%E9%97%A8/" title="MySQL[一]入门"><img class="cover" src="/images/cover/mysql.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-01</div><div class="title">MySQL[一]入门</div></div></a></div><div><a href="/2022/01/07/MySQL/MySQL%5B%E4%B8%83%5D%E5%9F%BA%E4%BA%8E%E6%88%90%E6%9C%AC%E7%9A%84%E4%BC%98%E5%8C%96/" title="MySQL[七]基于成本的优化"><img class="cover" src="/images/cover/mysql.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-07</div><div class="title">MySQL[七]基于成本的优化</div></div></a></div><div><a href="/2022/01/09/MySQL/MySQL%5B%E4%B9%9D%5D%E5%9F%BA%E4%BA%8E%E8%A7%84%E5%88%99%E7%9A%84%E4%BC%98%E5%8C%96&%E5%AD%90%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96/" title="MySQL[九]基于规则的优化&子查询优化"><img class="cover" src="/images/cover/mysql.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-09</div><div class="title">MySQL[九]基于规则的优化&子查询优化</div></div></a></div><div><a href="/2022/01/20/MySQL/MySQL%5B%E4%BA%8C%E5%8D%81%5D%E6%B5%B7%E9%87%8F%E6%95%B0%E6%8D%AE%E5%A4%84%E7%90%86%E6%80%BB%E7%BB%93/" title="MySQL[二十]海量数据处理"><img class="cover" src="/images/cover/mysql.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-20</div><div class="title">MySQL[二十]海量数据处理</div></div></a></div><div><a href="/2022/01/08/MySQL/MySQL%5B%E5%85%AB%5DInnoDB%E7%BB%9F%E8%AE%A1%E6%95%B0%E6%8D%AE%E6%94%B6%E9%9B%86%E5%8E%9F%E7%90%86/" title="MySQL[八]InnoDB统计数据收集原理"><img class="cover" src="/images/cover/mysql.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-08</div><div class="title">MySQL[八]InnoDB统计数据收集原理</div></div></a></div><div><a href="/2022/01/03/MySQL/MySQL%5B%E4%B8%89%5DInnoDB%E7%B4%A2%E5%BC%95%E7%BB%93%E6%9E%84/" title="MySQL[三]InnoDB索引结构"><img class="cover" src="/images/cover/mysql.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-03</div><div class="title">MySQL[三]InnoDB索引结构</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/head.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">二十</div><div class="author-info__description">欢迎来到二十的博客....</div></div><div class="card-info-data"><div class="card-info-data-item is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">120</div></a></div><div class="card-info-data-item is-center"><a href="/tags/"><div class="headline">标签</div><div class="length-num">14</div></a></div><div class="card-info-data-item is-center"><a href="/categories/"><div class="headline">分类</div><div class="length-num">13</div></a></div></div><a class="button--animated" id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/yinhuidong"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/yinhuidong" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="mailto:1972039773@qq.com" target="_blank" title="Email"><i class="fas fa-envelope"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn card-announcement-animation"></i><span>公告</span></div><div class="announcement_content">欢迎来到二十的个人博客，联系作者：VX：yinhuidong666</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%80%EF%BC%8C%E8%AF%AD%E5%8F%A5%E5%8A%A0%E9%94%81%E5%88%86%E6%9E%90"><span class="toc-text">一，语句加锁分析</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E6%99%AE%E9%80%9A%E7%9A%84select%E8%AF%AD%E5%8F%A5"><span class="toc-text">1.普通的select语句</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E9%94%81%E5%AE%9A%E8%AF%BB%E7%9A%84%E8%AF%AD%E5%8F%A5"><span class="toc-text">2.锁定读的语句</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-READ-UNCOMMITTED-READ-COMMITTED%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB%E4%B8%8B"><span class="toc-text">2.1 READ UNCOMMITTED&#x2F;READ COMMITTED隔离级别下</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1%EF%BC%89%E4%BD%BF%E7%94%A8%E4%B8%BB%E9%94%AE%E8%BF%9B%E8%A1%8C%E7%AD%89%E5%80%BC%E6%9F%A5%E8%AF%A2"><span class="toc-text">1）使用主键进行等值查询</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2%EF%BC%89%E4%BD%BF%E7%94%A8%E4%B8%BB%E9%94%AE%E8%BF%9B%E8%A1%8C%E8%8C%83%E5%9B%B4%E6%9F%A5%E8%AF%A2"><span class="toc-text">2）使用主键进行范围查询</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3%EF%BC%89%E4%BD%BF%E7%94%A8%E4%BA%8C%E7%BA%A7%E7%B4%A2%E5%BC%95%E8%BF%9B%E8%A1%8C%E7%AD%89%E5%80%BC%E6%9F%A5%E8%AF%A2"><span class="toc-text">3）使用二级索引进行等值查询</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4%EF%BC%89%E4%BD%BF%E7%94%A8%E4%BA%8C%E7%BA%A7%E7%B4%A2%E5%BC%95%E8%BF%9B%E8%A1%8C%E8%8C%83%E5%9B%B4%E6%9F%A5%E8%AF%A2"><span class="toc-text">4）使用二级索引进行范围查询</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#5%EF%BC%89%E5%85%A8%E8%A1%A8%E6%89%AB%E6%8F%8F"><span class="toc-text">5）全表扫描</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-REPEATABLE-READ%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB%E4%B8%8B"><span class="toc-text">2.2 REPEATABLE READ隔离级别下</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1%EF%BC%89%E4%BD%BF%E7%94%A8%E4%B8%BB%E9%94%AE%E8%BF%9B%E8%A1%8C%E7%AD%89%E5%80%BC%E6%9F%A5%E8%AF%A2-1"><span class="toc-text">1）使用主键进行等值查询</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2%EF%BC%89%E4%BD%BF%E7%94%A8%E4%B8%BB%E9%94%AE%E8%BF%9B%E8%A1%8C%E8%8C%83%E5%9B%B4%E6%9F%A5%E8%AF%A2-1"><span class="toc-text">2）使用主键进行范围查询</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3%EF%BC%89%E4%BD%BF%E7%94%A8%E5%94%AF%E4%B8%80%E4%BA%8C%E7%BA%A7%E7%B4%A2%E5%BC%95%E8%BF%9B%E8%A1%8C%E7%AD%89%E5%80%BC%E6%9F%A5%E8%AF%A2"><span class="toc-text">3）使用唯一二级索引进行等值查询</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4%EF%BC%89%E4%BD%BF%E7%94%A8%E5%94%AF%E4%B8%80%E4%BA%8C%E7%BA%A7%E7%B4%A2%E5%BC%95%E8%BF%9B%E8%A1%8C%E8%8C%83%E5%9B%B4%E6%9F%A5%E8%AF%A2"><span class="toc-text">4）使用唯一二级索引进行范围查询</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#5%EF%BC%89%E4%BD%BF%E7%94%A8%E6%99%AE%E9%80%9A%E4%BA%8C%E7%BA%A7%E7%B4%A2%E5%BC%95%E8%BF%9B%E8%A1%8C%E7%AD%89%E5%80%BC%E6%9F%A5%E8%AF%A2"><span class="toc-text">5）使用普通二级索引进行等值查询</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#6%EF%BC%89%E4%BD%BF%E7%94%A8%E6%99%AE%E9%80%9A%E4%BA%8C%E7%BA%A7%E7%B4%A2%E5%BC%95%E8%BF%9B%E8%A1%8C%E8%8C%83%E5%9B%B4%E6%9F%A5%E8%AF%A2"><span class="toc-text">6）使用普通二级索引进行范围查询</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#7%EF%BC%89%E5%85%A8%E8%A1%A8%E6%89%AB%E6%8F%8F"><span class="toc-text">7）全表扫描</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%8D%8A%E4%B8%80%E8%87%B4%E8%AF%BB%E7%9A%84%E8%AF%AD%E5%8F%A5"><span class="toc-text">3.半一致读的语句</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-insert%E8%AF%AD%E5%8F%A5"><span class="toc-text">4.insert语句</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E9%81%87%E5%88%B0%E9%87%8D%E5%A4%8D%E9%94%AE"><span class="toc-text">4.1 遇到重复键</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E5%A4%96%E9%94%AE%E6%A3%80%E6%9F%A5"><span class="toc-text">4.2 外键检查</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%8C%EF%BC%8C%E6%9F%A5%E7%9C%8B%E4%BA%8B%E5%8A%A1%E5%8A%A0%E9%94%81%E6%83%85%E5%86%B5"><span class="toc-text">二，查看事务加锁情况</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E8%8E%B7%E5%8F%96%E9%94%81%E4%BF%A1%E6%81%AF-information-schema"><span class="toc-text">1.获取锁信息-information_schema</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E8%8E%B7%E5%8F%96%E9%94%81%E4%BF%A1%E6%81%AF-show-eninge-innodb-status"><span class="toc-text">2.获取锁信息-show eninge innodb status</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%89%EF%BC%8C%E6%AD%BB%E9%94%81"><span class="toc-text">三，死锁</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%9B%9B%EF%BC%8C%E6%80%BB%E7%BB%93"><span class="toc-text">四，总结</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2022/01/20/MySQL/MySQL%5B%E4%BA%8C%E5%8D%81%5D%E6%B5%B7%E9%87%8F%E6%95%B0%E6%8D%AE%E5%A4%84%E7%90%86%E6%80%BB%E7%BB%93/" title="MySQL[二十]海量数据处理"><img src="/images/cover/mysql.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="MySQL[二十]海量数据处理"/></a><div class="content"><a class="title" href="/2022/01/20/MySQL/MySQL%5B%E4%BA%8C%E5%8D%81%5D%E6%B5%B7%E9%87%8F%E6%95%B0%E6%8D%AE%E5%A4%84%E7%90%86%E6%80%BB%E7%BB%93/" title="MySQL[二十]海量数据处理">MySQL[二十]海量数据处理</a><time datetime="2022-01-19T16:00:00.000Z" title="发表于 2022-01-20 00:00:00">2022-01-20</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/01/18/MySQL/MySQL%5B%E5%8D%81%E5%85%AB%5D%E9%94%81%E5%88%86%E6%9E%90/" title="MySQL[十八]锁分析"><img src="/images/cover/mysql.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="MySQL[十八]锁分析"/></a><div class="content"><a class="title" href="/2022/01/18/MySQL/MySQL%5B%E5%8D%81%E5%85%AB%5D%E9%94%81%E5%88%86%E6%9E%90/" title="MySQL[十八]锁分析">MySQL[十八]锁分析</a><time datetime="2022-01-17T16:00:00.000Z" title="发表于 2022-01-18 00:00:00">2022-01-18</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/01/17/MySQL/MySQL%5B%E5%8D%81%E4%B8%83%5D%E9%94%81%E6%A6%82%E8%BF%B0/" title="MySQL[十七]锁概述"><img src="/images/cover/mysql.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="MySQL[十七]锁概述"/></a><div class="content"><a class="title" href="/2022/01/17/MySQL/MySQL%5B%E5%8D%81%E4%B8%83%5D%E9%94%81%E6%A6%82%E8%BF%B0/" title="MySQL[十七]锁概述">MySQL[十七]锁概述</a><time datetime="2022-01-16T16:00:00.000Z" title="发表于 2022-01-17 00:00:00">2022-01-17</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/01/16/MySQL/MySQL%5B%E5%8D%81%E5%85%AD%5D%E5%B9%B6%E5%8F%91%E7%89%88%E6%9C%AC%E6%8E%A7%E5%88%B6-MVCC/" title="MySQL[十六]并发版本控制-MVCC"><img src="/images/cover/mysql.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="MySQL[十六]并发版本控制-MVCC"/></a><div class="content"><a class="title" href="/2022/01/16/MySQL/MySQL%5B%E5%8D%81%E5%85%AD%5D%E5%B9%B6%E5%8F%91%E7%89%88%E6%9C%AC%E6%8E%A7%E5%88%B6-MVCC/" title="MySQL[十六]并发版本控制-MVCC">MySQL[十六]并发版本控制-MVCC</a><time datetime="2022-01-15T16:00:00.000Z" title="发表于 2022-01-16 00:00:00">2022-01-16</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/01/15/MySQL/MySQL%5B%E5%8D%81%E4%BA%94%5Dundo%E6%97%A5%E5%BF%97/" title="MySQL[十五]undo日志"><img src="/images/cover/mysql.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="MySQL[十五]undo日志"/></a><div class="content"><a class="title" href="/2022/01/15/MySQL/MySQL%5B%E5%8D%81%E4%BA%94%5Dundo%E6%97%A5%E5%BF%97/" title="MySQL[十五]undo日志">MySQL[十五]undo日志</a><time datetime="2022-01-14T16:00:00.000Z" title="发表于 2022-01-15 00:00:00">2022-01-15</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('/images/cover/mysql.png')"><div id="footer-wrap"><div class="copyright">&copy;2021 - 2022 By 二十</div><div class="footer_custom_text">树是生活，埋的是我。看花就好，别看我落魄。</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="font-plus" type="button" title="放大字体"><i class="fas fa-plus"></i></button><button id="font-minus" type="button" title="缩小字体"><i class="fas fa-minus"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div id="local-search"><div class="search-dialog"><div class="search-dialog__title" id="local-search-title">本地搜索</div><div id="local-input-panel"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div></div><hr/><div id="local-search-results"></div><span class="search-close-button"><i class="fas fa-times"></i></span></div><div id="search-mask"></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/search/local-search.js"></script><div class="js-pjax"></div><script src="https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js"></script><script src="/js/chocolate.js"></script><script defer="defer" id="fluttering_ribbon" mobile="true" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/canvas-fluttering-ribbon.min.js"></script><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="true" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/canvas-nest.min.js"></script><script id="click-show-text" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/click-show-text.min.js" data-mobile="false" data-text="二十,二十二十,二十二十二十,二十二十二十二十,二十二十二十二十二十" data-fontsize="15px" data-random="true" async="async"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

@@ -1,0 +1,205 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MySQL[二十二]COUNT | 二十</title><meta name="keywords" content="MySQL"><meta name="author" content="二十"><meta name="copyright" content="二十"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="COUNT关键字">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MySQL[二十二]COUNT">
+<meta property="og:url" content="https://yinhuidong.github.io/2022/01/22/MySQL/MySQL[%E4%BA%8C%E5%8D%81%E4%BA%8C]COUNT/index.html">
+<meta property="og:site_name" content="二十">
+<meta property="og:description" content="COUNT关键字">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yinhuidong.github.io/images/cover/mysql.png">
+<meta property="article:published_time" content="2022-01-21T16:00:00.000Z">
+<meta property="article:modified_time" content="2022-01-13T06:54:43.709Z">
+<meta property="article:author" content="二十">
+<meta property="article:tag" content="MySQL">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://yinhuidong.github.io/images/cover/mysql.png"><link rel="shortcut icon" href="/img/favicon.jpg"><link rel="canonical" href="https://yinhuidong.github.io/2022/01/22/MySQL/MySQL[%E4%BA%8C%E5%8D%81%E4%BA%8C]COUNT/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":800},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js',
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css'
+    },
+    fancybox: {
+      js: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isanchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'MySQL[二十二]COUNT',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2022-01-13 14:54:43'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const fontSizeVal = saveToLocal.get('global-font-size')
+    if (fontSizeVal !== undefined) {
+      document.documentElement.style.setProperty('--global-font-size', fontSizeVal + 'px')
+    }
+    
+    const detectApple = () => {
+      if (GLOBAL_CONFIG_SITE.isHome && /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/custom.css"><meta name="referrer" content="no-referrer" /><meta name="generator" content="Hexo 5.4.0"></head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/head.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data"><div class="data-item is-center"><div class="data-item-link"><a href="/archives/"><div class="headline">文章</div><div class="length-num">122</div></a></div></div><div class="data-item is-center"><div class="data-item-link"><a href="/tags/"><div class="headline">标签</div><div class="length-num">14</div></a></div></div><div class="data-item is-center"><div class="data-item-link"><a href="/categories/"><div class="headline">分类</div><div class="length-num">13</div></a></div></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/%E5%85%B3%E4%BA%8E%E6%88%91/"><i class="fa-fw fas fa-user"></i><span> 关于我</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/images/cover/mysql.png')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">二十</a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/%E5%85%B3%E4%BA%8E%E6%88%91/"><i class="fa-fw fas fa-user"></i><span> 关于我</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">MySQL[二十二]COUNT</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-01-21T16:00:00.000Z" title="发表于 2022-01-22 00:00:00">2022-01-22</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2022-01-13T06:54:43.709Z" title="更新于 2022-01-13 14:54:43">2022-01-13</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/MySQL/">MySQL</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">1.5k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>4分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="MySQL[二十二]COUNT"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><blockquote>
+<p><strong>COUNT函数的参数可以是任意表达式，该函数用于统计在符合搜索条件的记录中，指定的表达式不为NULL的行数有多少</strong>。</p>
+</blockquote>
+<h2 id="1-MySQL中COUNT是怎样执行的"><a href="#1-MySQL中COUNT是怎样执行的" class="headerlink" title="1.MySQL中COUNT是怎样执行的"></a>1.MySQL中COUNT是怎样执行的</h2><p>以下边这个语句为例：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SELECT COUNT(*) FROM t;</span><br></pre></td></tr></table></figure>
+
+
+<p>这个语句是要去查询表t中共包含多少条记录。由于聚簇索引和二级索引中的记录是一一对应的，而二级索引记录中包含的列是少于聚簇索引记录的，所以同样数量的二级索引记录可以比聚簇索引记录占用更少的存储空间。如果我们使用二级索引执行上述查询，即数一下idx_key1中共有多少条二级索引记录，是比直接数聚簇索引中共有多少聚簇索引记录可以节省很多I/O成本。所以优化器会决定使用idx_key1执行上述查询：</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1642056677780-8a03c9c4-56c4-41aa-ba63-adf933b40b69.png#clientId=u34f9931d-99d6-4&crop=0&crop=0&crop=1&crop=1&from=ui&id=u17849103&margin=%5Bobject%20Object%5D&name=1.png&originHeight=372&originWidth=2292&originalType=binary&ratio=1&rotation=0&showTitle=false&size=190444&status=done&style=none&taskId=u667bec33-1d85-40df-afb6-55af872620f&title=" alt="1.png"></p>
+<p>在执行上述查询时，server层会维护一个名叫count的变量，然后：</p>
+<ul>
+<li> server层向InnoDB要第一条记录。 </li>
+<li> InnoDB找到idx_key1的第一条二级索引记录，并返回给server层（<strong>注意：由于此时只是统计记录数量，所以并不需要回表</strong>）。 </li>
+<li> 由于COUNT函数的参数是<code>*</code>，MySQL会将<code>*</code>当作常数0处理。由于0并不是NULL，server层给count变量加1。 </li>
+<li> server层向InnoDB要下一条记录。 </li>
+<li> InnoDB通过二级索引记录的next_record属性找到下一条二级索引记录，并返回给server层。 </li>
+<li> server层继续给count变量加1。 </li>
+<li> … 重复上述过程，直到InnoDB向server层返回没记录可查的消息。 </li>
+<li> server层将最终的count变量的值发送到客户端。 </li>
+</ul>
+<p>我们看一下源码里给count变量加1的代码是怎么写的：</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1642056690836-94857a9e-4370-4ee5-8411-98ede26a97da.png#clientId=u34f9931d-99d6-4&crop=0&crop=0&crop=1&crop=1&from=ui&id=u0e1468e9&margin=%5Bobject%20Object%5D&name=2.png&originHeight=136&originWidth=511&originalType=binary&ratio=1&rotation=0&showTitle=false&size=4824&status=done&style=none&taskId=uaa1eed56-f710-469a-a30c-58b445409c1&title=" alt="2.png"></p>
+<p>其大意就是判断一下COUNT里的表达式是不是NULL，如果不是NULL的话就给count变量加1。</p>
+<p>我们再来看一下arg_is_null的实现：</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1642056702108-323d3fcb-c233-425e-8b90-a12dfbace47a.png#clientId=u34f9931d-99d6-4&crop=0&crop=0&crop=1&crop=1&from=ui&id=u9feef638&margin=%5Bobject%20Object%5D&name=3.png&originHeight=400&originWidth=725&originalType=binary&ratio=1&rotation=0&showTitle=false&size=15784&status=done&style=none&taskId=ue7077258-1a89-4a66-a44b-ca299d4326c&title=" alt="3.png"></p>
+<p>其中最重要的是我们标蓝的那一行，item[i]表示的就是COUNT函数中的参数，我们调试一下对于<code>COUNT(*)</code>来说，表达式<code>*</code>的值是什么：</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1642056712376-13b8a242-cb98-480f-b40d-ac4d27595af3.png#clientId=u34f9931d-99d6-4&crop=0&crop=0&crop=1&crop=1&from=ui&id=u4a057b64&margin=%5Bobject%20Object%5D&name=4.png&originHeight=81&originWidth=563&originalType=binary&ratio=1&rotation=0&showTitle=false&size=6922&status=done&style=none&taskId=u4fbe6860-8aca-4d58-9e8f-9f0171b6deb&title=" alt="4.png"></p>
+<p>可以看到，<code>*</code>表达式的类型其实是<code>Item_int</code>，这表示MySQL其实会把<code>*</code>当作一个整数处理，它的值是0（见图中箭头）。也就是说我们在判断表达式<code>*</code>是不是为NULL，也就是在判断整数<code>0</code>是不是为NULL，很显然不为NULL。</p>
+<h2 id="2-COUNT-1-，COUNT-id-，COUNT-非主键列"><a href="#2-COUNT-1-，COUNT-id-，COUNT-非主键列" class="headerlink" title="2.COUNT(1)，COUNT(id)，COUNT(非主键列)"></a>2.COUNT(1)，COUNT(id)，COUNT(非主键列)</h2><p>那在执行COUNT(1)呢？比方说下边这个语句：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SELECT COUNT(1) FROM t;</span><br></pre></td></tr></table></figure>
+
+
+<p>我们看一下：</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1642056722849-b6a1d389-edb7-418c-93e9-8494d47b7fd8.png#clientId=u34f9931d-99d6-4&crop=0&crop=0&crop=1&crop=1&from=ui&id=u1551eb4d&margin=%5Bobject%20Object%5D&name=5.png&originHeight=100&originWidth=591&originalType=binary&ratio=1&rotation=0&showTitle=false&size=7810&status=done&style=none&taskId=uf6a5758c-ab74-462f-ba35-a827343e8bb&title=" alt="5.png"></p>
+<p>可以看到，常数<code>1</code>对应的类型其实是<code>PTI_num_literal_num</code>，它其实是<code>Item_int</code>的一个包装类型，本质上还是代表一个整数，它的值是<code>1</code>（见图中箭头）。也就是说我们其实是在判断表达式<code>1</code>是不是为NULL，很显然不为NULL。</p>
+<p>再看一下COUNT(id)：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SELECT COUNT(id) FROM t;</span><br></pre></td></tr></table></figure>
+
+
+<p>我们看一下：</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1642056733749-bf837498-5d2f-41b9-b52e-464d1135d2be.png#clientId=u34f9931d-99d6-4&crop=0&crop=0&crop=1&crop=1&from=ui&id=uc7f05c0a&margin=%5Bobject%20Object%5D&name=6.png&originHeight=203&originWidth=536&originalType=binary&ratio=1&rotation=0&showTitle=false&size=14222&status=done&style=none&taskId=u43bee452-3ee1-4c56-9686-69b50095ef9&title=" alt="6.png"></p>
+<p>可以看到，<code>id</code>对应的类型是<code>Item_field</code>，代表一个字段。</p>
+<p>对于<code>COUNT(*)</code>、<code>COUNT(1)</code>或者任意的<code>COUNT(常数)</code>来说，读取哪个索引的记录其实并不重要，因为server层只关心存储引擎是否读到了记录，而并不需要从记录中提取指定的字段来判断是否为NULL。所以优化器会使用占用存储空间最小的那个索引来执行查询。</p>
+<p>对于<code>COUNT(id)</code>来说，由于id是主键，不论是聚簇索引记录，还是任意一个二级索引记录中都会包含主键字段，所以其实读取任意一个索引中的记录都可以获取到id字段，此时优化器也会选择占用存储空间最小的那个索引来执行查询。</p>
+<p>而对于<code>COUNT(非主键列)</code>来说，我们指定的列可能并不会包含在每一个索引中。这样优化器只能选择包含我们指定的列的索引去执行查询，这就<strong>可能</strong>导致优化器选择的索引并不是最小的那个。</p>
+<h2 id="3-总结"><a href="#3-总结" class="headerlink" title="3.总结"></a>3.总结</h2><p>对于<code>COUNT(*)</code>、<code>COUNT(常数)</code>、<code>COUNT(主键)</code>形式的COUNT函数来说，优化器可以选择最小的索引执行查询，从而提升效率，它们的执行过程是一样的，只不过在判断表达式是否为NULL时选择不同的判断方式，这个判断为NULL的过程的代价可以忽略不计，所以我们可以认为<code>COUNT(*)</code>、<code>COUNT(常数)</code>、<code>COUNT(主键)</code>所需要的代价是相同的。</p>
+<p>而对于<code>COUNT(非主键列)</code>来说，server层必须要从InnoDB中读到包含<code>非主键列</code>的记录，所以优化器并不能随心所欲的选择最小的索引去执行。</p>
+<h2 id="4-优化"><a href="#4-优化" class="headerlink" title="4.优化"></a>4.优化</h2><p>InnoDB的记录都是存储在数据页中的（页面大小默认为16KB），而每个数据页的<code>Page Header</code>部分都有一个统计当前页面中记录数量的属性<code>PAGE_N_RECS</code>。那么在执行COUNT函数的时候直接去把各个页面的这个<code>PAGE_N_RECS</code>属性加起来不就好了么？</p>
+<p>答案是：<code>WRONG</code>！<strong>对于普通的SELECT语句来说，每次查询都要从记录的版本链上找到可见的版本才算是读到了记录；对于加了FOR UPDATE或LOCK IN SHARE MODE后缀的SELECT语句来说，每次查询都要给记录添加合适的锁</strong>。所以这个读取每一条记录的过程（就是上边给出的row_search_mvcc函数）在InnoDB的目前实现中是无法跳过的，InnoDB还是得读一条记录，返给server层一条记录。</p>
+<p>如果我的业务中有COUNT需求，但是由于数据量太大导致即使优化器即使通过扫描二级索引记录的方式也还是太慢怎么办？既然业务上有需求，我们可以在另一个地方存储一份待统计数据的行数，每次增删改记录都维护一下。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">二十</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://yinhuidong.github.io/2022/01/22/MySQL/MySQL[%E4%BA%8C%E5%8D%81%E4%BA%8C]COUNT/">https://yinhuidong.github.io/2022/01/22/MySQL/MySQL[二十二]COUNT/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://yinhuidong.github.io" target="_blank">二十</a> 许可协议。转载请注明来自 <a href="https://yinhuidong.github.io" target="_blank">二十</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/MySQL/">MySQL</a></div><div class="post_share"><div class="social-share" data-image="/images/cover/mysql.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js" defer></script></div></div><div class="post-reward"><div class="reward-button button--animated"><i class="fas fa-qrcode"></i> 打赏</div><div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/img/wechat_pay.jpg" target="_blank"><img class="post-qr-code-img" src="/img/wechat_pay.jpg" alt="微信"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="/img/alipay.jpg" target="_blank"><img class="post-qr-code-img" src="/img/alipay.jpg" alt="支付宝"/></a><div class="post-qr-code-desc">支付宝</div></li></ul></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/2022/01/21/MySQL/MySQL%5B%E4%BA%8C%E5%8D%81%E4%B8%80%5DLIMIT/"><img class="next-cover" src="/images/cover/mysql.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">MySQL[二十一]LIMIT</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2022/01/01/MySQL/MySQL%5B%E4%B8%80%5D%E5%85%A5%E9%97%A8/" title="MySQL[一]入门"><img class="cover" src="/images/cover/mysql.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-01</div><div class="title">MySQL[一]入门</div></div></a></div><div><a href="/2022/01/07/MySQL/MySQL%5B%E4%B8%83%5D%E5%9F%BA%E4%BA%8E%E6%88%90%E6%9C%AC%E7%9A%84%E4%BC%98%E5%8C%96/" title="MySQL[七]基于成本的优化"><img class="cover" src="/images/cover/mysql.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-07</div><div class="title">MySQL[七]基于成本的优化</div></div></a></div><div><a href="/2022/01/09/MySQL/MySQL%5B%E4%B9%9D%5D%E5%9F%BA%E4%BA%8E%E8%A7%84%E5%88%99%E7%9A%84%E4%BC%98%E5%8C%96&%E5%AD%90%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96/" title="MySQL[九]基于规则的优化&子查询优化"><img class="cover" src="/images/cover/mysql.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-09</div><div class="title">MySQL[九]基于规则的优化&子查询优化</div></div></a></div><div><a href="/2022/01/03/MySQL/MySQL%5B%E4%B8%89%5DInnoDB%E7%B4%A2%E5%BC%95%E7%BB%93%E6%9E%84/" title="MySQL[三]InnoDB索引结构"><img class="cover" src="/images/cover/mysql.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-03</div><div class="title">MySQL[三]InnoDB索引结构</div></div></a></div><div><a href="/2022/01/20/MySQL/MySQL%5B%E4%BA%8C%E5%8D%81%5D%E6%B5%B7%E9%87%8F%E6%95%B0%E6%8D%AE%E5%A4%84%E7%90%86%E6%80%BB%E7%BB%93/" title="MySQL[二十]海量数据处理"><img class="cover" src="/images/cover/mysql.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-20</div><div class="title">MySQL[二十]海量数据处理</div></div></a></div><div><a href="/2022/01/21/MySQL/MySQL%5B%E4%BA%8C%E5%8D%81%E4%B8%80%5DLIMIT/" title="MySQL[二十一]LIMIT"><img class="cover" src="/images/cover/mysql.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-21</div><div class="title">MySQL[二十一]LIMIT</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/head.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">二十</div><div class="author-info__description">欢迎来到二十的博客....</div></div><div class="card-info-data"><div class="card-info-data-item is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">122</div></a></div><div class="card-info-data-item is-center"><a href="/tags/"><div class="headline">标签</div><div class="length-num">14</div></a></div><div class="card-info-data-item is-center"><a href="/categories/"><div class="headline">分类</div><div class="length-num">13</div></a></div></div><a class="button--animated" id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/yinhuidong"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/yinhuidong" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="mailto:1972039773@qq.com" target="_blank" title="Email"><i class="fas fa-envelope"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn card-announcement-animation"></i><span>公告</span></div><div class="announcement_content">欢迎来到二十的个人博客，联系作者：VX：yinhuidong666</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-MySQL%E4%B8%ADCOUNT%E6%98%AF%E6%80%8E%E6%A0%B7%E6%89%A7%E8%A1%8C%E7%9A%84"><span class="toc-text">1.MySQL中COUNT是怎样执行的</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-COUNT-1-%EF%BC%8CCOUNT-id-%EF%BC%8CCOUNT-%E9%9D%9E%E4%B8%BB%E9%94%AE%E5%88%97"><span class="toc-text">2.COUNT(1)，COUNT(id)，COUNT(非主键列)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E6%80%BB%E7%BB%93"><span class="toc-text">3.总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E4%BC%98%E5%8C%96"><span class="toc-text">4.优化</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2022/01/22/MySQL/MySQL%5B%E4%BA%8C%E5%8D%81%E4%BA%8C%5DCOUNT/" title="MySQL[二十二]COUNT"><img src="/images/cover/mysql.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="MySQL[二十二]COUNT"/></a><div class="content"><a class="title" href="/2022/01/22/MySQL/MySQL%5B%E4%BA%8C%E5%8D%81%E4%BA%8C%5DCOUNT/" title="MySQL[二十二]COUNT">MySQL[二十二]COUNT</a><time datetime="2022-01-21T16:00:00.000Z" title="发表于 2022-01-22 00:00:00">2022-01-22</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/01/21/MySQL/MySQL%5B%E4%BA%8C%E5%8D%81%E4%B8%80%5DLIMIT/" title="MySQL[二十一]LIMIT"><img src="/images/cover/mysql.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="MySQL[二十一]LIMIT"/></a><div class="content"><a class="title" href="/2022/01/21/MySQL/MySQL%5B%E4%BA%8C%E5%8D%81%E4%B8%80%5DLIMIT/" title="MySQL[二十一]LIMIT">MySQL[二十一]LIMIT</a><time datetime="2022-01-20T16:00:00.000Z" title="发表于 2022-01-21 00:00:00">2022-01-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/01/20/MySQL/MySQL%5B%E4%BA%8C%E5%8D%81%5D%E6%B5%B7%E9%87%8F%E6%95%B0%E6%8D%AE%E5%A4%84%E7%90%86%E6%80%BB%E7%BB%93/" title="MySQL[二十]海量数据处理"><img src="/images/cover/mysql.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="MySQL[二十]海量数据处理"/></a><div class="content"><a class="title" href="/2022/01/20/MySQL/MySQL%5B%E4%BA%8C%E5%8D%81%5D%E6%B5%B7%E9%87%8F%E6%95%B0%E6%8D%AE%E5%A4%84%E7%90%86%E6%80%BB%E7%BB%93/" title="MySQL[二十]海量数据处理">MySQL[二十]海量数据处理</a><time datetime="2022-01-19T16:00:00.000Z" title="发表于 2022-01-20 00:00:00">2022-01-20</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/01/18/MySQL/MySQL%5B%E5%8D%81%E5%85%AB%5D%E9%94%81%E5%88%86%E6%9E%90/" title="MySQL[十八]锁分析"><img src="/images/cover/mysql.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="MySQL[十八]锁分析"/></a><div class="content"><a class="title" href="/2022/01/18/MySQL/MySQL%5B%E5%8D%81%E5%85%AB%5D%E9%94%81%E5%88%86%E6%9E%90/" title="MySQL[十八]锁分析">MySQL[十八]锁分析</a><time datetime="2022-01-17T16:00:00.000Z" title="发表于 2022-01-18 00:00:00">2022-01-18</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/01/17/MySQL/MySQL%5B%E5%8D%81%E4%B8%83%5D%E9%94%81%E6%A6%82%E8%BF%B0/" title="MySQL[十七]锁概述"><img src="/images/cover/mysql.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="MySQL[十七]锁概述"/></a><div class="content"><a class="title" href="/2022/01/17/MySQL/MySQL%5B%E5%8D%81%E4%B8%83%5D%E9%94%81%E6%A6%82%E8%BF%B0/" title="MySQL[十七]锁概述">MySQL[十七]锁概述</a><time datetime="2022-01-16T16:00:00.000Z" title="发表于 2022-01-17 00:00:00">2022-01-17</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('/images/cover/mysql.png')"><div id="footer-wrap"><div class="copyright">&copy;2021 - 2022 By 二十</div><div class="footer_custom_text">树是生活，埋的是我。看花就好，别看我落魄。</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="font-plus" type="button" title="放大字体"><i class="fas fa-plus"></i></button><button id="font-minus" type="button" title="缩小字体"><i class="fas fa-minus"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div id="local-search"><div class="search-dialog"><div class="search-dialog__title" id="local-search-title">本地搜索</div><div id="local-input-panel"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div></div><hr/><div id="local-search-results"></div><span class="search-close-button"><i class="fas fa-times"></i></span></div><div id="search-mask"></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/search/local-search.js"></script><div class="js-pjax"></div><script src="https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js"></script><script src="/js/chocolate.js"></script><script defer="defer" id="fluttering_ribbon" mobile="true" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/canvas-fluttering-ribbon.min.js"></script><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="true" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/canvas-nest.min.js"></script><script id="click-show-text" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/click-show-text.min.js" data-mobile="false" data-text="二十,二十二十,二十二十二十,二十二十二十二十,二十二十二十二十二十" data-fontsize="15px" data-random="true" async="async"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

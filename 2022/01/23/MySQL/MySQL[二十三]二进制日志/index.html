@@ -1,0 +1,405 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MySQL[二十三]二进制日志 | 二十</title><meta name="keywords" content="MySQL"><meta name="author" content="二十"><meta name="copyright" content="二十"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="binary log">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MySQL[二十三]二进制日志">
+<meta property="og:url" content="https://yinhuidong.github.io/2022/01/23/MySQL/MySQL[%E4%BA%8C%E5%8D%81%E4%B8%89]%E4%BA%8C%E8%BF%9B%E5%88%B6%E6%97%A5%E5%BF%97/index.html">
+<meta property="og:site_name" content="二十">
+<meta property="og:description" content="binary log">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yinhuidong.github.io/images/cover/mysql.png">
+<meta property="article:published_time" content="2022-01-22T16:00:00.000Z">
+<meta property="article:modified_time" content="2022-01-13T08:14:17.855Z">
+<meta property="article:author" content="二十">
+<meta property="article:tag" content="MySQL">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://yinhuidong.github.io/images/cover/mysql.png"><link rel="shortcut icon" href="/img/favicon.jpg"><link rel="canonical" href="https://yinhuidong.github.io/2022/01/23/MySQL/MySQL[%E4%BA%8C%E5%8D%81%E4%B8%89]%E4%BA%8C%E8%BF%9B%E5%88%B6%E6%97%A5%E5%BF%97/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"search.xml","languages":{"hits_empty":"找不到您查询的内容：${query}"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":800},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js',
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css'
+    },
+    fancybox: {
+      js: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isanchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'MySQL[二十三]二进制日志',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2022-01-13 16:14:17'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const fontSizeVal = saveToLocal.get('global-font-size')
+    if (fontSizeVal !== undefined) {
+      document.documentElement.style.setProperty('--global-font-size', fontSizeVal + 'px')
+    }
+    
+    const detectApple = () => {
+      if (GLOBAL_CONFIG_SITE.isHome && /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/custom.css"><meta name="referrer" content="no-referrer" /><meta name="generator" content="Hexo 5.4.0"></head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/head.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data"><div class="data-item is-center"><div class="data-item-link"><a href="/archives/"><div class="headline">文章</div><div class="length-num">123</div></a></div></div><div class="data-item is-center"><div class="data-item-link"><a href="/tags/"><div class="headline">标签</div><div class="length-num">14</div></a></div></div><div class="data-item is-center"><div class="data-item-link"><a href="/categories/"><div class="headline">分类</div><div class="length-num">13</div></a></div></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/%E5%85%B3%E4%BA%8E%E6%88%91/"><i class="fa-fw fas fa-user"></i><span> 关于我</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/images/cover/mysql.png')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">二十</a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/%E5%85%B3%E4%BA%8E%E6%88%91/"><i class="fa-fw fas fa-user"></i><span> 关于我</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">MySQL[二十三]二进制日志</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-01-22T16:00:00.000Z" title="发表于 2022-01-23 00:00:00">2022-01-23</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2022-01-13T08:14:17.855Z" title="更新于 2022-01-13 16:14:17">2022-01-13</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/MySQL/">MySQL</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">5.1k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>19分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="MySQL[二十三]二进制日志"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h2 id="1-binlog的作用"><a href="#1-binlog的作用" class="headerlink" title="1.binlog的作用"></a>1.binlog的作用</h2><p><code>binlog</code>是<code>binary log</code>的缩写，即<code>二进制日志</code>。<code>binlog</code>中记载了数据库发生的变化，比方说新建了一个数据库或者表、表结构发生改变、表中的数据发生了变化时都会记录相应的binlog日志。</p>
+<p><code>binlog</code>主要用在下边两个方面：</p>
+<ul>
+<li>用途一：用于复制。</li>
+</ul>
+<p><strong>单台物理机器所能同时处理的请求是有限的</strong>。为了提高并发处理请求的能力，一般将MySQL服务部署在多台物理机器中，这些服务器中维护相同的数据副本。</p>
+<p>典型的部署方案就是<code>一主多从</code>，即一台主服务器（Master）和多台从服务器（Slave）。对于改变数据库状态的请求（DDL、DML等），就将它们发送给主服务器，对于单纯的查询（如SELECT语句）请求，就将它们发送给从服务器。为了让各个从服务器中存储的数据和主服务器中存储的数据一致，每当我们改变了主服务器中的数据后，就需要将改变的信息<strong>同步</strong>给各个从服务器。<code>binlog</code>日志中正好记录了数据库发生的各种改变的信息，从服务器读取主服务器产生的<code>binlog</code>日志，然后执行这些<code>binlog</code>日志中所记录的数据库变化语句，从而达到主从服务器数据一致的效果。</p>
+<ul>
+<li>用途二：用于恢复。</li>
+</ul>
+<p>写DELETE语句不加WHERE子句，一整个表的数据都就没了！为了数据的安全性，我们需要定时备份数据库（mysqldump命令），不过这种全量备份不可能每秒都做一遍，而是每天或者每个月做一次全量备份。那如果在两次全量备份中间写了不加WHERE条件的DELETE语句该怎么办呢？只能将数据库恢复到前一次全量备份时的样子吗？我们有<code>binlog</code>日志，我们可以从上一次全量备份开始，执行自该次备份后产生的<code>binlog</code>日志，直到我们写DELETE语句之前的binlog日志为止。这样就可以完成数据库恢复的功能。</p>
+<hr>
+<h2 id="2-怎么配置binlog"><a href="#2-怎么配置binlog" class="headerlink" title="2.怎么配置binlog"></a>2.怎么配置binlog</h2><p>MySQL服务器并不一定会生成<code>binlog</code>日志，我们可以通过查看<code>log_bin</code>系统变量来判断当前MySQL服务器是否生成<code>binlog</code>日志：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; show variables like &#x27;log_bin&#x27;;</span><br><span class="line">+---------------+-------+</span><br><span class="line">| Variable_name | Value |</span><br><span class="line">+---------------+-------+</span><br><span class="line">| log_bin       | ON    |</span><br><span class="line">+---------------+-------+</span><br><span class="line">1 row in set, 1 warning (0.02 sec)</span><br></pre></td></tr></table></figure>
+
+
+<p>上例中<code>bin_log</code>系统变量的值为<code>ON</code>，表明当前服务器生成<code>binlog</code>，若为<code>OFF</code>表明当前服务器不生成<code>binlog</code>。</p>
+<p>如果当前服务器不生成<code>binlog</code>，我们想开启<code>binlog</code>，那么就需要重启服务器，设置<code>log-bin</code>启动选项：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">--log-bin[=base_name]</span><br></pre></td></tr></table></figure>
+
+
+<p><code>binlog</code>日志并不是仅写到一个文件中，而是写入一组文件中，这组文件的命名是这样的：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">basename.000001</span><br><span class="line">basename.000002</span><br><span class="line">basename.000003</span><br><span class="line">basename.000004</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+
+<p>也就是这组日志文件名称都包含一个basename，然后以一个数字结尾。</p>
+<p>启动选项<code>log-bin[=base_name]</code>中的<code>base_name</code>就是这组binlog日志文件名称都包含的部分。如果我们不指定<code>base_name</code>（即单纯的使用–log-bin），那MySQL服务器会默认将<code>主机名-bin</code>作为binlog日志文件的basename。</p>
+<p>如果启动服务器的命令是：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysqld --log-bin</span><br></pre></td></tr></table></figure>
+
+
+<p>表示开启binlog，并将binlog写入<strong>MySQL服务器的数据目录</strong>下。我的主机名是<code>yhd</code>，那MySQL服务器程序生成的binlog日志文件名就像是这样：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">yhd-bin.000001</span><br><span class="line">yhd-bin.000002</span><br><span class="line">yhd-bin.000003</span><br><span class="line">yhd-bin.000004</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+
+<p>如果启动命令是：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysqld --log-bin=xx</span><br></pre></td></tr></table></figure>
+
+
+<p>表示开启binlog，并将binlog写入<strong>MySQL服务器的数据目录</strong>下，binlog日志文件名就像是这样：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">xx.000001</span><br><span class="line">xx.000002</span><br><span class="line">xx.000003</span><br><span class="line">xx.000004</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+
+<p>我们可以在将启动选项<code>log-bin[=base_name]</code>的<code>base_name</code>指定为一个绝对路径，那么binlog日志就不会被放到默认的数据目录中，而是写到我们指定的绝对路径下了。比方说启动命令是：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysqld --log-bin=/Users/yhd/xx</span><br></pre></td></tr></table></figure>
+
+
+<p>这样binlog日志就会被写入**/Users/yhd/**路径下，binlog日志文件名就像是这样：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">xx.000001</span><br><span class="line">xx.000002</span><br><span class="line">xx.000003</span><br><span class="line">xx.000004</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+
+<blockquote>
+<p>log-bin启动选项也可以放在配置文件中。</p>
+</blockquote>
+<hr>
+<h2 id="3-binlog在文件系统中的内容"><a href="#3-binlog在文件系统中的内容" class="headerlink" title="3.binlog在文件系统中的内容"></a>3.binlog在文件系统中的内容</h2><p>binlog日志不是单个文件，而是一组包含共同basename的文件。比方说现在我的机器上有以下4个binlog文件：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">yhd-bin.000001</span><br><span class="line">yhd-bin.000002</span><br><span class="line">yhd-bin.000003</span><br><span class="line">yhd-bin.000004</span><br></pre></td></tr></table></figure>
+
+
+<p>这些binlog文件并不能直接被当作文本打开，毕竟人家的名字是binlog，存储的是二进制数据。</p>
+<p>除了真正存储binlog日志的文件外，MySQL服务器还会在相同的路径下生成一个关于binlog的索引文件，在我的系统上它的名称就是：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">yhd-bin.index</span><br></pre></td></tr></table></figure>
+
+
+<p>这个索引文件是一个文本文件，我们可以直接打开：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">shell&gt; cat yhd-bin.index</span><br><span class="line">./yhd-bin.000001</span><br><span class="line">./yhd-bin.000002</span><br><span class="line">./yhd-bin.000003</span><br><span class="line">./yhd-bin.000004</span><br></pre></td></tr></table></figure>
+
+
+<p>可以看到，这个索引文件只是简单的将各个binlog文件的路径存储了起来而已。</p>
+<h2 id="4-查看binlog的语句"><a href="#4-查看binlog的语句" class="headerlink" title="4.查看binlog的语句"></a>4.查看binlog的语句</h2><p>binlog中记录数据库发生更改的各种事件（events），这些事件的种类非常多，完整的事件类型如下所示：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line">enum Log_event_type &#123; </span><br><span class="line">  UNKNOWN_EVENT= 0, </span><br><span class="line">  START_EVENT_V3= 1, </span><br><span class="line">  QUERY_EVENT= 2, </span><br><span class="line">  STOP_EVENT= 3, </span><br><span class="line">  ROTATE_EVENT= 4, </span><br><span class="line">  INTVAR_EVENT= 5, </span><br><span class="line">  LOAD_EVENT= 6, </span><br><span class="line">  SLAVE_EVENT= 7, </span><br><span class="line">  CREATE_FILE_EVENT= 8, </span><br><span class="line">  APPEND_BLOCK_EVENT= 9, </span><br><span class="line">  EXEC_LOAD_EVENT= 10, </span><br><span class="line">  DELETE_FILE_EVENT= 11, </span><br><span class="line">  NEW_LOAD_EVENT= 12, </span><br><span class="line">  RAND_EVENT= 13, </span><br><span class="line">  USER_VAR_EVENT= 14, </span><br><span class="line">  FORMAT_DESCRIPTION_EVENT= 15, </span><br><span class="line">  XID_EVENT= 16, </span><br><span class="line">  BEGIN_LOAD_QUERY_EVENT= 17, </span><br><span class="line">  EXECUTE_LOAD_QUERY_EVENT= 18, </span><br><span class="line">  TABLE_MAP_EVENT = 19, </span><br><span class="line">  PRE_GA_WRITE_ROWS_EVENT = 20, </span><br><span class="line">  PRE_GA_UPDATE_ROWS_EVENT = 21, </span><br><span class="line">  PRE_GA_DELETE_ROWS_EVENT = 22, </span><br><span class="line">  WRITE_ROWS_EVENT = 23, </span><br><span class="line">  UPDATE_ROWS_EVENT = 24, </span><br><span class="line">  DELETE_ROWS_EVENT = 25, </span><br><span class="line">  INCIDENT_EVENT= 26, </span><br><span class="line">  HEARTBEAT_LOG_EVENT= 27, </span><br><span class="line">  IGNORABLE_LOG_EVENT= 28,</span><br><span class="line">  ROWS_QUERY_LOG_EVENT= 29,</span><br><span class="line">  WRITE_ROWS_EVENT = 30,</span><br><span class="line">  UPDATE_ROWS_EVENT = 31,</span><br><span class="line">  DELETE_ROWS_EVENT = 32,</span><br><span class="line">  GTID_LOG_EVENT= 33,</span><br><span class="line">  ANONYMOUS_GTID_LOG_EVENT= 34,</span><br><span class="line">  PREVIOUS_GTIDS_LOG_EVENT= 35, </span><br><span class="line">  ENUM_END_EVENT </span><br><span class="line">  /* end marker */ </span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+
+<p>其中的一些我们熟悉的事件：</p>
+<ul>
+<li> WRITE_ROWS_EVENT：插入记录。 </li>
+<li> UPDATE_ROWS_EVENT：更新记录。 </li>
+<li> DELETE_ROWS_EVENT：删除记录。 </li>
+</ul>
+<p>像创建、修改数据库或者表结构这些语句也都可以找到对应类型的<code>事件</code>。</p>
+<p>为了查看binlog中包含了哪些<code>事件</code>，可以使用下边这个语句（带中括号<code>[]</code>的表示可以省略的语句）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">SHOW BINLOG EVENTS</span><br><span class="line">   [IN &#x27;log_name&#x27;]</span><br><span class="line">   [FROM pos]</span><br><span class="line">   [LIMIT [offset,] row_count]</span><br></pre></td></tr></table></figure>
+
+
+<p>其中：</p>
+<ul>
+<li> <code>[IN &#39;log_name&#39;]</code>：<code>log_name</code>表示我们要查看哪个<code>binlog</code>日志文件的内容。 </li>
+<li> <code>[FROM pos]</code>：<code>pos</code>表示我们要查看binlog文件的起始偏移量（通过指定这个值可以直接去查看某个偏移量处的事件）。 </li>
+<li> <code>LIMIT [offset,] row_count</code>：这个LIMIT子句的含义和我们写SQL语句中LIMIT子句的含义是一样的，<code>offset</code>表示我们要从哪个事件开始查看，<code>row_count</code>表示我们要查看多少个事件。 </li>
+</ul>
+<p>如果我们直接执行<code>SHOW BINLOG EVENTS</code>，表示查看第1个binlog日志文件的内容，在我的机器上就是<code>yhd-bin.000001</code>这个文件的内容：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; SHOW BINLOG EVENTS;</span><br><span class="line">+----------------------+-----+----------------+-----------+-------------+---------------------------------------+</span><br><span class="line">| Log_name             | Pos | Event_type     | Server_id | End_log_pos | Info                                  |</span><br><span class="line">+----------------------+-----+----------------+-----------+-------------+---------------------------------------+</span><br><span class="line">| yhd-bin.000001 |   4 | Format_desc    |         3 |         123 | Server ver: 5.7.20-log, Binlog ver: 4 |</span><br><span class="line">| yhd-bin.000001 | 123 | Previous_gtids |         3 |         154 |                                       |</span><br><span class="line">| yhdi-bin.000001 | 154 | Anonymous_Gtid |         3 |         219 | SET @@SESSION.GTID_NEXT= &#x27;ANONYMOUS&#x27;  |</span><br><span class="line">| yhd-bin.000001 | 219 | Query          |         3 |         296 | BEGIN                                 |</span><br><span class="line">| yhd-bin.000001 | 296 | Table_map      |         3 |         367 | table_id: 138 (yhd.s1)          |</span><br><span class="line">| yhd-bin.000001 | 367 | Update_rows    |         3 |         634 | table_id: 138 flags: STMT_END_F       |</span><br><span class="line">| yhd-bin.000001 | 634 | Xid            |         3 |         665 | COMMIT /* xid=65 */                   |</span><br><span class="line">| yhd-bin.000001 | 665 | Stop           |         3 |         688 |                                       |</span><br><span class="line">+----------------------+-----+----------------+-----------+-------------+---------------------------------------+</span><br><span class="line">8 rows in set (0.01 sec)</span><br></pre></td></tr></table></figure>
+
+
+<p>可以看到共输出了8个列，其中：</p>
+<ul>
+<li><code>Log_name</code>：表示binlog日志的文件名。</li>
+<li><code>Pos</code>：表示该事件在binlog日志文件中的起始偏移量。</li>
+<li><code>Event_type</code>：表示这个事件的类型。</li>
+<li><code>Server_id</code>：表示产生该事件的server_id（server_id是一个系统变量，我们可以通过配置让不同的MySQL服务器拥有不同的server_id）。</li>
+<li><code>End_log_pos</code>：表示下一个事件的在binlog日志文件中的起始偏移量。</li>
+<li><code>Info</code>：关于本事件的一些说明。</li>
+</ul>
+<blockquote>
+<ul>
+<li>起始偏移量为219（Pos=219）的事件是一个表明开始事务（BEGIN）的事件。</li>
+<li>起始偏移量为367（Pos=367）的事件是一个更新记录的事件（UPDATE）。</li>
+</ul>
+</blockquote>
+<p>目前只需要知道binlog日志是由若干个事件组成的就好了。</p>
+<p>如果想看其他binlog日志的详细情况，那就需要用到IN子句了：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; SHOW BINLOG EVENTS IN &#x27;yhd-bin.000004&#x27;;</span><br><span class="line">+----------------------+-----+----------------+-----------+-------------+-------------------------------------------+</span><br><span class="line">| Log_name             | Pos | Event_type     | Server_id | End_log_pos | Info                                      |</span><br><span class="line">+----------------------+-----+----------------+-----------+-------------+-------------------------------------------+</span><br><span class="line">| yhd-bin.000004 |   4 | Format_desc    |         3 |         123 | Server ver: 5.7.21-log, Binlog ver: 4     |</span><br><span class="line">| yhd-bin.000004 | 123 | Previous_gtids |         3 |         154 |                                           |</span><br><span class="line">| yhd-bin.000004 | 154 | Anonymous_Gtid |         3 |         219 | SET @@SESSION.GTID_NEXT= &#x27;ANONYMOUS&#x27;      |</span><br><span class="line">| yhd-bin.000004 | 219 | Query          |         3 |         327 | use `yhd`; create table tt1 (c int) |</span><br><span class="line">| yhd-bin.000004 | 327 | Anonymous_Gtid |         3 |         392 | SET @@SESSION.GTID_NEXT= &#x27;ANONYMOUS&#x27;      |</span><br><span class="line">| yhd-bin.000004 | 392 | Query          |         3 |         469 | BEGIN                                     |</span><br><span class="line">| yhd-bin.000004 | 469 | Table_map      |         3 |         520 | table_id: 167 (yhd.tt1)             |</span><br><span class="line">| yhd-bin.000004 | 520 | Write_rows     |         3 |         560 | table_id: 167 flags: STMT_END_F           |</span><br><span class="line">| yhd-bin.000004 | 560 | Xid            |         3 |         591 | COMMIT /* xid=71 */                       |</span><br><span class="line">| yhd-bin.000004 | 591 | Anonymous_Gtid |         3 |         656 | SET @@SESSION.GTID_NEXT= &#x27;ANONYMOUS&#x27;      |</span><br><span class="line">| yhd-bin.000004 | 656 | Query          |         3 |         733 | BEGIN                                     |</span><br><span class="line">| yhd-bin.000004 | 733 | Table_map      |         3 |         784 | table_id: 167 (yhd.tt1)             |</span><br><span class="line">| yhd-bin.000004 | 784 | Update_rows    |         3 |         830 | table_id: 167 flags: STMT_END_F           |</span><br><span class="line">| yhd-bin.000004 | 830 | Xid            |         3 |         861 | COMMIT /* xid=73 */                       |</span><br><span class="line">+----------------------+-----+----------------+-----------+-------------+-------------------------------------------+</span><br><span class="line">14 rows in set (0.00 sec)</span><br></pre></td></tr></table></figure>
+
+
+<p>这样我们就看到了<code>yhd-bin.000004</code>这个binlog日志文件中存储了哪些事件了。</p>
+<hr>
+<h2 id="5-mysqlbinlog工具的使用"><a href="#5-mysqlbinlog工具的使用" class="headerlink" title="5.mysqlbinlog工具的使用"></a>5.mysqlbinlog工具的使用</h2><p>由于binlog是二进制格式的，我们不能直接以文本的形式查看。使用<code>SHOW BINLOG EVENTS</code>又只能看到粗略的信息，如果我们想查看binlog日志文件的详细信息的话，就需要使用MySQL给我们提供的实用工具——<code>mysqlbinlog</code>。</p>
+<p>像<code>mysqld</code>、<code>mysql</code>这些可执行文件一样，<code>mysqlbinlog</code>也被放在了MySQL安装目录下的bin目录下。</p>
+<p>我们可以将想查看的binlog日志文件路径作为<code>mysqlbinlog</code>的参数，就能查看文本形式的事件详细信息了。比方说我们看一下<code>yhd-bin.000001</code>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br></pre></td><td class="code"><pre><span class="line">shell&gt; mysqlbinlog ./yhd-bin.000001</span><br><span class="line"></span><br><span class="line">DELIMITER ;</span><br><span class="line"># at 4</span><br><span class="line">#211202 20:01:14 server id 3  end_log_pos 123 CRC32 0xa308715b   Start: binlog v 4, server v 5.7.21-log created 211202 20:01:14 at startup</span><br><span class="line">ROLLBACK/*!*/;</span><br><span class="line">BINLOG &#x27;</span><br><span class="line">irWoYQ8DAAAAdwAAAHsAAAAAAAQANS43LjIxLWxvZwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA</span><br><span class="line">AAAAAAAAAAAAAAAAAACKtahhEzgNAAgAEgAEBAQEEgAAXwAEGggAAAAICAgCAAAACgoKKioAEjQA</span><br><span class="line">AVtxCKM=</span><br><span class="line">&#x27;/*!*/;</span><br><span class="line"># at 123</span><br><span class="line">#211202 20:01:14 server id 3  end_log_pos 154 CRC32 0x0d6a1ce6   Previous-GTIDs</span><br><span class="line"># [empty]</span><br><span class="line"># at 154</span><br><span class="line">#211202 20:07:07 server id 3  end_log_pos 219 CRC32 0xab157b64   Anonymous_GTID  last_committed=0  sequence_number=1  rbr_only=yes</span><br><span class="line">/*!50718 SET TRANSACTION ISOLATION LEVEL READ COMMITTED*//*!*/;</span><br><span class="line">SET @@SESSION.GTID_NEXT= &#x27;ANONYMOUS&#x27;/*!*/;</span><br><span class="line"># at 219</span><br><span class="line">#211202 20:07:07 server id 3  end_log_pos 296 CRC32 0xedb6b609   Query  thread_id=2  exec_time=0  error_code=0</span><br><span class="line">SET TIMESTAMP=1638446827/*!*/;</span><br><span class="line">SET @@session.pseudo_thread_id=2/*!*/;</span><br><span class="line">SET @@session.foreign_key_checks=1, @@session.sql_auto_is_null=0, @@session.unique_checks=1, @@session.autocommit=1/*!*/;</span><br><span class="line">SET @@session.sql_mode=1436549152/*!*/;</span><br><span class="line">SET @@session.auto_increment_increment=1, @@session.auto_increment_offset=1/*!*/;</span><br><span class="line">/*!\C utf8 *//*!*/;</span><br><span class="line">SET @@session.character_set_client=33,@@session.collation_connection=33,@@session.collation_server=33/*!*/;</span><br><span class="line">SET @@session.lc_time_names=0/*!*/;</span><br><span class="line">SET @@session.collation_database=DEFAULT/*!*/;</span><br><span class="line">BEGIN</span><br><span class="line">/*!*/;</span><br><span class="line"># at 296</span><br><span class="line">#211202 20:07:07 server id 3  end_log_pos 367 CRC32 0x43cd57ee   Table_map: `yhd`.`s1` mapped to number 138</span><br><span class="line"># at 367</span><br><span class="line">#211202 20:07:07 server id 3  end_log_pos 634 CRC32 0xe2981d9e   Update_rows: table id 138 flags: STMT_END_F</span><br><span class="line"></span><br><span class="line">BINLOG &#x27;</span><br><span class="line">67aoYRMDAAAARwAAAG8BAAAAAIoAAAAAAAEACXhpYW9oYWl6aQACczEACAMPDw8PDw8PDiwBLAEs</span><br><span class="line">ASwBLAEsASwB/u5XzUM=</span><br><span class="line">67aoYR8DAAAACwEAAHoCAAAAAIoAAAAAAAEAAgAI//8ApAMAABgAZmt3YW91b2syY2sxY2RlMzA2</span><br><span class="line">bzZ2NHcxCQAxMzA4NzI2NzgTAHBqdHFxc2dsMngxMjd4MWZjdngBAG0MAHBycmp3bmtxbjV1aRoA</span><br><span class="line">NHN3cWJsNXEzd3V2bzUyZGdscmI1eWlmencJAGxzMjFoNHZhNwCkAwAAGABma3dhb3VvazJjazFj</span><br><span class="line">ZGUzMDZvNnY0dzEJADEzMDg3MjY3OBMAcGp0cXFzZ2wyeDEyN3gxZmN2eAEAbQwAcHJyandua3Fu</span><br><span class="line">NXVpGgA0c3dxYmw1cTN3dXZvNTJkZ2xyYjV5aWZ6dwIAeHieHZji</span><br><span class="line">&#x27;/*!*/;</span><br><span class="line"># at 634</span><br><span class="line">#211202 20:07:07 server id 3  end_log_pos 665 CRC32 0xe586ffeb   Xid = 65</span><br><span class="line">COMMIT/*!*/;</span><br><span class="line"># at 665</span><br><span class="line">#211202 20:07:19 server id 3  end_log_pos 688 CRC32 0x8c69bad2   Stop</span><br><span class="line">SET @@SESSION.GTID_NEXT= &#x27;AUTOMATIC&#x27; /* added by mysqlbinlog */ /*!*/;</span><br><span class="line">DELIMITER ;</span><br><span class="line"># End of log file</span><br><span class="line">/*!50003 SET COMPLETION_TYPE=@OLD_COMPLETION_TYPE*/;</span><br><span class="line">/*!50530 SET @@SESSION.PSEUDO_SLAVE_MODE=0*/;</span><br></pre></td></tr></table></figure>
+
+
+<p>其中以<code># at xx</code>开头的表示这是一个事件的开始：</p>
+<ul>
+<li> <code># at 4</code>：表示在偏移量为4的地方有一个事件，下边是该事件的详细信息。 </li>
+<li> <code># at 123</code>表示在偏移量为123的地方有一个事件，下边是该事件的详细信息。 </li>
+</ul>
+<p>…</p>
+<hr>
+<h2 id="6-阶段小结"><a href="#6-阶段小结" class="headerlink" title="6.阶段小结"></a>6.阶段小结</h2><ul>
+<li>binlog日志用于主从复制以及数据恢复。</li>
+<li>启动选项<code>--log-bin[=basename]</code>可以控制MySQL服务器是否生成binlog，并且控制binlog日志文件所在路径以及文件名称。</li>
+<li>为了记录binlog，MySQL服务器在文件系统上创建了一系列存储真实binlog数据的文件（这些文件都以数字编号），以及binlog索引文件。</li>
+<li>binlog日志文件中记载了数据库发生更改的若干事件。</li>
+<li>使用SHOW BINLOG EVENTS语句可以查看某个binlog日志文件中存储的各种事件。</li>
+<li>mysqlbinlog实用工具可以用文本形式查看某个binlog日志文件所记载各种事件。</li>
+</ul>
+<hr>
+<h2 id="7-binlog日志版本"><a href="#7-binlog日志版本" class="headerlink" title="7.binlog日志版本"></a>7.binlog日志版本</h2><p>binlog是自MySQL 3.23.14版本开始诞生的，到现在为止，共经历了4个版本：</p>
+<ol>
+<li>v1</li>
+<li>v2</li>
+<li>v3</li>
+<li>V4</li>
+</ol>
+<p>其中的v4版本从MySQL 5.0就开始使用，直到今天。所以着重介绍v4版本的binlog格式，其他版本就不关注了。</p>
+<h2 id="8-binlog日志文件结构概览"><a href="#8-binlog日志文件结构概览" class="headerlink" title="8.binlog日志文件结构概览"></a>8.binlog日志文件结构概览</h2><p>先看一下一个binlog日志文件的基本格式：</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1642061265559-c29d5441-5b0b-4497-ab0e-69aca38b455b.png#clientId=u13ecaba3-2d84-4&crop=0&crop=0&crop=1&crop=1&from=ui&id=u34862693&margin=%5Bobject%20Object%5D&name=1.png&originHeight=614&originWidth=390&originalType=binary&ratio=1&rotation=0&showTitle=false&size=8980&status=done&style=none&taskId=u5b599643-25cf-465e-9a0d-45f78694a9d&title=" alt="1.png"></p>
+<p>从上图中可以看出：</p>
+<ul>
+<li>每个binlog日志文件的前4个字节是固定的，即：<code>0xfe626963</code>。</li>
+</ul>
+<blockquote>
+<p>0xfe626963中的0x626963的ascii码是’bin’，0xfe626963也被称作魔数（magic number），如果一个文件不以0xfe626963开头，那这个文件肯定不算是一个binlog日志。很多软件都会在磁盘文件的某个地方添加一个类似的魔数来表明该文件是本软件处理的文件格式，比方说Intel处理器的BIOS会将磁盘上的第一个扇区加载到内存中，这个扇区的最后两个字节必须为魔数0x55aa，Java的class文件字节码的开头四个字节为魔数0xCAFEBABE。</p>
+</blockquote>
+<ul>
+<li> 每个binlog日志文件都是由若干事件构成的。 </li>
+<li> 每个binlog日志文件所存储的第1个事件都是一个称作<code>格式描述事件</code>（format description event）的特殊事件。 </li>
+</ul>
+<p>其中，每个事件都可以被分成<code>event header</code>和<code>event data</code>两个部分，我们以上图的<code>事件2</code>为例展示一下：</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1642061275451-60f2f357-50cb-49e6-9202-7de70735dba9.png#clientId=u13ecaba3-2d84-4&crop=0&crop=0&crop=1&crop=1&from=ui&id=ub30ba4ad&margin=%5Bobject%20Object%5D&name=2.png&originHeight=454&originWidth=681&originalType=binary&ratio=1&rotation=0&showTitle=false&size=9382&status=done&style=none&taskId=uf8b475fa-ac73-419d-adc1-38f2514e96a&title=" alt="2.png"></p>
+<p>其中：</p>
+<ul>
+<li> event header部分描述了该事件是什么类型、什么时候生成的、由哪个服务器生成的等信息。 </li>
+<li> event data部分描述了该事件所特有的一些信息，比方说在插入一条记录时，需要将这条记录的内容记录在event data中。 </li>
+</ul>
+<h3 id="8-1event-header结构"><a href="#8-1event-header结构" class="headerlink" title="8.1event header结构"></a>8.1event header结构</h3><p>每个事件都会包括一个通用的event header，看一下这个event header的结构：</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1642061420547-bb2d9a9b-2a5d-4d99-95dd-3c7604d7ec0f.png#clientId=u13ecaba3-2d84-4&crop=0&crop=0&crop=1&crop=1&from=ui&id=ue148b52e&margin=%5Bobject%20Object%5D&name=1.png&originHeight=370&originWidth=433&originalType=binary&ratio=1&rotation=0&showTitle=false&size=10312&status=done&style=none&taskId=ua5008f25-3630-44de-b5dc-ee394c50765&title=" alt="1.png"></p>
+<p>event header中包含了如下几部分内容：</p>
+<ul>
+<li>timestamp（4字节）：产生该事件时的时间戳。</li>
+<li>typecode（1字节）：该事件的类型，事件的类型在枚举结构<code>Log_event_type</code>中列举出来。比方说<code>格式描述事件</code>的typecode就是15。</li>
+<li>server_id（4字节）：产生该事件的主机的server_id。</li>
+<li>event_length（4字节）：该事件总大小（包括event header + event data）。</li>
+<li>next_position（4字节）：下一个事件的位置。</li>
+<li>flags（2字节）：该事件的一些附加属性（称作flags）。</li>
+<li>extra_headers（不确定大小）：目前这个字段尚未使用（也就是占用的大小为0），可能在将来的版本中使用。</li>
+</ul>
+<h3 id="8-2event-data"><a href="#8-2event-data" class="headerlink" title="8.2event data"></a>8.2event data</h3><p>event data由2部分组成，分别是：</p>
+<ul>
+<li>固定大小部分</li>
+<li>可变大小部分</li>
+</ul>
+<p><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1642061429456-8633de5d-66fa-47e0-9c5f-551b53179a6c.png#clientId=u13ecaba3-2d84-4&crop=0&crop=0&crop=1&crop=1&from=ui&id=u693cefda&margin=%5Bobject%20Object%5D&name=2.png&originHeight=162&originWidth=374&originalType=binary&ratio=1&rotation=0&showTitle=false&size=2272&status=done&style=none&taskId=u7f5fe940-f128-4753-aa1b-090b35da21e&title=" alt="2.png"></p>
+<p>不过并不是所有事件都有这两个部分，<strong>有的事件可以仅有其中的一个部分或者两个部分都没有</strong>。</p>
+<p>MySQL中支持几十种binlog事件，不同事件具有不同的event data部分。</p>
+<p>先看一下binlog的事件类型有多少，直接从MySQL5.7.22的源码中获取Log_event_type结构：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">enum</span> <span class="title">Log_event_type</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line"></span><br><span class="line">  UNKNOWN_EVENT= <span class="number">0</span>,</span><br><span class="line">  START_EVENT_V3= <span class="number">1</span>,</span><br><span class="line">  QUERY_EVENT= <span class="number">2</span>,</span><br><span class="line">  STOP_EVENT= <span class="number">3</span>,</span><br><span class="line">  ROTATE_EVENT= <span class="number">4</span>,</span><br><span class="line">  INTVAR_EVENT= <span class="number">5</span>,</span><br><span class="line">  LOAD_EVENT= <span class="number">6</span>,</span><br><span class="line">  SLAVE_EVENT= <span class="number">7</span>,</span><br><span class="line">  CREATE_FILE_EVENT= <span class="number">8</span>,</span><br><span class="line">  APPEND_BLOCK_EVENT= <span class="number">9</span>,</span><br><span class="line">  EXEC_LOAD_EVENT= <span class="number">10</span>,</span><br><span class="line">  DELETE_FILE_EVENT= <span class="number">11</span>,</span><br><span class="line"></span><br><span class="line">  NEW_LOAD_EVENT= <span class="number">12</span>,</span><br><span class="line">  RAND_EVENT= <span class="number">13</span>,</span><br><span class="line">  USER_VAR_EVENT= <span class="number">14</span>,</span><br><span class="line">  FORMAT_DESCRIPTION_EVENT= <span class="number">15</span>,</span><br><span class="line">  XID_EVENT= <span class="number">16</span>,</span><br><span class="line">  BEGIN_LOAD_QUERY_EVENT= <span class="number">17</span>,</span><br><span class="line">  EXECUTE_LOAD_QUERY_EVENT= <span class="number">18</span>,</span><br><span class="line"></span><br><span class="line">  TABLE_MAP_EVENT = <span class="number">19</span>,</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">  PRE_GA_WRITE_ROWS_EVENT = <span class="number">20</span>,</span><br><span class="line">  PRE_GA_UPDATE_ROWS_EVENT = <span class="number">21</span>,</span><br><span class="line">  PRE_GA_DELETE_ROWS_EVENT = <span class="number">22</span>,</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">  WRITE_ROWS_EVENT_V1 = <span class="number">23</span>,</span><br><span class="line">  UPDATE_ROWS_EVENT_V1 = <span class="number">24</span>,</span><br><span class="line">  DELETE_ROWS_EVENT_V1 = <span class="number">25</span>,</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">  INCIDENT_EVENT= <span class="number">26</span>,</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">  HEARTBEAT_LOG_EVENT= <span class="number">27</span>,</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">  IGNORABLE_LOG_EVENT= <span class="number">28</span>,</span><br><span class="line">  ROWS_QUERY_LOG_EVENT= <span class="number">29</span>,</span><br><span class="line"></span><br><span class="line">  WRITE_ROWS_EVENT = <span class="number">30</span>,</span><br><span class="line">  UPDATE_ROWS_EVENT = <span class="number">31</span>,</span><br><span class="line">  DELETE_ROWS_EVENT = <span class="number">32</span>,</span><br><span class="line"></span><br><span class="line">  GTID_LOG_EVENT= <span class="number">33</span>,</span><br><span class="line">  ANONYMOUS_GTID_LOG_EVENT= <span class="number">34</span>,</span><br><span class="line"></span><br><span class="line">  PREVIOUS_GTIDS_LOG_EVENT= <span class="number">35</span>,</span><br><span class="line"></span><br><span class="line">  TRANSACTION_CONTEXT_EVENT= <span class="number">36</span>,</span><br><span class="line"></span><br><span class="line">  VIEW_CHANGE_EVENT= <span class="number">37</span>,</span><br><span class="line"></span><br><span class="line">  XA_PREPARE_LOG_EVENT= <span class="number">38</span>,</span><br><span class="line"></span><br><span class="line">  ENUM_END_EVENT </span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+
+<p>在MySQL 5.7.22这个版本中，共支持38种不同的binlog事件类型。</p>
+<h3 id="8-3格式描述事件"><a href="#8-3格式描述事件" class="headerlink" title="8.3格式描述事件"></a>8.3格式描述事件</h3><p>每个binlog日志文件都以<code>格式描述事件</code>作为第一个事件，它对应的Log_event_type就是FORMAT_DESCRIPTION_EVENT。我们看一下这种事件的结构：</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2022/png/12610368/1642061440118-2acada25-b19f-4d64-89c5-deb1dfa34978.png#clientId=u13ecaba3-2d84-4&crop=0&crop=0&crop=1&crop=1&from=ui&id=ua6604f43&margin=%5Bobject%20Object%5D&name=3.png&originHeight=714&originWidth=546&originalType=binary&ratio=1&rotation=0&showTitle=false&size=23186&status=done&style=none&taskId=u144b3a8a-ff32-432e-9ff3-d0991b45eca&title=" alt="3.png"></p>
+<p><code>格式描述事件</code>共占用119字节，是由event header和event data两部分构成的，其中event header是各个事件都有的部分。另外，在event data部分，<code>格式描述事件</code>的event data中只有<code>固定长度部分</code>，没有<code>可变长度部分</code>，其中的各个字段含义如下：</p>
+<ul>
+<li><code>binlog_version</code>：使用的binlog版本。</li>
+<li><code>server_version</code>：产生此事件的MySQL服务器的版本。</li>
+<li><code>create_timestamp</code>：产生此事件时的时间戳，该字段的值和event header中timestamp中的值一样。</li>
+<li><code>header_length</code>：此事件的event header占用的存储空间大小。</li>
+<li><code>post-header length</code>：使用1个字节来表示每个事件的event data部分占用的存储空间大小（不包括校验和相关字段），当前我使用的MySQL版本为5.7.22，共包含38种不同的事件，<code>post-header length</code>字段就占用了38个字节。</li>
+<li><code>checksum_alg</code>：表示计算事件校验和的算法（该字段为1时表示采用CRC32算法）。</li>
+<li><code>checksum</code>：表示本事件的校验和。</li>
+</ul>
+<p>真正打开一个binlog日志文件来看一下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">魔数：      FE62696E </span><br><span class="line"></span><br><span class="line">timestamp:     8AB5A861  </span><br><span class="line">typecode:     0F          </span><br><span class="line">server_id:     03000000 </span><br><span class="line">event_length:     77000000 </span><br><span class="line">next_postion:     7B000000 </span><br><span class="line">flags:      0000     </span><br><span class="line">binlog_version:    0400   </span><br><span class="line">server_version:    352E37 2E32312D 6C6F6700 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 000000  </span><br><span class="line">create_timestamp:    8AB5A861 </span><br><span class="line">header_length:     13       </span><br><span class="line">post-header length(共38种): 380D0008 00120004 04040412 00005F00 041A0800 00000808 08020000 000A0A0A 2A2A0012 3400</span><br><span class="line">checksum_alg：    01 </span><br><span class="line">checksum：      5B7108A3</span><br></pre></td></tr></table></figure>
+
+
+<blockquote>
+<p>其他事件的event data部分可以参考MySQL internal文档。另外，也可以使用mysqlbinlog，配合–hexdump启动选项来直接分析binlog的二进制格式。</p>
+</blockquote>
+<hr>
+<h2 id="9-基于Statement和基于Row的binlog"><a href="#9-基于Statement和基于Row的binlog" class="headerlink" title="9.基于Statement和基于Row的binlog"></a>9.基于Statement和基于Row的binlog</h2><p>同一条SQL语句，随着启动选项<code>binlog-format</code>的不同，可能生成不同类型的binlog事件：</p>
+<ul>
+<li> 当以启动选项<code>--binlog-format=STATEMENT</code>启动MySQL服务器时，生成的binlog称作<code>基于语句的日志</code>。此时只会将一条SQL语句将会被完整的记录到binlog中，而不管该语句影响了多少记录。 </li>
+<li> 当以启动选项<code>--binlog-format=ROW</code>启动MySQL服务器时，生成的binlog称作<code>基于行的日志</code>。此时会将该语句所改动的记录的全部信息都记录上。 </li>
+<li> 当以启动选项<code>--binlog-format=MIXED</code>启动MySQL服务器时，生成的binlog称作<code>基于行的日志</code>。此时在通常情况下采用<code>基于语句的日志</code>，在某些特殊情况下会自动转为<code>基于行的日志</code>（这些具体情况请参考：<a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/8.0/en/binary-log-mixed.html%EF%BC%89%E3%80%82">https://dev.mysql.com/doc/refman/8.0/en/binary-log-mixed.html）。</a> </li>
+</ul>
+<blockquote>
+<p>我们也可以通过修改会话级别的binlog_format系统变量的形式来修改只针对本客户端执行语句生成的binlog日志的格式。</p>
+</blockquote>
+<h3 id="9-1基于语句的binlog"><a href="#9-1基于语句的binlog" class="headerlink" title="9.1基于语句的binlog"></a>9.1基于语句的binlog</h3><p>假如服务器启动时添加了<code>--binlog-format=STATEMENT</code>启动选项，我们执行如下语句：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">UPDATE s1 SET common_field = &#x27;xx&#x27; WHERE id &gt; 9990;</span><br></pre></td></tr></table></figure>
+
+
+<p>然后使用mysqlbinlog实用工具查看一下相应的binlog内容：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">mysqlbinlog --verbose yhd-bin.000007</span><br><span class="line">...这里省略了很多内容</span><br><span class="line"># at 308</span><br><span class="line">#211207 21:00:27 server id 3  end_log_pos 440 CRC32 0x713f80ae  Query thread_id=2 exec_time=0 error_code=0</span><br><span class="line">use `yhd`/*!*/;</span><br><span class="line">SET TIMESTAMP=1638882027/*!*/;</span><br><span class="line">update s1 set common_field= &#x27;xx&#x27; where id &gt; 9990</span><br><span class="line">/*!*/;</span><br><span class="line">...这里省略了很多内容</span><br></pre></td></tr></table></figure>
+
+
+<p>可见，<code>基于语句的binlog</code>只将更新语句是什么记录下来了。</p>
+<h3 id="9-2基于行的binlog"><a href="#9-2基于行的binlog" class="headerlink" title="9.2基于行的binlog"></a>9.2基于行的binlog</h3><p>假如服务器启动时添加了<code>--binlog-format=ROW</code>启动选项，我们执行如下语句：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">UPDATE s1 SET common_field = &#x27;xxx&#x27; WHERE id &gt; 9990;</span><br></pre></td></tr></table></figure>
+
+
+<p>然后使用mysqlbinlog实用工具查看一下相应的binlog内容：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line">mysqlbinlog --verbose yhd-bin.000008</span><br><span class="line">...这里省略了很多内容</span><br><span class="line">### UPDATE `yhd`.`s1`</span><br><span class="line">### WHERE</span><br><span class="line">###   @1=9991</span><br><span class="line">###   @2=&#x27;7cgwfh14w6nql61pvult6ok0ccwe&#x27;</span><br><span class="line">###   @3=&#x27;799105223&#x27;</span><br><span class="line">###   @4=&#x27;c&#x27;</span><br><span class="line">###   @5=&#x27;gjjiwstjysv1lgx&#x27;</span><br><span class="line">###   @6=&#x27;zg1hsvqrtyw2pgxgg&#x27;</span><br><span class="line">###   @7=&#x27;y244x02&#x27;</span><br><span class="line">###   @8=&#x27;xx&#x27;</span><br><span class="line">### SET</span><br><span class="line">###   @1=9991</span><br><span class="line">###   @2=&#x27;7cgwfh14w6nql61pvult6ok0ccwe&#x27;</span><br><span class="line">###   @3=&#x27;799105223&#x27;</span><br><span class="line">###   @4=&#x27;c&#x27;</span><br><span class="line">###   @5=&#x27;gjjiwstjysv1lgx&#x27;</span><br><span class="line">###   @6=&#x27;zg1hsvqrtyw2pgxgg&#x27;</span><br><span class="line">###   @7=&#x27;y244x02&#x27;</span><br><span class="line">###   @8=&#x27;xxx&#x27;</span><br><span class="line">### UPDATE `yhd`.`s1`</span><br><span class="line">### WHERE</span><br><span class="line">###   @1=9992</span><br><span class="line">###   @2=&#x27;2sfq3oftc&#x27;</span><br><span class="line">###   @3=&#x27;815047282&#x27;</span><br><span class="line">###   @4=&#x27;ub&#x27;</span><br><span class="line">###   @5=&#x27;73hw14kbaaoa&#x27;</span><br><span class="line">###   @6=&#x27;fxnqzef3rrpc7qzxcjsvt14nypep4rqi&#x27;</span><br><span class="line">###   @7=&#x27;10vapb6&#x27;</span><br><span class="line">###   @8=&#x27;xx&#x27;</span><br><span class="line">### SET</span><br><span class="line">###   @1=9992</span><br><span class="line">###   @2=&#x27;2sfq3oftc&#x27;</span><br><span class="line">###   @3=&#x27;815047282&#x27;</span><br><span class="line">###   @4=&#x27;ub&#x27;</span><br><span class="line">###   @5=&#x27;73hw14kbaaoa&#x27;</span><br><span class="line">###   @6=&#x27;fxnqzef3rrpc7qzxcjsvt14nypep4rqi&#x27;</span><br><span class="line">###   @7=&#x27;10vapb6&#x27;</span><br><span class="line">###   @8=&#x27;xxx&#x27;</span><br><span class="line">...这里省略了很多内容</span><br></pre></td></tr></table></figure>
+
+
+<p>可见，<code>基于行的binlog</code>将更新语句执行过程中每一条记录更新前后的值都记录下来了。</p>
+<h2 id="10-基于语句的binlog的问题"><a href="#10-基于语句的binlog的问题" class="headerlink" title="10.基于语句的binlog的问题"></a>10.基于语句的binlog的问题</h2><p>在有主从复制的场景中，使用<code>基于语句的日志</code>可能会造成主服务器和从服务器维护的数据不一致的情况。</p>
+<p>比方说我们有一个表t：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">CREATE TABLE t (</span><br><span class="line">    id INT UNSIGNED NOT NULL AUTO_INCREMENT,</span><br><span class="line">    c VARCHAR(100),</span><br><span class="line">    PRIMARY KEY(ID)</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+
+
+<p>如果我们执行如下语句：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">INSERT INTO t(c) SELECT c FROM other_table;</span><br></pre></td></tr></table></figure>
+
+
+<p>这个语句是想将<code>other_table</code>表中列<code>c</code>的值都插入到表t的列c中，而表t的id列是自增列，可以自动生成。</p>
+<p>如果主库和从库的服务器执行<code>SELECT c FROM other_table</code>返回记录的顺序不同的话（不同服务器版本、不同的系统变量配置都可能导致同一条语句返回结果的顺序不同），那么针对表t相同id值的记录来说，列c就可能具有不同的值，这就会造成主从之间数据的不一致。</p>
+<p>而如果将binlog的格式改为<code>基于行的日志</code>的话，由于主库在执行完语句后将该语句插入的每条完整的记录都写入binlog日志，就不会造成主从之间不一致了。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">二十</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://yinhuidong.github.io/2022/01/23/MySQL/MySQL[%E4%BA%8C%E5%8D%81%E4%B8%89]%E4%BA%8C%E8%BF%9B%E5%88%B6%E6%97%A5%E5%BF%97/">https://yinhuidong.github.io/2022/01/23/MySQL/MySQL[二十三]二进制日志/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://yinhuidong.github.io" target="_blank">二十</a> 许可协议。转载请注明来自 <a href="https://yinhuidong.github.io" target="_blank">二十</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/MySQL/">MySQL</a></div><div class="post_share"><div class="social-share" data-image="/images/cover/mysql.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js" defer></script></div></div><div class="post-reward"><div class="reward-button button--animated"><i class="fas fa-qrcode"></i> 打赏</div><div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/img/wechat_pay.jpg" target="_blank"><img class="post-qr-code-img" src="/img/wechat_pay.jpg" alt="微信"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="/img/alipay.jpg" target="_blank"><img class="post-qr-code-img" src="/img/alipay.jpg" alt="支付宝"/></a><div class="post-qr-code-desc">支付宝</div></li></ul></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/2022/01/22/MySQL/MySQL%5B%E4%BA%8C%E5%8D%81%E4%BA%8C%5DCOUNT/"><img class="next-cover" src="/images/cover/mysql.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">MySQL[二十二]COUNT</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2022/01/07/MySQL/MySQL%5B%E4%B8%83%5D%E5%9F%BA%E4%BA%8E%E6%88%90%E6%9C%AC%E7%9A%84%E4%BC%98%E5%8C%96/" title="MySQL[七]基于成本的优化"><img class="cover" src="/images/cover/mysql.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-07</div><div class="title">MySQL[七]基于成本的优化</div></div></a></div><div><a href="/2022/01/03/MySQL/MySQL%5B%E4%B8%89%5DInnoDB%E7%B4%A2%E5%BC%95%E7%BB%93%E6%9E%84/" title="MySQL[三]InnoDB索引结构"><img class="cover" src="/images/cover/mysql.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-03</div><div class="title">MySQL[三]InnoDB索引结构</div></div></a></div><div><a href="/2022/01/01/MySQL/MySQL%5B%E4%B8%80%5D%E5%85%A5%E9%97%A8/" title="MySQL[一]入门"><img class="cover" src="/images/cover/mysql.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-01</div><div class="title">MySQL[一]入门</div></div></a></div><div><a href="/2022/01/09/MySQL/MySQL%5B%E4%B9%9D%5D%E5%9F%BA%E4%BA%8E%E8%A7%84%E5%88%99%E7%9A%84%E4%BC%98%E5%8C%96&%E5%AD%90%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96/" title="MySQL[九]基于规则的优化&子查询优化"><img class="cover" src="/images/cover/mysql.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-09</div><div class="title">MySQL[九]基于规则的优化&子查询优化</div></div></a></div><div><a href="/2022/01/02/MySQL/MySQL%5B%E4%BA%8C%5D%E6%A6%82%E8%BF%B0/" title="MySQL[二]概述"><img class="cover" src="/images/cover/mysql.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-02</div><div class="title">MySQL[二]概述</div></div></a></div><div><a href="/2022/01/20/MySQL/MySQL%5B%E4%BA%8C%E5%8D%81%5D%E6%B5%B7%E9%87%8F%E6%95%B0%E6%8D%AE%E5%A4%84%E7%90%86%E6%80%BB%E7%BB%93/" title="MySQL[二十]海量数据处理"><img class="cover" src="/images/cover/mysql.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-01-20</div><div class="title">MySQL[二十]海量数据处理</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/head.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">二十</div><div class="author-info__description">欢迎来到二十的博客....</div></div><div class="card-info-data"><div class="card-info-data-item is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">123</div></a></div><div class="card-info-data-item is-center"><a href="/tags/"><div class="headline">标签</div><div class="length-num">14</div></a></div><div class="card-info-data-item is-center"><a href="/categories/"><div class="headline">分类</div><div class="length-num">13</div></a></div></div><a class="button--animated" id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/yinhuidong"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/yinhuidong" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="mailto:1972039773@qq.com" target="_blank" title="Email"><i class="fas fa-envelope"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn card-announcement-animation"></i><span>公告</span></div><div class="announcement_content">欢迎来到二十的个人博客，联系作者：VX：yinhuidong666</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-binlog%E7%9A%84%E4%BD%9C%E7%94%A8"><span class="toc-text">1.binlog的作用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E6%80%8E%E4%B9%88%E9%85%8D%E7%BD%AEbinlog"><span class="toc-text">2.怎么配置binlog</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-binlog%E5%9C%A8%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F%E4%B8%AD%E7%9A%84%E5%86%85%E5%AE%B9"><span class="toc-text">3.binlog在文件系统中的内容</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E6%9F%A5%E7%9C%8Bbinlog%E7%9A%84%E8%AF%AD%E5%8F%A5"><span class="toc-text">4.查看binlog的语句</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-mysqlbinlog%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8"><span class="toc-text">5.mysqlbinlog工具的使用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-%E9%98%B6%E6%AE%B5%E5%B0%8F%E7%BB%93"><span class="toc-text">6.阶段小结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-binlog%E6%97%A5%E5%BF%97%E7%89%88%E6%9C%AC"><span class="toc-text">7.binlog日志版本</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-binlog%E6%97%A5%E5%BF%97%E6%96%87%E4%BB%B6%E7%BB%93%E6%9E%84%E6%A6%82%E8%A7%88"><span class="toc-text">8.binlog日志文件结构概览</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1event-header%E7%BB%93%E6%9E%84"><span class="toc-text">8.1event header结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2event-data"><span class="toc-text">8.2event data</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-3%E6%A0%BC%E5%BC%8F%E6%8F%8F%E8%BF%B0%E4%BA%8B%E4%BB%B6"><span class="toc-text">8.3格式描述事件</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#9-%E5%9F%BA%E4%BA%8EStatement%E5%92%8C%E5%9F%BA%E4%BA%8ERow%E7%9A%84binlog"><span class="toc-text">9.基于Statement和基于Row的binlog</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#9-1%E5%9F%BA%E4%BA%8E%E8%AF%AD%E5%8F%A5%E7%9A%84binlog"><span class="toc-text">9.1基于语句的binlog</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-2%E5%9F%BA%E4%BA%8E%E8%A1%8C%E7%9A%84binlog"><span class="toc-text">9.2基于行的binlog</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#10-%E5%9F%BA%E4%BA%8E%E8%AF%AD%E5%8F%A5%E7%9A%84binlog%E7%9A%84%E9%97%AE%E9%A2%98"><span class="toc-text">10.基于语句的binlog的问题</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2022/01/23/MySQL/MySQL%5B%E4%BA%8C%E5%8D%81%E4%B8%89%5D%E4%BA%8C%E8%BF%9B%E5%88%B6%E6%97%A5%E5%BF%97/" title="MySQL[二十三]二进制日志"><img src="/images/cover/mysql.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="MySQL[二十三]二进制日志"/></a><div class="content"><a class="title" href="/2022/01/23/MySQL/MySQL%5B%E4%BA%8C%E5%8D%81%E4%B8%89%5D%E4%BA%8C%E8%BF%9B%E5%88%B6%E6%97%A5%E5%BF%97/" title="MySQL[二十三]二进制日志">MySQL[二十三]二进制日志</a><time datetime="2022-01-22T16:00:00.000Z" title="发表于 2022-01-23 00:00:00">2022-01-23</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/01/22/MySQL/MySQL%5B%E4%BA%8C%E5%8D%81%E4%BA%8C%5DCOUNT/" title="MySQL[二十二]COUNT"><img src="/images/cover/mysql.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="MySQL[二十二]COUNT"/></a><div class="content"><a class="title" href="/2022/01/22/MySQL/MySQL%5B%E4%BA%8C%E5%8D%81%E4%BA%8C%5DCOUNT/" title="MySQL[二十二]COUNT">MySQL[二十二]COUNT</a><time datetime="2022-01-21T16:00:00.000Z" title="发表于 2022-01-22 00:00:00">2022-01-22</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/01/21/MySQL/MySQL%5B%E4%BA%8C%E5%8D%81%E4%B8%80%5DLIMIT/" title="MySQL[二十一]LIMIT"><img src="/images/cover/mysql.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="MySQL[二十一]LIMIT"/></a><div class="content"><a class="title" href="/2022/01/21/MySQL/MySQL%5B%E4%BA%8C%E5%8D%81%E4%B8%80%5DLIMIT/" title="MySQL[二十一]LIMIT">MySQL[二十一]LIMIT</a><time datetime="2022-01-20T16:00:00.000Z" title="发表于 2022-01-21 00:00:00">2022-01-21</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/01/20/MySQL/MySQL%5B%E4%BA%8C%E5%8D%81%5D%E6%B5%B7%E9%87%8F%E6%95%B0%E6%8D%AE%E5%A4%84%E7%90%86%E6%80%BB%E7%BB%93/" title="MySQL[二十]海量数据处理"><img src="/images/cover/mysql.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="MySQL[二十]海量数据处理"/></a><div class="content"><a class="title" href="/2022/01/20/MySQL/MySQL%5B%E4%BA%8C%E5%8D%81%5D%E6%B5%B7%E9%87%8F%E6%95%B0%E6%8D%AE%E5%A4%84%E7%90%86%E6%80%BB%E7%BB%93/" title="MySQL[二十]海量数据处理">MySQL[二十]海量数据处理</a><time datetime="2022-01-19T16:00:00.000Z" title="发表于 2022-01-20 00:00:00">2022-01-20</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2022/01/18/MySQL/MySQL%5B%E5%8D%81%E5%85%AB%5D%E9%94%81%E5%88%86%E6%9E%90/" title="MySQL[十八]锁分析"><img src="/images/cover/mysql.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="MySQL[十八]锁分析"/></a><div class="content"><a class="title" href="/2022/01/18/MySQL/MySQL%5B%E5%8D%81%E5%85%AB%5D%E9%94%81%E5%88%86%E6%9E%90/" title="MySQL[十八]锁分析">MySQL[十八]锁分析</a><time datetime="2022-01-17T16:00:00.000Z" title="发表于 2022-01-18 00:00:00">2022-01-18</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('/images/cover/mysql.png')"><div id="footer-wrap"><div class="copyright">&copy;2021 - 2022 By 二十</div><div class="footer_custom_text">树是生活，埋的是我。看花就好，别看我落魄。</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="font-plus" type="button" title="放大字体"><i class="fas fa-plus"></i></button><button id="font-minus" type="button" title="缩小字体"><i class="fas fa-minus"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div id="local-search"><div class="search-dialog"><div class="search-dialog__title" id="local-search-title">本地搜索</div><div id="local-input-panel"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div></div><hr/><div id="local-search-results"></div><span class="search-close-button"><i class="fas fa-times"></i></span></div><div id="search-mask"></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/search/local-search.js"></script><div class="js-pjax"></div><script src="https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js"></script><script src="/js/chocolate.js"></script><script defer="defer" id="fluttering_ribbon" mobile="true" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/canvas-fluttering-ribbon.min.js"></script><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="true" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/canvas-nest.min.js"></script><script id="click-show-text" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/click-show-text.min.js" data-mobile="false" data-text="二十,二十二十,二十二十二十,二十二十二十二十,二十二十二十二十二十" data-fontsize="15px" data-random="true" async="async"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
